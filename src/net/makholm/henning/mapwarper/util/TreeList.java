@@ -16,6 +16,10 @@ public final class TreeList<T> extends AbstractList<T> {
       return new TreeList<>(a, b);
   }
 
+  public static <T> List<T> concat(List<T> a, List<T> b, List<T> c) {
+    return concat(a, concat(b, c));
+  }
+
   private final List<T> a, b;
   private final int asize, bsize;
 

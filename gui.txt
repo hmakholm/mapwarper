@@ -404,17 +404,17 @@
            tættest på klikket, bliver nyt aktivt segmet.
          * mens Ctrl holdes nede, vises de udpegede segment med
            rød indikering.
->  Særhandlinger for "bound":
->    - Alt-KLIK: Ny tangent i enden af kæden. Tag den ende af kæden
->      hvis endepunkt er tættest på. Sidste segment i kæden erstattes
->      af et segment gennem det gamle endepunkt og klikpunktet. Gamle
->      næstsidste knude flyttes til skæringspunktet mellem det nye
->      sidste segment og det gamle næstsidste.
->    - Alt-TRÆK: Ny tangent i midten af kæden. Det nye segment går
->      gennem endepunkterne for trækket. Det splejses ind ved den
->      eksisterende knude i kæden der er tættest på
->      startpunktet. Denne knude erstattes af to nye knuder i
->      skæringspunkterne.
+   Særhandlinger for "bound":
+     - Alt-KLIK: Ny tangent i enden af kæden. Tag den ende af kæden
+       hvis endepunkt er tættest på. Sidste segment i kæden erstattes
+       af et segment gennem det gamle endepunkt og klikpunktet. Gamle
+       næstsidste knude flyttes til skæringspunktet mellem det nye
+       sidste segment og det gamle næstsidste.
+     - Alt-TRÆK: Ny tangent i midten af kæden. Det nye segment går
+       gennem endepunkterne for trækket. Det splejses ind ved den
+       eksisterende knude i kæden der er tættest på
+       startpunktet. Denne knude erstattes af to nye knuder i
+       skæringspunkterne.
    Særhandlinger for "straight":
      - Alt-TRÆK i en knude: Knuden flyttes, men kun langs det
        udglattede spors tangent i punktet.

@@ -380,10 +380,14 @@ class EditTool extends Tool {
   }
 
   protected TrackNode global2node(Point global) {
+    return global2node(global, 1);
+  }
+
+  protected TrackNode global2node(Point global, int size) {
     long x = Math.round(global.x);
     long y = Math.round(global.y);
     int mask = Coords.EARTH_SIZE-1;
-    return new TrackNode((int)x&mask, (int)y&mask, 1);
+    return new TrackNode((int)x&mask, (int)y&mask, size);
   }
 
   class EditToolResponse implements ToolResponse {
@@ -454,6 +458,9 @@ class EditTool extends Tool {
   private CircleOverlay circleCursor(Point local, TrackNode node, int mod1) {
     int rgb = ctrlHeld(mod1) ? DELETE_HIGHLIGHT : kind.rgb;
     if( node != null ) {
+      if( node.size == 0 )
+        return new CircleOverlay(rgb, 10,
+            translator().global2localWithHint(node, local));
       int circleDiameter = diameterAt(node);
       if( circleDiameter > 15) {
         return new CircleOverlay(rgb, circleDiameter,
