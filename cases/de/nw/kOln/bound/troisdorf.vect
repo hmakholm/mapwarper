@@ -1,0 +1,15 @@
+coords web-mercator 2^30
+showtrack ../spor5.vect
+nocross
+usebounds hbf.vect
+node 557690200::359744696 16
+  bound
+node 557715320::359751592 16
+  bound
+node 557730808::359761592 16
+  bound
+node 557729976::359762624 56
+  bound
+node 557718488::359755832 16
+  bound
+node 557715256::359754328 16

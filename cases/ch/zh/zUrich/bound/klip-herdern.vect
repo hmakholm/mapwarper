@@ -1,0 +1,13 @@
+coords web-mercator 2^30
+usebounds hb.vect
+node 562197872::375944912 32
+  bound
+node 562205392::375947664 32
+  bound
+node 562219425::375949074 16
+  bound
+node 562238656::375955491 16
+  bound
+node 562248476::375959591 16
+  bound
+node 562262370::375966432 16

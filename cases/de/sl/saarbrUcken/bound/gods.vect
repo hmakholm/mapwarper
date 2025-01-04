@@ -1,0 +1,31 @@
+coords web-mercator 2^30
+showtrack ../gods.vect
+showtrack ../opst.vect
+usebounds hbf.vect
+node 557690016::367639904 64
+  bound
+node 557693984::367639968 64
+  bound
+node 557702048::367636448 64
+  bound
+node 557722528::367635680 64
+  bound
+node 557730784::367639072 64
+  bound
+node 557734176::367639904 64
+  bound
+node 557739168::367639968 64
+  break
+node 557740811::367646210 16
+  bound
+node 557721568::367637088 64
+  bound
+node 557703520::367637408 64
+  bound
+node 557700320::367638176 64
+  bound
+node 557697760::367639648 64
+  bound
+node 557696288::367640736 64
+  bound
+node 557692704::367644192 64

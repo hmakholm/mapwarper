@@ -1,0 +1,22 @@
+coords web-mercator 2^30
+showtrack ../spor9.vect
+nocross
+usebounds ydre.vect
+usebounds pbf.vect
+node 572653888::357109152 224
+  bound
+node 572683104::357098912 64
+  bound
+node 572694752::357094560 64
+  bound
+node 572724704::357079136 64
+  bound
+node 572730144::357076576 64
+  break
+node 572720992::357077536 64
+  bound
+node 572735904::357079264 64
+  break
+node 572724704::357082656 64
+  bound
+node 572731040::357076896 64

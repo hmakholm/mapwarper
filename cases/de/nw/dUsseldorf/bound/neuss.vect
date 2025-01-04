@@ -1,0 +1,22 @@
+comment FRegionaltog mod Neuss
+coords web-mercator 2^30
+usebounds hbf.vect
+node 557121912::358450424 16
+  bound
+node 557119960::358455176 16
+  bound
+node 557117907::358458227 16
+  bound
+node 557115797::358460823 16
+  break
+node 557116379::358461681 16
+  bound
+node 557118735::358459453 16
+  bound
+node 557121015::358456815 16
+  bound
+node 557122488::358454030 16
+  bound
+node 557125260::358449860 16
+  break
+node 557141275::358414592 16

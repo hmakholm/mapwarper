@@ -1,0 +1,131 @@
+Mapwarper v1 - about 2012
+Lived in the old trackmap.net CVS repo and didn't know it would
+eventually be considered "version 1".
+
+  A command-line program written in C, with a very clunky and
+  manual workflow:
+
+    1. Take screenshots of Google Maps showing in a browser.
+    2. Stitch them together in Gimp to a huge rectangular
+       map file.
+    3. Export to PNG, let the C program do a colorspace
+       transformation that shoves all the color information
+       into the green and blue channels and leaves the red
+       one blank. The program output PPM to stdout; remember
+       to pipe it to pnm2png by hand!
+    4. Load back into the Gimp and draw the desired warp
+       path on the red channel, encoded as the boundary between
+       light and dark pixels.
+    5. Export to PNG again, and let the C program have at it
+       for real. The program would trace the light-dark boundary
+       from image edge to image edge. This produces an ugly stair
+       path, so apply some polynomial fits with sliding averages
+       to create a smooth path. Warp along that, taking color
+       information from the green and blue channels and undoing
+       the color squeezing to produce real colors that can be
+       supersampled. Output PPM to stdout again.
+
+  This was fun for a while, but when I dusted it off 12 years later
+  to prepare for a trackspotting trip, several pain point emerged
+  in addition to the obvious clunkiness:
+
+    - The stitched maps I'd saved from 2012 were all exactly (what I
+      now know to be) z18 scale, but in the mean time, Google Maps had
+      acquired a fractional zoom feature.
+
+      It turned to be moderately difficult to keep it from making
+      minute changes to the scale between the the screenshots that I
+      would stitch together -- and apparently impossible to get it to
+      jump back to a fixed scale. So when the scale drifted, the work
+      so far was either lost or you decided that was as much as it was
+      ever going to be.
+
+    - The very large and necessarily rectangular stitched maps
+      measured hundreds of megapixels for large stations, which
+      strained Gimp's resources and several times crashed my laptop (I
+      suspect something vital inside X.org got OOM-killed ...)
+
+    - Warps could only stretch from edge to edge of the stitched map,
+      even if some of the distance was not particularly interesting.
+      The program allowed specifying multiple warps with one image, by
+      using even-odd rules for the pixel boundaries, but making the
+      warps cross each other required time-consuming and error-prone
+      pixel-for-pixel editing.
+
+      Lots of mental energy went into finding warp lines that would
+      cover the interesting features of the approaches at both ends of
+      the station and still pass through the platform area
+      _separately_ -- because even though warps could _cross_, they
+      couldn't _overlap_.
+
+Mapwarper v2, starting October 2024 (and didn't know it was version 2)
+
+  I discovered there were reasonably documented and stable APIs for
+  downloading aerophotos and maps in _tiles_ from Google and
+  Openstreetmap, rather than screencapping their web interfaces.
+
+  Decided to rewrite the whole thing from the ground up:
+
+   1. Each warp path would be defined by vectors, specifying
+      points along it in a global coordinate system and stored
+      textually instead of as a curve in an image file.
+
+      The warper would automatically download the necessary map tiles
+      to a local cache. To keep download volumnes in check, separate
+      boundary vector information would define how far out from the
+      track center to render when warping near each point. At first
+      these were attached to the track points, pretty quickly switched
+      to having separate segments define the warp bounds.
+
+   2. For _editing_ the vectors, the program (still command line)
+      would use Gimp essentially as a subroutine: It would write out a
+      map as PNG (based on appropriate tile downloads), decorated with
+      the track defined so far. I'd then edit this PNG in the gimp,
+      and the program would read it back and parse my changes into a
+      vector representation!
+
+   3. The editing PNGs would modify map pixel values into a special
+      "muted" gamut which excluded the special color values that had
+      special meaning for the vector editor. Among those special
+      values were "anchors" that declared in-band where in the global
+      coordinate system the map was for. Not all of the vector track
+      had to be visible in the edited bitmap; the non-visible part
+      would be recovered from a text representation the next time the
+      program ran.
+
+  This was written in Java, still purely command line, but using AWT
+  primitives for reading and writing bitmaps.
+
+  A breakthrough happened when I figured out I could also construct
+  the editing maps in a warped projection and do the editing there.
+
+  At first I imagined smoothing of the vector track would involve
+  deviating a bit from the precise stored node positions in order to
+  make the track smoother (which is why the vector format contains a
+  node _size_), but that never became necessary.
+  
+  Different "segment kinds" for enforced-straight lines and various
+  kinds of slews were invented during this period.
+
+  Some pain points also made themselves known:
+
+   1. The workflow involves switching back and forth between the
+      command line and Gimp. It was common to lose work due to
+      pressing "reload" in Gimp where it should have been "save",
+      or vice versa.
+
+   2. Editing was clunky in general, since everything had to be
+      conveyed either as pixels with particular magical RGB values,
+      or words on the command line. There was no such thing as moving
+      a node a bit; you could just delete the old one and place a new
+      one. But the program then had to essentially _guess_ how all the
+      nodes on the screen fit together a linear tracks. Even once I
+      got it to work somewhat _predictably_ it was still error-prone,
+      and cleaning up after it had made a misguess was difficult.
+
+Mapwarper v3, starting December 2024
+
+   This will be a GUI editor written in Java, sharing the *.vect file
+   format of v2, and also sharing some code where it makes sense, such
+   as how to create cubic splines from a list of segments. Other parts
+   will be rewritten to apply learnings from the v2 effort).

@@ -1,0 +1,8 @@
+comment Et overblik med minimal forvrænging, ret linje næsten til Schlieren
+coords web-mercator 2^30
+usebounds bound/hb.vect
+node 562105536::375909312 128
+  slew
+node 562117347::375914352 16
+  straight
+node 562341586::376003641 16

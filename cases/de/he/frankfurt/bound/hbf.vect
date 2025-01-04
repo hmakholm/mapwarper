@@ -1,0 +1,67 @@
+coords web-mercator 2^30
+showtrack ../overblik.vect
+showtrack ../spor03-04.vect
+showtrack ../spor08-09.vect
+showtrack ../spor13.vect
+showtrack ../spor18.vect
+showtrack ../spor24.vect
+showtrack ../gods.vect
+showtrack ../opst.vect
+showtrack ../vaerksted.vect
+nocross
+usebounds neckarbrUcke.vect
+usebounds niederrad.vect
+usebounds griesheim.vect
+node 562608800::363725536 64
+  bound
+node 562612384::363725152 64
+  bound
+node 562616992::363723680 64
+  bound
+node 562621024::363721312 64
+  bound
+node 562635232::363708576 64
+  bound
+node 562642400::363703872 224
+  bound
+node 562648416::363699488 64
+  bound
+node 562662560::363690656 64
+  bound
+node 562665432::363688824 16
+  bound
+node 562667159::363688388 16
+  bound
+node 562670120::363686680 16
+  bound
+node 562672024::363686584 16
+  bound
+node 562686432::363678240 64
+  bound
+node 562706784::363665888 64
+  bound
+node 562722528::363656800 64
+  break
+node 562715104::363648160 64
+  bound
+node 562699424::363657632 64
+  bound
+node 562689184::363664928 64
+  bound
+node 562680096::363665312 64
+  bound
+node 562670304::363671136 64
+  bound
+node 562662816::363677728 64
+  bound
+node 562650848::363685984 64
+  bound
+node 562627168::363699872 64
+  bound
+node 562625568::363700000 64
+  bound
+node 562622176::363702432 64
+  bound
+node 562616160::363705888 64
+  bound
+node 562612256::363710432 64

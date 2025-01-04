@@ -1,0 +1,842 @@
+> Linjer markeret med hakker til venstre er ting der (endnu?) ikke
+> er implementeret.
+
+      Hvor intet andet nævnes betyder "pixels" i UIet konventionelle
+      UI-pixels som antages at have en dpi på omkring 72-100 mht
+      ergonomi og detaljesynlighed.
+
+   Som standard er hele vinduet (skærmen) et kortvindue. Kortet kan
+   skubbes rundt med midterste museknap. Menuen vises kun ved
+   HØJREKLIK.
+
+   Statusbeskeder (fx om tile-download, eller hvilket zoomniveau eller
+   squeeze man har skiftet til) skrives til _stderr_. Det er ikke
+   videre GUI-agtigt, men passer lige så godt til mit workflow som en
+   selvstændig statuslinje.
+
+   Kommando (TAB): folder et ikke-modalt panel til at vælge filer frem
+   i venstre side. Samme kommando igen folder den tilbage.
+   Katalogvisningen kan opfriskes ved at folde væk og frem igen.
+
+   Kommando (BACKSLASH): til et sidepanel til højre med liste over
+   tilesets.  Her kan vælges grundkort, lup-kort, udfyldningskort.
+
+     Muligvis er panelerne altid i princippet til stede men blot
+     kollapset til en bredde på 0, og der vises altid en kant hvor man
+     kan ændre bredden med musen. Kommandoerne er da blot genveje til
+     at ændre bredden med.
+
+   Kommando: Luk programmet
+
+   På langt sigt kan man også tænke sig kommandoer til at lave
+   simultane views, men det bliver nok meget langt sigt.
+
+   Skitse til tastaturbindinger
+   ----------------------------
+
+     A: Tegn magisk autoslew (:arc displacement)
+     S: Tegn ret linje (:straight track)
+     D: Tegn slew (:displacement)
+     C: Tegn spor (:curved track)
+
+     B: Tegn grænse
+
+     Q: quick warp
+     W: google warp
+     E: google ortho
+     R: osm ortho
+
+     Skift-W: bing lup
+     Skift-E: google lup
+     Skift-R: osm lup
+     Skift-T: openrailmap lup
+
+     L: generel lup
+
+     U: teleport
+     Skift-U: unzoom
+
+     Ctrl-I: Skift sporretning
+
+     Z: Zoom
+     X: (Næsten) noop-tool
+
+     Ctrl-Z: Fortryd
+     Ctrl-Y: Ufortryd
+
+     Ctrl-X, Ctrl-C, Ctrl-V: Klip, kopier, klistr
+
+>    O: værktøj til at åbne en fil man peger på? 
+
+     Ctrl-O: Åbn ... (vil måske blot folde venstre panel ud)
+     Ctrl-S: Gem
+>    Ctrl-R: Genlæs
+     Ctrl-N: Ny fil
+     Ctrl-Q: Luk programmet
+
+     SPACE: Gem og opfrisk warp
+
+     +, -: zoom ind/ud (også scrollhjul)
+     [, ]: ændr opløsning for luppen
+     <, >: squeeze/stretch warp
+
+     1: 100% zoom
+
+     F1: 
+     F2:
+     F3:
+     F4:
+
+     F5:
+     F6:
+     F7: gør grundkort mørkere
+     F8: krumning til/fra
+
+     F9: andre marginer til/fra
+     F10: sigtekorn til/fra
+     F11: sporet selv til/fra
+     F12: explore
+
+   Kort og skalering
+   -----------------
+
+   Hvert tileset har et standard-zoom som normalt ikke overskrides; i
+   stedet får man pixeleret visning når man zoomer "for langt" ind.
+>  (Kan eventuelt ændres dynamisk med knapper i højre sidepanel?).
+
+      Openstreetmap og varianter: 16
+      Openrailwaymap: 18
+      Google, Bing: 18
+
+   Ved ændring af projektion og skalering er udgangspunktet at det
+   punkt musen peger på er fikspunkt. (Det er undtagelser, fx hvis man
+   zoomer ind med aktiv lup). Er musen ikke i vinduet bruges dets
+   midtpunkt i stedet.
+
+   Hver projektion definerer et rektangulært område som er det
+   maksimale der kan zoomes ud til:
+     - for web-mercator hele jordkvadratet
+     - for warps fx ca 5'000'000 koordinatenheder i hver ende af det
+       eksplicitte spor (hvilket svarer til 90-180 km afhængig af
+       breddegrad), og tilsvarende distance på tværs af warpet.
+
+   Det maksimale der kan zoomes _ind_ til er 128 pixels per
+   z18-kortpixel, dvs z25. Det giver en kortskala på omkring 1:14 ved
+   ækvator ... og et normalspor i Europa er omkring 500 pixels bredt).
+
+   Kommando: Unzoom.
+    * Skift til orthoprojektion med osm-kort. Vælg et zoomniveau hvor
+      hele den åbne fils indhold kan være i vinduet, dog ikke højere
+      end 16. Centrer denne bounding box.
+
+   Kommando: Teleporter.
+    * Hvis alle knuder i den åbne fil falder inden for en bounding box
+      på 10 pixels på hver led, så udfør en Unzoom.
+    * Ellers, hvis nogen knude i den åbne fil er synlig: Vælg den
+      knude som er _tættest_ på musen. Forskyd kortet så musen ender
+      under den anden ends af det af dens nabosegmenter den var
+      tættest på.
+    * Ellers: Find den nærmeste knude i den åbne fil (med en vis
+      forrang for spor). Hvis den er nærmere på musen end 10 gange
+      vinduets største dimension, så forskyd kortet så den ender lige
+      under musen.
+    * Ellers udfør en Unzoom.
+
+   Kommando: zoom ind/ud. I ordinær kortmode kan der kun zoomes til
+   toerpotenser, mest fordi zoom til fx 1.5 gange grundkortets zoom
+   bliver noget rod. Warpede modes giver mere frihed, og kommandoerne
+   zoomer i skridt på sqrt(2).
+
+      Sqrt2 ser også ud til at være hvad Gimp forsøger at tilnærme:
+         100 - 150 - 200 - 300 - 400 - 550 - 800 - 1100 - 1600
+            50%   33%   50%   33%   37%   45%   37%    45%
+      og inverse heraf.
+
+   Værktøj "zoom":
+    - TRÆK et område som der zoomes direkte til, i højeste zoom der
+      gør hele området synligt i vinduet.
+       * Hvis musen forlader vinduet før trækket slippes, annuleres det!
+    - KLIK for at zoome ind med 2^4 et enkelt skridt.
+    - Ctrl-KLIK for at zoome _ud_ med 2^4.
+
+    * Måske: der zoomes straks så længe Skift holdes nede?
+
+   Kommando "zoom 100%": Zoom ind/ud sådan at y-skalaen har en pixel i
+   grundkortets standardzoom per UI-pixel. Bevar ellers projektion og
+   grundkort.
+
+   Værktøj "explore": Gør ingenting, men så længe værktøjet er aktivt,
+   er vektorlaget usynligt.
+
+   Kommandoer: Slå komponenter af vektorlaget til og fra.
+
+   == Lup (eng. "lens") ==
+
+   Værktøj: lav et skærmområde som ekstraordinært bliver renderet med
+   et andet/bedre grundkort.
+     * Der er kun et lup-område ad gangen.
+     * Det flytter sig med kortet når man skubber det og bevares når
+       man zoomer ind og ud (men med uændret maxzoom for pixels i
+       luppen).
+>      Det kan dog ikke blive større end en skærm.
+     * Det overlever også spor-redigering, herunder skift til anden
+       sporfil.
+     * Ved skift af projektion eller grundkort forsvinder lup-området,
+       og lup-grundkortet nulstilles til det nuværende grundkort.
+     * Mens luppen er synlig kan man skifte lup-grundkort for luppen
+       blot ved KLIK i højre sidebar; dette nulstiller luppens
+       maxzoom.
+     * Værktøjet selv er uafhængigt af grundkort, men i højre
+       sidepanels kontekstmenu er en kommando der _både_ skifter
+       lup-kort og tænder for lup-værktøjet. Den kan bindes separat
+       til taster for forskellige lupkort.
+     * Luppen i warped mode tilsigter fuld kvalitet (grundkort og
+       oversampling) uanset marginer m.v.
+   Handlinger:
+     - TRÆK for at definere et rektangel. Max-zoomniveauet i et nyt
+       lup-område initialiseres til tilesettets standardzoom
+>      (Eller +1 hvis vi allerede viser netop dette tileset i standardzoom?)
+>    - Stretch goal? TRÆK rektanglet eller dets kanter for at ændre
+>      position og størrelse.
+>    - DOBBELTKLIK for at gøre hele skærmen til sådan et område.
+     - KLIK i området for at forhøje zoomniveauet i det (mindre
+       pixellering), dog kun indtil 1:1 i UI-pixels.  Lup-området
+       croppes om nødvendigt til vinduets kanter.
+     - Ctrl-KLIK for at formindske zoomniveauet (mere pixellering).
+     - KLIK udenfor området for at afskaffe det.
+     - ESC afskaffer også området.
+
+   Kommandoer (`[`, `]`): formindsk og forstør zoomniveauet i luppen
+
+   == Ortho-projektion ==
+
+   Standardvisning med konformt akseparallel grundkort. Kan kun zoomes
+   til toerpotenser.
+
+   Stræber altid efter at vise netop de rette tiles over hele skærmen.
+   Griber evt til udfyldingstiles midlertidigt mens de rigtige tiles
+   bliver downloadet.
+
+   "Netop de rette tiles" vil sige én tilepixel per GUI-pixel (hvilket
+   først og fremmest skal sikre at tekst på grundkortet er læselig),
+   dog højst det enkelte kortlags max-zoom.
+
+   Kommando: skift til ortho-projektion.
+     * Skalaen bliver grundkortets standardzoom hvis dette ligger
+       mellem den nuværende x-skala og y-skala. Ellers rundes den
+       nærmeste størrelse i dette interval i retning af standardzoomet
+       til nærmeste toerpotens.
+     * Var den hidtidige projektion også ortho, sker der hermed ingen
+       ændring af projektionen overhovedet, og der er nok en optimeret
+       implementationen for dette tilfælde. Fx kan det ekisterende
+       kortlag genbruges mens nye tiles fremskaffes.
+     * Menuvalget er i højre sidebars kontekstmenu, så der kan
+       konfigureres forskellige shortcuts til forskellige grundkort.
+     * Dette er også aktionen ved KLIK i højre sidebar når
+       "lup"-værtøjet ikke er aktivt.
+
+   == Warp-projektion ==
+
+   Udenfor marginer altid uden oversampling. Fra grundkortet hvis det
+   er cachet, ellers fra udfyldningstiles.
+
+   Indenfor marginer bruges grundkortet med oversampling, så snart de
+   rette tiles er downloadet.
+
+   Der bruges ikke slew granularity (vi er ikke bundet af kortets
+   opløsning mht hvor nøjagtigt vi kan vise slews når man zoomer ind).
+
+   Hvis man har zoomet ud i forhold til standardzoom, bruges en særlig
+   prioritetsfølge indenfor marginerne for at undgå for mange
+   tile-downloads:
+    1. Det korrekte zoomniveau for y-skalaen _hvis det er cachet_.
+    2. Standardzoomet _hvis det er cachet_.
+       (Men kun med den beregnede oversampling for 1 -- denne visning
+       er alligevel mest til grov navigation).
+    3. Ellers bestil download af det korrekte zoomniveau og vis i
+       mellemtiden data fra udfyldningstiles uden oversampling.
+
+   Kommando: skift til warp-projektion
+     * Altid baseret på nuværende spor. Men efter man er skiftet, kan
+       man skifte fil uden at miste projetionen. Der er ikke nogen
+       direkte måde at skifte warp til et andet grundkort uden at have
+       det underliggende spor valgt, andet end midlertidigt med
+       luppen.
+     * Hvis den åbne fil ikke har nogen sporsegmenter eller der er
+       mere end en sporkæde, kan man ikke skifte til warp.
+     * Menuvalg findes i højre sidebars kontekstmenu. Der kan
+       konfigureres shortcuts til forskellige kortgrundlag. I praksis
+       nok altid Google.
+     * Zoomer straks _ind_ så y-skalaen svarer til grundkortets
+       standardzoom, korrigeret for skærmopløsning. Hvis y-skalaen
+       allerede er stor nok, bevares den.
+
+   Kommando: Sæt squeeze op/ned.
+     * Kun heltallige squeezes er nok nødvendige.
+>    * Har måske et UI i højre sidebar.
+     * Virker også i quick warp.
+
+   Warpet baserer sig på en _kopi_ af vect-filerne som de så ud da man
+   valgte projektionen. Så man kan redigere sporet uden at alting
+   hopper op og ned hver gang man har ændret på noget.
+
+   Kommando (SPACE): Gem alle ændringer og opfrisk det nuværende warp.
+     * Hvis projektionen ikke er et warp, gemmes ændringer alligevel.
+     * Man kan opfriske warpet uden at gemme ved at bruge "skift til
+       warp" i stedet. Men det synes fornuftigt at den nemme binding
+       implicit også sørger for at autosave. :-)
+
+   == Anonymt warp ("quickwarp") ===
+
+   Det anonyme warp er en affin projektion hvor vi kan tegne spor som
+   bløde kurver.
+
+   Viser pixels med oversampling fra grundkortet HVIS grundkortet
+   allerede er cachet i alle oversample-punkterne. Ellers fra
+   udfyldningstiles uden oversampling. Med andre ord er der ikke nogen
+   fastlagte marginer.
+
+   Lup-værktøjet kan bruges til at fremtvinge download af tiles der
+   ikke allerede findes.
+
+>   TODO: disse downloads slår ikke igennem på allerede oprettede
+>   render-tiles i grundkortet.
+
+   Værktøj: skift til quick warp
+     * Der er kun et af disse -- det bevarer det allerede valgte
+       grundkort og y-skala.
+   Handlinger:
+     - TRÆK en linje hvis endepunkter får samme vandrette niveau i det
+       nye anonyme warp. Standardreglen medfører at det punkt hvor man
+       slipper musen vil bevare sin position.
+     - KLIK hvis man er i warped projektion for at ekstrapolere affint
+       fra et specifikt punkt.
+     - Skift-KLIK: samme, men den nye projektion viser sig allerede
+       fra man trykker Skift ned. (Stretch goal).
+>    - ESC for at skifte tilbage til seneste ikke-anonyme projektion
+>      og position.
+>       * hvis dette var et warp hvis spor i mellemtiden er ændret,
+>         får man et warp med det nye spor. Hvis det i mellemtiden er
+>         blevet ikke-warpbart, får man et fejlbip.
+>       * gør ingenting hvis den aktuelle projektion ikke er anonym,
+>         men hukommelsen overlever skift til andre værktøjer såsom
+>         lup og redigering.
+>       * ud over projektionen er de data der bliver husket de
+>         virkelige koordinater for det oprindelige slip-punkt, samt
+>         dettes _relative_ position i forhold til vinduet, så tingene
+>         stadig giver mening hvis vinduet i mellemtiden har ændret
+>         størrelse.
+>       * hvis der ikke er foretaget redigering siden skiftet til
+>         anonym projektion er dette ekstraordinært også betydningen
+>         af Fortryd, selv når det anonyme værktøj ikke er aktivt.
+>         - Hmm, kan det tænkes sammen med fortrydelse af at opfriske
+>           warp-grundlag?
+
+   Redigering af spor og grænser
+   -----------------------------
+
+   En vect-fil kan indeholde flere segmentkæder, som hver enten er
+   spor eller grænser. De to kategorier "spor" og "grænser" kaldes i
+   det følgende "klasse". Klassen "spor" er yderligere inddelt i
+   forskellige segmenttyper.
+
+   En af segmentkæderne kan være "aktiv". Det skal den være før man
+   kan redigere i den. Inaktive kæder af den klasse som det valgte
+   redigeringsværktøj kan arbejde med, vises i en afvigende farve.
+   (Når andre værktøjer er aktive, vises alle segmentkæder med deres
+   fulde farve).
+
+     Implementeret som: det er faktisk sigtekornene der angiver
+     tilstanden; så behøver vi ikke finde på konsistent afvigende
+     farver for alle segmenttyperne.
+
+   Værktøj: Rediger segmenter.
+     * Der er et af disse for hver segmenttype.
+     * Når værktøjet vælges, fjernes aktiv-markeringen fra en evt.
+       aktiv kæde af gal klasse. Hvis der dernæst ikke er nogen aktiv
+       kæde men filen indeholder netop ét segment af den rette klasse,
+       bliver denne aktiv. Samme logik følges hvis man skifter fil
+       mens værktøjet er aktivt.
+     * Så længe Skift holdes nede vises sporet som det ville blive
+       tegnet efter et klik.
+     * Mens værktøjet er aktivt, vises et penselomrids svarende til en
+       cirkel med diameter 1435 virkelige mm, hvis dette er mere end
+       nogen få pixels. I meget høje zooms kan man se at cirklen
+       centreres om de heltallige globale koordinater næste knude
+       ville få.
+>      - TODO: Kan størrelsen ændres i tilfælde af smal- eller
+>        bredspor?
+   Handlinger:
+     - KLIK nær et inaktive segment af den rette klasse for at gøre
+       den inaktive kæde aktiv (i stedet for den nuværende, hvis der
+       er en aktiv kæde).
+     - KLIK langt fra eksisterende segmenter mens der ikke er nogen
+       aktiv kæde. Der dannes en ny aktiv kæde med en enkelt knude og
+       ingen segmenter.
+     - ESC for at gøre den aktive kæde inaktiv. Hvis den kun havde et
+       punkt, forsvinder det helt.
+     - KLIK et segment i den aktive kæde som har en anden type end det
+       værktøjets. Segmentet ændrer type.
+     - KLIK i alle andre situationer tilføjer en ny knude til den
+       aktive kæde. Den ny knude forbindes til nærmeste knude i kæden
+       med et segment af værktøjets type.
+         * Hvis den nærmeste knude har to nabosegmenter allerede,
+           indsættes i det af dem som giver den mindst spidse vinkel i
+           den nye knude. Det eksisterende segment bevarer sin type.
+         * Hvis den nærmeste knude er et endepunkt bliver den nye
+           knude enten nyt endepunkt eller næstsidste knude, alt efter
+           hvad der giver den mindst spidse vinkel i det der så bliver
+           næstsidste knude.
+     - TRÆK en aktiv knude for at flytte den.
+         * De tilgænsende segmenter bevarer deres type, uanset
+           værktøjet!
+     - KLIK enden af en inaktiv kæde for at sætte den sammen med den
+       aktive kæde, hvis de matchende ender af de to kæder passer
+       nogenlunde sammen i retningerne.
+     - Ctrl-KLIK på en aktiv knude for at slette den.
+         * hvis det var et indre punkt, forbindes dets to naboer i
+           stedet af et nyt segment af værktøjets type.
+         * mens Ctrl holdes nede, vises en indikering af de segmenter
+           der bliver erstattet af nyt.
+     - Ctrl-KLIK på et aktivt segment for at slette det.
+         * hvis det valgte segment havde naboer på begge sider,
+           splittes sporforløbet i to. Det af de to dele der var
+           tættest på klikket, bliver nyt aktivt segmet.
+         * mens Ctrl holdes nede, vises de udpegede segment med
+           rød indikering.
+>  Særhandlinger for "bound":
+>    - Alt-KLIK: Ny tangent i enden af kæden. Tag den ende af kæden
+>      hvis endepunkt er tættest på. Sidste segment i kæden erstattes
+>      af et segment gennem det gamle endepunkt og klikpunktet. Gamle
+>      næstsidste knude flyttes til skæringspunktet mellem det nye
+>      sidste segment og det gamle næstsidste.
+>    - Alt-TRÆK: Ny tangent i midten af kæden. Det nye segment går
+>      gennem endepunkterne for trækket. Det splejses ind ved den
+>      eksisterende knude i kæden der er tættest på
+>      startpunktet. Denne knude erstattes af to nye knuder i
+>      skæringspunkterne.
+   Særhandlinger for "straight":
+     - Alt-TRÆK i en knude: Knuden flyttes, men kun langs det
+       udglattede spors tangent i punktet.
+   Særhandlinger for "slew" og "autoslew":
+     - Alt-TRÆK i en knude: Delkæden indtil næste slew-segment i hver
+       ende flyttes sidelæns!
+         * Hvis man trækker en knude i enden af sådan en delkæde,
+           snapper forskydningen evt til en position hvor
+           sideforskydningen er 0.
+>        * Sådan et snap ved "slew - straight" konverterer til en
+>          enkelt "straight".  Snap ved "autoslew - straight"
+>          konverterer til ordinært spor hvis begge ender af det nye
+>          segment har retning forankret i en "straight".
+>             Hmm, det er vist pålideligere at gøre manuelt.
+
+   Kommando: Skift sporretning
+     * vender rækkefølgen af den aktive sporkæde om
+>    * kan også bruges hvis vi implementerer sidefølsomme marginer
+
+   Kommando: Kopier.
+     * Den aktive segmentkæde kopieres til clipboard i .vect format.
+>         P.t. ikke integreret med med system-clipboardet.
+>    * Er der ingen aktiv segmentkæde kopieres hele filen (med
+>      'usebounds' angivet som absolutte stier).
+
+   Kommando: Klip
+     * Den aktive segmentkæde kopieres til clipboard i .vect-format
+       og slettes herefter.
+
+   Kommando: Klistr
+>    * Hvis clipboard indeholder tekst der kan parses som .vect,
+>      tilføjes alle dens segmentkæder til den åbne fil.
+>      Eventuelle 'usebounds' tilføjes også som anvendte grænsefiler.
+
+   Filhåndtering
+   -------------
+
+   Opførslen af visse betjeningshandlinger skelner mellem grænsefiler
+   og sporfiler. En fil er grænsefil hvis den på det givne tidspunkt
+   indeholdt mindst ét grænsesegmet og ingen sporsegmenter. En tom fil
+   tæller således som således en sporfil.
+
+   Venste sidebar viser en trimmet træstruktur ned til et
+   fokuskatalog.  I hvert katalog på vejen vises `*.vect`-filer.
+   Derudover vises underkataloger i fokuskataloget selv.
+
+   Særlige markeringer for filer som er
+     1. Den p.t. åbne fil.
+        (fed skrift)
+     2. Kilden til p.t. anvendte warp-projektion, inkl dennes grænser.
+        (kursiv)
+     3. Filer hvis indhold af _spor_ bliver vist ud over den åbne fil.
+        I modsætning til kommandolinje-mapwarperen bliver dette ikke
+        persisteret i filen selv.
+        (øje-ikon)
+     4. "Usebounds"-filer hvis grænser skal bruges når der konstrueres
+        et warpet koordinatsystem. Disse grænser vises også så snart
+        det relevant spor tegnes, hvad enten det er i sin egen ret
+        eller fordi det er slået til som ekstravisning.
+        Navnene på disse filer _bliver_ persisteret når filen gemmes,
+        men kun hvis den fil der skrives er en sporfil.
+        (grøn bullet?)
+     5. Filer der er ændret i RAM og endnu ikke gemt.
+     6. Filer der er nye fra kommandolinjen eller nævnt som usebounds
+        men ikke synes at findes i kataloget når vi lister det.
+     7. Filer hvis indhold ikke kunne læses/parses.
+
+   Hvis en af disse filer ligger i et katalog der ikke er på stien
+   til fokuskataloget, vises det første afvigende sti-element
+   estraordinært i sidepanelet med den relevante markering.
+
+   KLIK på et katalog gør det til nyt fokuskatalog.
+>  Hvis der var en sidegren med særlige markeringer på kataloget,
+>  flytter fokus videre nedad så længe det er entydigt hvor det
+>  skal flytte hen.
+
+   KLIK på den åbne fil gør ingenting.
+
+   KLIK på ikonkolonnen i en anden fil skifter om den nævnes
+   i usebounds -- eller, _hvis_ dette ikke er muligt fordi filklasserne
+   ikke passer -- om dens indhold blot vises is mapvinduet.
+
+   KLIK en fil for at åbne den.
+    * Hvis den åbne fil ikke har et navn, men har indhold, bliver der
+      vist en hovsa-dialog.
+    * Hvis den nye fil er en sporfil fjernes alle p.t. viste andre
+      filer, og den nye fils egne "usebounds" gøres til viste filer.
+    * Der udføres en passende heuristik for at finde ud af om den
+      tidliger åbne file i det mindste skal være _vist_ efter åbningen.
+    * Hvis der herefter er nogen _knuder_ at vise i filen, men ingen
+      af dem er synlige, udføres en Teleport.
+
+>  Kommando (hårdtkodet til Ctrl-TAB): Skift mellem indlæste filer
+>   * Cykler gennem alle de p.t. indlæste filer
+>   * Rækkefølgen fastlægges ved det første tryk:
+>      - Filer der p.t. _vises_ har forrang.
+>      - Herefter sorteres efter hvor langt hver fils nærmeste knude
+>        er fra musen (i globale koordinater).
+>   * Den nye projektion/position/skala for hver af filerne bliver
+>     også altsammen beregnet på en gang ved første tryk. Så hvis man
+>     kommer hele vejen rundt i cyklen får man sin oprindelige
+>     position tilbage.
+>   * Denne forudberegnede rækkefølge og positioner glemmes hvis
+>      - Ctrl slippes, eller
+>      - den åbne fil ændrer sig af andre årsager (såsom pludselig
+>        Ctrl-N mens man er i gang med at cykle).
+>   * Mens denne facilitet er aktiv, undertrykkes funktionaliteten af
+>     _værktøjer_, både reaktion på museklik og hypotetisk visning af
+>     resultatet af et klik.
+>   * Ctrl-ESC nulstiller cyklen og skifter tilbage til den
+>     oprindelige fil.
+
+>  Hver fil har en kontekstmenu med valgene
+>   - Åbn.
+>   - Fjern/tilføj som vist spor.
+>   - Fjern/tilføj som relevant grænse.
+>     Tilføjelse giver fejl hvis filen ikke har grænsesegmenter
+>     (men det er OK hvis den tæller som "sporfil" fordi den har
+>     segmenter af begge slags???)
+
+   Kommando: Gem
+     * Indholdet af flere foreskellige vect-fil kan være i RAM mens
+       man skifter mellem dem, og de kan alle være rettet.
+     * Kommandoen gemmer alle ændringer.
+>    * Filer der hverken er i brug eller vist i sidepanelet droppes
+>      fra RAM-cachen.
+     * Hvis den "åbne" fil ikke har et navn endnu vises en Gem
+       Som-dialog initialiseret til fokuskataloget.
+
+>  Kommando: Gem Som
+     * Giver (nyt) navn til den "åbne" fil, og gemmer alting.
+     * Kataloget der gemmes i bliver fokuskatalog _undtagen_ hvis den
+       nye fil skrives i et katalog der er præfiks til det
+       eksisterende fokuskatalog.
+
+>  Kommando: Genlæs
+>    * Virker på alle viste eller brugte filer, ikke kun den åbne fil
+>      der bliver redigeret.
+
+   Kommando: Ny fil
+     * Svarer til at åbne en anonym tom fil (som bliver en sporfil),
+>      _bortset fra_ at hvis den p.t. åbne fil ikke er tom, bliver den
+>      også vist.
+
+   == Opstart ==
+
+   Hvis der angives en .vect-fil på kommandolinjen, bliver dens
+   katalog fokuskatalog. Hvis navnet på et katalog angives, er det
+   fokuskatalog; ellers bruges arbejdskataloget.
+
+   Hvis filen fra kommandolinjen findes, indlæses den.
+
+   Indeholder den også knuder bruges bounding-boxen for som initielt
+   kortudsnit. Ellers, hvis den indeholder 'usebounds'-direktiver
+   indlæses de filer disse henviser til og deres knuder dirigerer det
+   initielle kortudsnit.
+
+   Hvis der stadig ikke er noget initielt kortudsnit, eftersøges
+   fokuskataloget for .vect-filer og alle deres knuder bruges.
+
+   Giver det heller ikke noget resultat, falder vi tilbage til en
+   hårdtkodet box for København "rundt om husene".
+
+   Venste sidebar er synlig _undtagen_ hvis vi fandt punkter i en
+   udtrykkeligt angivet .vect-fil.
+
+   Der udføres nu en Unzoom til den resulterende bounding box.
+
+   Nu er programmet i princippet driftklart med en kortprojektion og
+   en (tom, anonym) vect-fil.
+
+   Var der en fil på kommandolinjen, kan den nu åbnes med samme kode
+   som normalt. (Findes denne fil ikke, bliver den i stedet navn på
+   den anonyme startfil).
+
+   Implementationsnoter
+   ====================
+
+   Vect-filer og deraf afledte data
+   --------------------------------
+
+   Hver redigeringstilstand af en fil representeres af et _uforanderligt_
+   objekt hvor
+     - indholdet allerede er splittet op i segmentkæder
+     - sporkæder har en smoothing beregnet.
+
+   Ved redigering konstureres et nyt sådant objekt efter behov. Disse
+   objekter gemmes bl.a. i fortryd-listen. Meget kortlivede instanser
+   bruges til at tegne hypotetiske spor efter mens når Skift/Alt/Ctrl
+   er trykket.
+
+   TrackNode.pixcoords (endsige LocalPoint-klassen) anvendes ikke.
+
+   Der findes en RAM-cache af filer læst fra disk. Flere af dem kan
+   være redigeret senere. I så fald husker cachen også den
+   repræsentation der sidst blev _læst_ fra disk; den kan bruges til
+   at vælge en git-venlig rækkefølge a sporkæderne når de bliver
+   skrevet ud som fil igen.
+
+   Projektioner og koordinater
+   ---------------------------
+
+   1. Globale koordinater efter web-Mercator×2^30.
+      - Som heltal til knuder i segmentkæder, og til addresering af
+        pixels i korttiles.
+      - Som doubles til i princippet alle andre anvendeler
+
+   2. Projicerede koordinater ifølge en projektion
+      - Altid doubles.
+        (I modsætning til kommandolinjewarperen gælder det også
+        x-koordinaten af en warpet projetion).
+      - For ortho-projektion er det de samme som globale koordinater
+      - Warpede projektioner har deres egne koordinater, hvor y-aksen
+        har samme skala som globale koordinater.
+
+   3. UI-skalerede koordinater
+      - Skaleret fra projicerede koordinater så skalaen passer på det
+        ønskede zoomniveau.
+      - Nulpunktet er det samme som projektionens.
+      - Altid doubles: de kan være større end 2^32 når der er zoomet
+        tæt ind.
+      - Bruges til tegning af spor og UI-elementer i kortvinduet, samt
+        til fortolkning af brugerhandlinger.
+      - Musepositioner m.v. bliver translateret til disse koordinater
+        før de bliver vist til den specifikke kode for værktøjer og
+        kommandoer.
+
+   4. UI-koordinater med andre nulpunkter
+      - Flere forskellige varianter, men alle disse holdes tæt
+        indkapslet i framework-specifik kode, hvor der kan være brug
+        for kompliceret integration for at håndtere gentegning og
+        interakiv scrolling.
+
+   En projektion repræsenteres af et objekt der er letvægts nok til at
+   blive gemt i fortryd-listen.
+
+   Dette objekt kan oprette et ikke-trådsikkert _arbejdsobjekt_ som
+   stǻr for den faktiske oversættelse mellem globale og projicerede
+   koordinater.
+
+   Oversættelsen fra global til projiceret er kompliceret for warps.
+   Resultatet vil nok blive cachet internt (med par af doubles
+   som nøgler!); det er derfor arbejdsobjektet ikke er trådsikkert.
+
+   Ud over enkelte punkter kan arbejdsobjektet også oversætte splines
+   fra globale til projicerede koordinater. Det giver ikke-affine
+   warps mulighed for at repræsentere kurver med forskelligt
+   ambitionsniveau: fra at gøre alle segmenter til blot lineTo til at
+   splite dem i dele der kan repræsenteres hver for sig som splines.
+
+   Gentegningsstyring
+   ------------------
+
+   Vinduesindholdet sammensættes løbende af flere lag som opdateres
+   asynkront hver for sig:
+
+   1. Kortlag, evt warpet.
+   2. Evt overliggende kortlag fra lup-værktøjet.
+   3. Vektorlag med spor m.v.
+   4. Kortlivet GUI-lag -- penselomrids; udtrækning af rammer og linjer.
+
+   Det langhårede integrationskode er ansvarlig for at koreografere og
+   kompositere disse lag, men de enkelte lag bør ikke være specielt
+   langhårede. De afhænger af et konkret udvalg af grafikprimitiver,
+   men det er vel begrænset hvor _strukturelt_ forskellige sådan nogen
+   kan være.
+
+   1. Kortlag
+   ----------
+
+   En projektion (inklusiv valg af skala) beskriver et i princippet
+   uendeligt koordinatsystem der som udgangspunkt addresseres med
+   doubles.
+
+     (Som nævnt ovenfor erklærer projektionen en ydergrænse for sit
+     brugbare område, men det er en UI-feature der begrænser hvilke
+     zooms og positioner man kan _vælge_, og er ikke specielt til
+     stede i renderingen).
+
+   Som udgangspunkt kan projektionen rendere sine kortdata i 256×256
+   pixels tiles som er skaleret med en toerpotens i forhold til dens
+   koordinatsystem, og hvor disse pixels stemmer med et
+   heltalsmultiplum af tilestørrelsen.
+
+     (Disse er specielt lette at rendere fordi de selv ved
+     udfyldningskort ligger helt indenfor en enkelt korttile).
+
+     (Faktisk implementeret ved at alle projektioner kan lave tiles
+     i hvilkensomhelst størrelse og placering koreografen vil have
+     dem til. Det synes irrelevant at implementere optimeringer der
+     kun giver mening for orthoprojektioner).
+
+>  Warpede projektioner kan lige så let rendere med en flydendetals
+>  skala. Koreografen kan da vælge at justere den skala den beder om,
+>  så hver renderet tile svarer til 256×256 device-pixels i stedet.
+
+>     * Dette er et strech-goal og implementeres ikke i første omgang.
+
+>     * Det vil muligvis give mening kun at anvende denne strategi til
+>       luplaget, så vi sparer arbejde.
+
+>     * På den anden side: Hvis device-pixels er meget små kan vi
+>       stedet slå oversampling i renderingen fra (eller tage færre
+>       samples), og måske dermed spare en tilsvarende mængde arbejde?
+>       Det virker dog kun indenfor marginerne ...
+
+   Renderingen sker asynkront i baggrundstråde. Fra tid til anden (og
+   ihvertfald når renderingen er færdig) kan renderen sende en
+   invalideringsevent til koreografitråden, som dernæst kopierer
+   pixels fra bitmapper i parallel med evt videre rendering
+   (efterhånden som mere detaljerede tiles bliver downloadet, eller
+   oversampling af warpede lag bliver færdig).
+
+      Tråd-allokering til rendering kan gøres vældig spidsfindig: I
+      warp-projektioner vil hver tile starte med at rendere helt uden
+      oversampling, og vi går først i gang med oversampling når alle
+      tiles har fået en chance for det.
+
+>     Der kan måske endda laves flere runder af stadig højere
+>     oversampling. (Næppe besværet værd).
+
+      Indenfor hvert nøjagtighedsniveau har tiles tæt på musen
+      prioritet.
+
+      (Selv på en 4K-skærm med device pixels vil der højst være 160
+      tiles i kø, så omkostningen ved at løbe listen igennem og
+      sammenligne med musepositionen hver gang vil være forsvindende).
+
+   Download af tiles: foregår asynkront efter bestillinger foretaget
+   under kort-renderingen. Tiles med lave zoomniveau (og dermed større
+   udstrækning) har forrang, således at vi hurtigt i det mindste kan
+   vise _noget_.
+
+   Et kortlag der får brug for en udfyldningspixel _spørger_ både sin
+   eget tilekilde og udfyldnings-kilden (hårdtkodet som "osm"?) i alle
+   skalaer fra sin idealskala og nedefter. Rækkefølgen de spørges i
+   indebærer en afvejning af om bedre opløsning eller korrekt
+   oprindelse har forrang.
+
+   Kortlaget _bestiller_ kun tiles til udfyldning som er (a) fra
+   udfyldningskilden, (b) mindst to zoomniveauer over idealskalaen, og
+   (c) ikke zoomet nærmere end y-skalaen, og er (d) på et _ulige_
+   niveau, og (e) ikke har længere sidelængde end længste diagonal af
+   vinduet. Det begrænser hvor meget download vi laver blot af hensyn
+   til udfyldning.
+
+     (b) og (d) medfører tilsammen at et warp med z18-basis som
+     standard bliver udyldt fra z15, hvilket er forholdvis billigt i
+     download, men detaljeret nok til at følge forløbet af banen og
+     udvide warpet.
+
+   2. Lup-værktøjet
+   ----------------
+
+   Luppen virker ved at bede projektionen om tiles med en anden
+   tileset-konfiguration.
+
+   Luplaget bruger aldrig udfyldning; i stedet lader det sin
+   uddatatile stå uændret indtil de rette grundkorttiles
+   foreligger. Denne uddatatile starter livet som gennemsigtig, og
+   koreografen sørger da for at kompositere udfylding fra det normale
+   grundkort oveni.
+
+>    - Ved skift af lup-tileset bevares i stedet hvad den forrige lup
+>      nåede frem til, indtil vi kan erstatte med korrekt indhold.
+
+     - Hvis lup-tilekilden selv har gennemsigtighed -- i særdeleshed
+       OpenRailwayMap -- kopieres denne gennemsigtighed med over til
+       lup-uddata, og det underliggende kort bliver dermed underlag.
+       Sådan en tilekilde giver vist mere mening som lup end som
+>      grundkort. Hvis den anvendes som grundkort vil alpha-kanalen
+>      måske blot ignoreres; det gør livet lettere for den almindelige
+>      ortho-renderer.
+
+       - Der er ikke nok ikke megen use case i at _warpe_
+         OpenRailwayMap, så warperen kan _også_ frit ignorere alpha
+         fra sine tiles eller kopiere den med, alt efter om den
+         oversampler eller ej.
+
+>  3. Vektorlaget
+>  --------------
+
+   Vektorlaget gentegnes med grafikprimitiver hver gang vi ser en
+   paint-event. Vi cacher en passende repræsentation af _hvilke_
+   grafikprimitiver der skal foretages.
+
+>  Det kommer til at høre til i en baggrundtråd at forberede denne
+>  representation specifikt for den aktuelle projektion og skala.  Den
+>  kan måske blive halvdyr at beregne, især i en luksusudgave hvor
+>  vektorerne i warpet mode skal warpe med i stedet for blot at blive
+>  kvast ned til lineTo segment for segment.
+
+>  Denne nyberegning kan ske med forskellige prioriteter:
+
+>    * Efter ændring i projektion: Opdatering af vinduesindhold
+>      blokereres (paint() bliver no-op) indtil der er et nyberegnet
+>      vektorlag klart.
+
+>    * Efter en redigeringsevent, filskift m.v.: Der sættes straks en
+>      nyberegning i gang, men vinduet kan opdateres med det gamle
+>      indhold mens den bliver færdig.
+
+>    * Ved musebevægelser med Skift/Alt nedtrykket, hvor der skal
+>      tegnes et hypotetisk spor: Der sættes først en nyberegning af
+>      vektorlaget i gang når den nuværende er færdig til at blive
+>      kopieret fra.
+
+>      Nytegningen omfatter i denne situation også selve
+>      konstruktionen af et forventet filindhold at tegne.
+
+   Tegning af vektorlaget virker i UI-skalerede koordinater så linjer
+   og kurver får den rette tykkelse, og knudemarkering en passende
+   størrelse.
+
+   4. GUI-responslag
+   -----------------
+
+   Dette lag representeres ikke som pixels, men blot som en callback
+   der kan retouchere et mellemlagret udsnit lige før det bliver
+   blittet til det egentlige vindue. I mange tilfælde gør det
+   ingenting.
+
+   Et aktivt lup-område bliver tegnet af koreografen selv som del af
+   at sammensætte kortlaget. (Et luprektangel man er ved at trække ud
+   er derimod en GUI-respons).

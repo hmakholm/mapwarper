@@ -1,0 +1,7 @@
+coords web-mercator 2^30
+usebounds fUrth.vect
+node 569797528::366675288 80
+  bound
+node 569801912::366682840 80
+  bound
+node 569809816::366695656 80

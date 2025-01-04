@@ -1,0 +1,13 @@
+comment Et overblik med minimal forvrængning, næsten ret linje fra Buchloe
+coords web-mercator 2^30
+usebounds bound/buchloe.vect
+usebounds bound/hbf.vect
+node 570949930::372557187 48
+  straight
+node 571003828::372564859 16
+node 571050912::372575648 64
+  straight
+node 571060256::372579872 64
+node 571093104::372591171 16
+  straight
+node 571347892::372620467 16
