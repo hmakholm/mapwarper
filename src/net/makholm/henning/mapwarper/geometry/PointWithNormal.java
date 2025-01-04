@@ -22,9 +22,8 @@ public class PointWithNormal extends Point {
   }
 
   public double intersectWithNormal(LineSeg line) {
-    if( line == null ||
-        (eqnLhs(line.a) > eqnRhs) == (eqnLhs(line.b) > eqnRhs) )
-      return Double.POSITIVE_INFINITY;
+    if( (eqnLhs(line.a) > eqnRhs) == (eqnLhs(line.b) > eqnRhs) )
+      return Double.NaN;
     else
       return intersectInfiniteLineWithNormal(line);
   }

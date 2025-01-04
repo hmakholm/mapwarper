@@ -14,4 +14,8 @@ public class LineSeg extends Vector {
     return p.x*y - p.y*x;
   }
 
+  public boolean isPointToTheRight(Point p) {
+    return eqnLhs(p) < eqnLhs(a);
+  }
+
 }

@@ -1,6 +1,4 @@
 coords web-mercator 2^30
-usebounds val.vect
-usebounds syv.vect
 node 574278304::336165344 64
   bound
 node 574279776::336160736 64
@@ -13,9 +11,7 @@ node 574291744::336151840 64
   bound
 node 574296288::336150304 64
   bound
-node 574306784::336148640 64
-  bound
-node 574309471::336147929 16
+node 574307861::336148231 1
   bound
 node 574323792::336143814 16
   bound

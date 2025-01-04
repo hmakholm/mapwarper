@@ -110,13 +110,26 @@ public final class SegmentChain extends LongHashed {
     return tree;
   });
 
+  public final Lazy<XyTree<List<ChainRef<Bezier>>>> curveTree = Lazy.of(() -> {
+    var joiner = XyTree.<ChainRef<Bezier>>concatJoin();
+    var tree = joiner.empty();
+    var curves = smoothed();
+    for( int i=0; i<curves.size(); i++ ) {
+      var curve = curves.get(i);
+      var sourced = ChainRef.of(curve, SegmentChain.this, i);
+      var singleton = XyTree.singleton(curve.bbox.get(), List.of(sourced));
+      tree = joiner.union(tree, singleton);
+    }
+    return tree;
+  });
+
   // -------------------------------------------------------------------------
 
   public interface HasSegmentSlew {
     public double segmentSlew(int i);
   }
 
-  public static final class Smoothed
+  public final class Smoothed
   extends FrozenArray<Bezier> implements HasSegmentSlew {
     private final double[] nodeSlews;
     private final double[] segmentSlews;
@@ -184,6 +197,10 @@ public final class SegmentChain extends LongHashed {
       return new Smoothed(curves, nodeSlews, segmentSlews);
     }
   });
+
+  public Smoothed smoothed() {
+    return smoothed.get();
+  }
 
   public final SingleMemo<ProjectionWorker, LocalSegmentChain> localize =
       SingleMemo.of(ProjectionWorker::projection,
