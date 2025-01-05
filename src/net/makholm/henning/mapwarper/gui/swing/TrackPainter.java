@@ -254,6 +254,7 @@ final class TrackPainter extends LongHashed {
   }
 
   private void drawBoundChain(SegmentChain chain, int color) {
+    if( chain.numSegments < 0 ) return;
     List<Bezier> outline = List.of();
     for( var cs : chain.localize(translator).curves )
       for( var c : cs ) {

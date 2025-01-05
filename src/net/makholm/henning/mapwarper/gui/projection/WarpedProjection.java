@@ -10,6 +10,7 @@ import java.util.Set;
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
+import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
@@ -35,10 +36,13 @@ public final class WarpedProjection extends BaseProjection {
   final Bezier pseudofirst;
   final Bezier pseudolast;
 
-  record EasyPoint(int segment, double lefting, double downing) {}
+  record EasyPoint(int segment, double lefting, double downing,
+      UnitVector tangent) {}
 
   final LinkedHashMap<GlobalPoint, EasyPoint> easyPoints =
       new LinkedHashMap<>();
+  /** These are all straight in warped coords <em>by construction</em>. */
+  final LinkedHashSet<Bezier> easyCurves;
 
   public WarpedProjection(VectFile source, FSCache cache)
       throws CannotWarp {
@@ -64,19 +68,24 @@ public final class WarpedProjection extends BaseProjection {
 
     nodeLeftings = new double[track.numNodes];
     double t = 0;
-    easyPoints.put(GlobalPoint.of(track.nodes.get(0)), new EasyPoint(0, 0, 0));
+    UnitVector tangent = curves.get(0).dir1();
+    easyPoints.put(GlobalPoint.of(track.nodes.get(0)),
+        new EasyPoint(0, 0, 0, tangent));
     for( int i=0; i<track.numSegments; i++ ) {
       nodeLeftings[i] = t;
       var curve = curves.get(i);
       easyPoints.put(GlobalPoint.of(curve.p1),
-          new EasyPoint(i, t, curves.segmentSlew(i)));
+          new EasyPoint(i, t, curves.segmentSlew(i), tangent));
       t += curve.estimateLength();
+      tangent = curve.dir4();
       easyPoints.put(GlobalPoint.of(curve.p4),
-          new EasyPoint(i+1, t, curves.segmentSlew(i)));
+          new EasyPoint(i+1, t, curves.segmentSlew(i), tangent));
       easyPoints.put(GlobalPoint.of(track.nodes.get(i+1)),
-          new EasyPoint(i+1, t, curves.nodeSlew(i+1)));
+          new EasyPoint(i+1, t, curves.nodeSlew(i+1), tangent));
     }
     nodeLeftings[track.numSegments] = totalLength = t;
+
+    easyCurves = new LinkedHashSet<>(curves);
 
     TrackNode n0 = track.nodes.get(0);
     pseudofirst = Bezier.line(n0, n0.plus(curves.get(0).dir1()));

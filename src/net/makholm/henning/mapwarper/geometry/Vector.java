@@ -103,7 +103,7 @@ public class Vector {
 
   @Override
   public String toString() {
-    return String.format(Locale.ROOT, "(%.6g,%.6gf)", x, y);
+    return String.format(Locale.ROOT, "(%.6g,%.6g)", x, y);
   }
 
 }

@@ -1,5 +1,7 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -7,8 +9,11 @@ import java.util.List;
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
+import net.makholm.henning.mapwarper.geometry.UnitVector;
+import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.gui.FindClosest;
 import net.makholm.henning.mapwarper.gui.track.ChainRef;
+import net.makholm.henning.mapwarper.util.TreeList;
 
 final class WarpedProjectionWorker extends MinimalWarpWorker
 implements ProjectionWorker {
@@ -16,7 +21,7 @@ implements ProjectionWorker {
   private final Projection owner;
   final double xscale, yscale;
 
-  private final LinkedHashMap<GlobalPoint, Point> global2localCache =
+  private final LinkedHashMap<GlobalPoint, LocalPoint> global2localCache =
       new LinkedHashMap<>();
 
   WarpedProjectionWorker(Projection owner, WarpedProjection warp,
@@ -47,9 +52,9 @@ implements ProjectionWorker {
   }
 
   @Override
-  public Point global2local(Point global) {
+  public LocalPoint global2local(Point global) {
     GlobalPoint key = GlobalPoint.of(global);
-    Point local = cacheLookup(key);
+    LocalPoint local = cacheLookup(key);
     if( local != null ) return local;
 
     var refref = FindClosest.point(warp.track.nodeTree.get(), ChainRef::data,
@@ -63,9 +68,9 @@ implements ProjectionWorker {
   }
 
   @Override
-  public Point global2localWithHint(Point global, Point nearbyLocal) {
+  public LocalPoint global2localWithHint(Point global, Point nearbyLocal) {
     GlobalPoint key = GlobalPoint.of(global);
-    Point local = cacheLookup(key);
+    LocalPoint local = cacheLookup(key);
     if( local != null ) return local;
 
     // Don't bother to store the result in the cache -- points where we
@@ -73,19 +78,20 @@ implements ProjectionWorker {
     return locateWithLeftingRef(key, nearbyLocal.x * xscale);
   }
 
-  private Point cacheLookup(GlobalPoint global) {
-    Point local = global2localCache.get(global);
+  private LocalPoint cacheLookup(GlobalPoint global) {
+    LocalPoint local = global2localCache.get(global);
     if( local != null ) return local;
 
     var easy = warp.easyPoints.get(global);
     if( easy == null ) return null;
 
-    local = Point.at(easy.lefting() / xscale, easy.downing() / yscale);
+    local = new LocalPoint(global, easy.segment(),
+        easy.lefting(), easy.downing(), easy.tangent().turnRight());
     global2localCache.put(global, local);
     return local;
   }
 
-  private Point locateWithLeftingRef(Point target, double lefting1) {
+  private LocalPoint locateWithLeftingRef(Point target, double lefting1) {
     // We only expect to get this close when following the errors on
     // a straight section of track. However, we'll grab the opportunity
     // whenever it presents ...
@@ -168,18 +174,107 @@ implements ProjectionWorker {
     }
   }
 
-  private Point found(Point target, double lefting, PointWithNormal pwn) {
-    double downing = target.minus(pwn).dot(pwn.normal) +
-        slews.segmentSlew(segment);
-    return Point.at(lefting / xscale, downing / yscale);
+  private LocalPoint found(Point target, double lefting, PointWithNormal pwn) {
+    return new LocalPoint(target, segment, lefting,
+        target.minus(pwn).dot(pwn.normal) + slews.segmentSlew(segment),
+        pwn.normal);
+  }
+
+  private class LocalPoint extends Point {
+    final double lefting, downing;
+    final int segment;
+    final UnitVector normal;
+
+    private LocalPoint(Point global, int segment,
+        double lefting, double downing, UnitVector normal) {
+      super(lefting / xscale, downing / yscale);
+      this.lefting = lefting;
+      this.downing = downing;
+      this.segment = segment;
+      this.normal = normal;
+    }
   }
 
   @Override
   public List<Bezier> global2local(Bezier global) {
-    // For now, represent everything as straight lines.
-    Point l1 = global2local(global.p1);
-    Point l4 = global2local(global.p4);
-    return Collections.singletonList(Bezier.line(l1, l4));
+    LocalPoint l1 = global2local(global.p1);
+    LocalPoint l4 = global2local(global.p4);
+    if( warp.easyCurves.contains(global) ) {
+      return List.of(Bezier.line(l1, l4));
+    } else if( l1.segment == l4.segment ) {
+      return global2localSameSegment(l1, global, l4, 0);
+    } else {
+      // For now fall back to representing everything as straight lines
+      return Collections.singletonList(Bezier.line(l1, l4));
+    }
+  }
+
+  /**
+   * Convert a global curve/line to local coordinates, under the assumption
+   * that it's entirely within the band warped by the segment named in
+   * {@code l1}.
+   *
+   * This implementation is not particularly exact, but it's good enough
+   * for the common use cases of margins roughly parallel to a segment
+   * that doesn't curve too much.
+   *
+   * @param l1 the already converted point p1 of {@code global}.
+   * @param l4 the already converted point p4 of {@code global}.
+   */
+  private List<Bezier> global2localSameSegment(
+      LocalPoint l1, Bezier global, LocalPoint l4, int level) {
+    if( l1.sqDist(l4) < 8 || level > 5)
+      return List.of(Bezier.line(l1, l4));
+    selectCurve(l1.segment);
+    AffineTransform at1, at4;
+    if( currentSegmentIsStraight() ) {
+      if( global.isExactlyALine() )
+        return List.of(Bezier.line(l1, l4));
+      at1 = at4 = backwardsLinear(l1.normal.turnLeft().scale(xscale),
+          l1.normal.scale(yscale));
+    } else {
+      at1 = backwardsLinear(l1);
+      at4 = backwardsLinear(l4);
+    }
+    var v1 = applyDelta(at1, global.v1);
+    var v4 = applyDelta(at4, global.v4);
+    Bezier candidate = Bezier.withVs(l1, v1, v4, l4);
+    var got = candidate.pointAt(0.5);
+    var want = global2localWithHint(global.pointAt(0.5), got);
+    if( want.sqDist(got) < 8 ) {
+      // this looks good!
+      return List.of(candidate);
+    } else if( want.segment != l1.segment ) {
+      // Huh? This sometimes happens when there are singularities around.
+      return List.of(candidate);
+    } else {
+      var split = global.split(0.5);
+      return TreeList.concat(
+          global2localSameSegment(l1, split.front(), want, level+1),
+          global2localSameSegment(want, split.back(), l4, level+1));
+    }
+  }
+
+  private AffineTransform backwardsLinear(LocalPoint lp) {
+    setLeftingWithCurrentSegment(lp.lefting);
+    double curvature = curvatureAt(lp.lefting);
+    double curvebase = warp.curves.segmentSlew(segment);
+    double factor = 1-(lp.downing-curvebase)*curvature;
+    if( factor < 0.01 ) factor = 0.01;
+    return backwardsLinear(lp.normal.turnLeft().scale(xscale*factor),
+        lp.normal.scale(yscale));
+  }
+
+  private AffineTransform backwardsLinear(Vector left, Vector down) {
+    var at = new AffineTransform(left.x, left.y, down.x, down.y, 0, 0);
+    try {
+      at.invert();
+    } catch (NoninvertibleTransformException e) {
+      // Huh, this definitely shouldn't happen
+      e.printStackTrace();
+      return AffineTransform.getScaleInstance(xscale, yscale);
+    }
+    return at;
   }
 
 }

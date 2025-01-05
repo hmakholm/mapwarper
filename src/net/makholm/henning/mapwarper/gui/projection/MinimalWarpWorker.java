@@ -2,10 +2,11 @@ package net.makholm.henning.mapwarper.gui.projection;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
+import net.makholm.henning.mapwarper.geometry.TransformHelper;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.gui.track.SegmentChain;
 
-class MinimalWarpWorker {
+class MinimalWarpWorker extends TransformHelper {
 
   protected final WarpedProjection warp;
   protected final SegmentChain.HasSegmentSlew slews;
@@ -34,6 +35,11 @@ class MinimalWarpWorker {
     }
   }
 
+  protected final void setLeftingWithCurrentSegment(double newLefting) {
+    lefting = newLefting;
+    computePoint();
+  }
+
   protected final double projected2downing(double y) {
     return y - slews.segmentSlew(segment);
   }
@@ -60,6 +66,10 @@ class MinimalWarpWorker {
       return commonNormal;
     else
       return createNormal();
+  }
+
+  protected final boolean currentSegmentIsStraight() {
+    return commonNormal != null;
   }
 
   private double validFrom, validTo;
