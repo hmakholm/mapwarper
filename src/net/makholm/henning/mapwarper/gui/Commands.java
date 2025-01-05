@@ -197,6 +197,9 @@ public class Commands {
   private final Cmd saveAll = simple("save", "Save",
       self -> self.files.saveAllCommand());
 
+  private final Cmd revert = simple("revert", "Reread all from disk",
+      self -> self.files.revertCommand());
+
   private final Cmd quit = simple("quit", "Quit",
       self -> self.window.quitCommand());
 
@@ -221,6 +224,7 @@ public class Commands {
     keymap.accept("C-L", repaint);
     keymap.accept("C-N", newFile);
     keymap.accept("C-O", open);
+    keymap.accept("C-R", revert);
     keymap.accept("C-S", saveAll);
     keymap.accept("C-Q", quit);
     keymap.accept("C-V", paste);
@@ -279,6 +283,7 @@ public class Commands {
     files.add(open);
     files.add(newFile);
     files.add(saveAll);
+    files.add(revert);
     files.add(quit);
 
     var edit = menu.addSubmenu("Edit");

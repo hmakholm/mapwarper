@@ -70,7 +70,7 @@
 
      Ctrl-O: Åbn ... (vil måske blot folde venstre panel ud)
      Ctrl-S: Gem
->    Ctrl-R: Genlæs
+     Ctrl-R: Genlæs
      Ctrl-N: Ny fil
      Ctrl-Q: Luk programmet
 
@@ -178,7 +178,6 @@
      * Det flytter sig med kortet når man skubber det og bevares når
        man zoomer ind og ud (men med uændret maxzoom for pixels i
        luppen).
->      Det kan dog ikke blive større end en skærm.
      * Det overlever også spor-redigering, herunder skift til anden
        sporfil.
      * Ved skift af projektion eller grundkort forsvinder lup-området,
@@ -198,7 +197,6 @@
 >      (Eller +1 hvis vi allerede viser netop dette tileset i standardzoom?)
 >    - Stretch goal? TRÆK rektanglet eller dets kanter for at ændre
 >      position og størrelse.
->    - DOBBELTKLIK for at gøre hele skærmen til sådan et område.
      - KLIK i området for at forhøje zoomniveauet i det (mindre
        pixellering), dog kun indtil 1:1 i UI-pixels.  Lup-området
        croppes om nødvendigt til vinduets kanter.
@@ -207,6 +205,8 @@
      - ESC afskaffer også området.
 
    Kommandoer (`[`, `]`): formindsk og forstør zoomniveauet i luppen
+     * Når zoomniveauet forstørres, fjernes de dele af lupområdet som
+       ikke p.t. er synlige.
 
    == Ortho-projektion ==
 
@@ -550,14 +550,14 @@
        nye fil skrives i et katalog der er præfiks til det
        eksisterende fokuskatalog.
 
->  Kommando: Genlæs
->    * Virker på alle viste eller brugte filer, ikke kun den åbne fil
->      der bliver redigeret.
+   Kommando: Genlæs
+     * Virker på alle viste eller brugte filer, ikke kun den åbne fil
+       der bliver redigeret.
 
    Kommando: Ny fil
      * Svarer til at åbne en anonym tom fil (som bliver en sporfil),
->      _bortset fra_ at hvis den p.t. åbne fil ikke er tom, bliver den
->      også vist.
+       _bortset fra_ at hvis den p.t. åbne fil er sporfil, bliver den
+       også vist.
 
    == Opstart ==
 
@@ -778,24 +778,20 @@
    koreografen sørger da for at kompositere udfylding fra det normale
    grundkort oveni.
 
->    - Ved skift af lup-tileset bevares i stedet hvad den forrige lup
->      nåede frem til, indtil vi kan erstatte med korrekt indhold.
+     - Ved skift af lup-tileset bevares i stedet hvad den forrige lup
+       nåede frem til, indtil vi kan erstatte med korrekt indhold.
 
      - Hvis lup-tilekilden selv har gennemsigtighed -- i særdeleshed
        OpenRailwayMap -- kopieres denne gennemsigtighed med over til
        lup-uddata, og det underliggende kort bliver dermed underlag.
+
        Sådan en tilekilde giver vist mere mening som lup end som
->      grundkort. Hvis den anvendes som grundkort vil alpha-kanalen
->      måske blot ignoreres; det gør livet lettere for den almindelige
->      ortho-renderer.
+       grundkort. UIet har et særtilfælde til at forhindre at man
+       vælger OpenRailwayMap som grundkort; det kan kun bruges i
+       luppen.
 
-       - Der er ikke nok ikke megen use case i at _warpe_
-         OpenRailwayMap, så warperen kan _også_ frit ignorere alpha
-         fra sine tiles eller kopiere den med, alt efter om den
-         oversampler eller ej.
-
->  3. Vektorlaget
->  --------------
+   3. Vektorlaget
+   --------------
 
    Vektorlaget gentegnes med grafikprimitiver hver gang vi ser en
    paint-event. Vi cacher en passende repræsentation af _hvilke_

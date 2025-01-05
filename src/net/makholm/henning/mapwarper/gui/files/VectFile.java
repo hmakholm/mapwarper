@@ -7,6 +7,7 @@ import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Map;
 import java.util.function.Function;
 
 import net.makholm.henning.mapwarper.gui.UndoList;
@@ -105,11 +106,35 @@ public class VectFile {
   public synchronized boolean changeContentNoUndo(FileContent oldContent,
       FileContent newContent) {
     synchronized(this) {
-      if( !content().equals(oldContent) )
+      if( oldContent != null && !content().equals(oldContent) )
         return false;
       currentContent = newContent;
       sendChangePoke();
       return true;
+    }
+  }
+
+  /**
+   * Content will only actually be forgotten if the undoMap is non-null.
+   */
+  public synchronized void forgetContent(Map<Path, FileContent> undoMap) {
+    if( path == null ) return;
+    if( currentContent == null ) {
+      onDisk = null;
+      readAs = null;
+    } else {
+      if( !currentContent.equals(onDisk) ) {
+        if( undoMap == null ) return;
+        undoMap.put(path, currentContent);
+      }
+      currentContent = null;
+      onDisk = null;
+      readAs = null;
+      sendChangePoke();
+    }
+    if( error != null ) {
+      error = null;
+      sendChangePoke();
     }
   }
 

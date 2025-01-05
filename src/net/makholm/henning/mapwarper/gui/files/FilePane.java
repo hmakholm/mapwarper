@@ -11,9 +11,12 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.makholm.henning.mapwarper.gui.MapView;
+import net.makholm.henning.mapwarper.gui.UndoList;
+import net.makholm.henning.mapwarper.gui.UndoList.UndoItem;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.gui.swing.GuiMain;
 import net.makholm.henning.mapwarper.gui.swing.PokeReceiver;
@@ -279,6 +282,46 @@ public class FilePane {
     }
     cache.cleanCache(focusDir);
     return badnesses;
+  }
+
+  public void revertCommand() {
+    int count = cache.getModifiedFiles().size();
+    boolean alsoChanged;
+    if( count == 0 ) {
+      alsoChanged = false;
+    } else {
+      int answer = JOptionPane.showConfirmDialog(window,
+          "Also revert "+count+" unsaved files?",
+          "Re-read files from disk", JOptionPane.YES_NO_CANCEL_OPTION);
+      if( answer == JOptionPane.CANCEL_OPTION ) return;
+      alsoChanged = answer == JOptionPane.YES_OPTION;
+    }
+    Map<Path, FileContent> undoMap = cache.revertContent(alsoChanged);
+    if( undoMap.isEmpty() )
+      return;
+    mapView.setEditingChain(null);
+    mapView.undoList.pushItem(new UndoList.UndoItem() {
+      @Override
+      public String undoDesc() {
+        return "Revert "+undoMap.size()+" files";
+      }
+
+      @Override
+      public UndoItem apply(MapView mapView) {
+        undoMap.forEach((path, content) -> {
+          cache.getFile(path).changeContentNoUndo(null, content);
+        });
+        mapView.setEditingChain(null);
+        JOptionPane.showMessageDialog(window,
+            undoMap.size()+" files have been reset to their state before "
+                +"they were reverted. This leaves the undo machinery in a "
+                +"somewhat inconsistent state; you'll probably want "
+                +"to save everything now and start over ...",
+                "Reverting undone",
+                JOptionPane.WARNING_MESSAGE);
+        return null;
+      }
+    });
   }
 
   /**

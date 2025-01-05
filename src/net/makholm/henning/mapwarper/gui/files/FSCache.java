@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import net.makholm.henning.mapwarper.gui.track.FileContent;
 import net.makholm.henning.mapwarper.util.PokePublisher;
 
 public class FSCache {
@@ -62,6 +63,15 @@ public class FSCache {
             "Cleared %d of %d cached files\n",
             beforeCount-afterCount, beforeCount);
     }
+  }
+
+  public Map<Path, FileContent> revertContent(boolean alsoChanged) {
+    Map<Path, FileContent> undoMap = new LinkedHashMap<>();
+    synchronized(this) {
+      for( var vf : knownFiles.values() )
+        vf.forgetContent(alsoChanged ? undoMap : null);
+    }
+    return undoMap;
   }
 
   private final Map<Path, VectFile> knownFiles = new LinkedHashMap<>();
