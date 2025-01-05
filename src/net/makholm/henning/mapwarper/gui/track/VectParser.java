@@ -54,9 +54,10 @@ public class VectParser {
 
       if( nodeCollector.isEmpty() ) {
         if( kind != kind.chainClass() ) {
-          throw NiceError.of("%d: got '%s' when there's no open chain");
+          throw NiceError.of("%d: got '%s' when there's no open chain",
+              lnum, kind);
         }
-        chainClass = kind;
+        chainClass = kind.chainClass();
       } else {
         if( chainClass != null && kind.chainClass() != chainClass ) {
           // Consecutive segments of different classes can happen in older

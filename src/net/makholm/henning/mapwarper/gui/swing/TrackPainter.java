@@ -253,6 +253,24 @@ final class TrackPainter extends LongHashed {
   }
 
   private void drawBoundChain(SegmentChain chain, int color) {
+    var allCurves = chain.localize(translator).curves;
+    g.setColor(new Color(0x50_CCEE00, true));
+    for( int i=0; i<chain.numSegments; i++ ) {
+      if( chain.kinds.get(i) == SegKind.BOUND ) {
+        ArrayList<Bezier> curves = new ArrayList<>(allCurves.get(i));
+        while( i+1 < chain.numSegments &&
+            chain.kinds.get(i+1) == SegKind.BOUND )
+          curves.addAll(allCurves.get(++i));
+        startPath(curves.get(0).p1);
+        for( var c : curves ) append(c);
+        for( int j=curves.size()-1; j>=0; j-- ) {
+          for( var c : curves.get(j).reverse.get().offset(10) )
+            append(c);
+        }
+        currentPath.closePath();
+        g.fill(endPath());
+      }
+    }
     linestyle(color, ROUND_STROKE);
     strokeChain(chain);
   }

@@ -3,6 +3,7 @@ package net.makholm.henning.mapwarper.gui.projection;
 import java.util.ArrayList;
 
 import net.makholm.henning.mapwarper.geometry.LineSeg;
+import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.gui.track.FileContent;
@@ -42,14 +43,33 @@ class WarpMargins {
       for( SegmentChain chain : track.chains() ) {
         if( chain.chainClass != SegKind.BOUND ) continue;
         TrackNode prevNode = chain.nodes.get(0);
-        boolean prevRight = worker.global2local(prevNode).y > 0;
+        Point prevLocal = worker.global2local(prevNode);
         for( int i=0; i<chain.numSegments; i++ ) {
           TrackNode nextNode = chain.nodes.get(i+1);
-          boolean nextRight = worker.global2local(nextNode).y > 0;
-          if( prevRight == nextRight )
-            (nextRight ? rightList : leftList).add(prevNode.to(nextNode));
+          Point nextLocal = worker.global2local(nextNode);
+          switch( chain.kinds.get(i) ) {
+          case BOUND:
+            if( prevLocal.x < nextLocal.x ) {
+              // Single sided bounds are _left_ bounds in the direction
+              // they're drawn.
+              if( prevLocal.y < 0 && nextLocal.y < 0 )
+                leftList.add(prevNode.to(nextNode));
+            } else {
+              if( prevLocal.y > 0 && nextLocal.y > 0 )
+                rightList.add(nextNode.to(prevNode));
+            }
+            break;
+          case TWO_SIDED_BOUND:
+            if( prevLocal.y < 0 && nextLocal.y < 0 )
+              leftList.add(prevNode.to(nextNode));
+            else if( prevLocal.y > 0 && nextLocal.y > 0 )
+              rightList.add(prevNode.to(nextNode));
+            break;
+          default:
+            // anything else is not a bound at all
+          }
           prevNode = nextNode;
-          prevRight = nextRight;
+          prevLocal = nextLocal;
         }
       }
     }

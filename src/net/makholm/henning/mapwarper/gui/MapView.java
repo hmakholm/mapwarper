@@ -459,14 +459,16 @@ public class MapView {
 
   Runnable reverseCommand() {
     if( editingChain == null ||
-        editingChain.numNodes == 1 ||
-        editingChain.chainClass != SegKind.TRACK ) return null;
+        editingChain.numNodes == 1 ) return null;
     return () -> {
       if( editingChain == null ) return;
       var nodeList = new ArrayList<>(editingChain.nodes);
       var kindList = new ArrayList<>(editingChain.kinds);
       Collections.reverse(nodeList);
       Collections.reverse(kindList);
+      for( int i=0; i<kindList.size(); i++ )
+        if( kindList.get(i) == SegKind.TWO_SIDED_BOUND )
+          kindList.set(i, SegKind.BOUND);
       var newChain = new SegmentChain(nodeList, kindList);
       files.activeFile().rewriteContent(undoList, "Reverse track",
           content -> {
