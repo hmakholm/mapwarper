@@ -1,51 +1,29 @@
 coords web-mercator 2^30
-showtrack ../spor2.vect
-showtrack ../spor7.vect
-showtrack ../spor9.vect
-nocross
-usebounds ydre.vect
+bounds
 node 572662432::357114144 64
-  bound
 node 572641312::357125216 64
-  bound
 node 572633696::357132320 64
-  bound
 node 572629344::357139552 64
-  bound
 node 572623712::357154016 64
-  bound
 node 572623264::357175136 64
-  bound
 node 572624512::357180416 2368
-  bound
 node 572631008::357194592 64
-  bound
 node 572634400::357203936 64
-  bound
 node 572636000::357207008 64
-  bound
 node 572640032::357213152 64
-  bound
 node 572644256::357217952 64
-  bound
 node 572647520::357219616 64
-  bound
 node 572654816::357228704 64
-  bound
 node 572656736::357232224 64
-  bound
 node 572658976::357235616 64
-  bound
 node 572666080::357243424 64
   break
+bounds
 node 572645984::357218496 224
-  bound
 node 572648096::357228320 192
-  bound
 node 572648928::357233120 64
-  bound
 node 572648928::357240544 64
   break
+bounds
 node 572616160::357150752 64
-  bound
 node 572624544::357138336 64

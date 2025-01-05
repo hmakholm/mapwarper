@@ -2,7 +2,6 @@ coords web-mercator 2^30
 usebounds bound/depotspids.vect
 usebounds bound/fUrth.vect
 node 569799740::366672736 16
-   sealed
 node 569800815::366674314 16
 node 569801906::366675879 16
 node 569803002::366677440 16
@@ -68,26 +67,16 @@ node 569896954::366719113 16
 node 569897578::366717312 16
 node 569898104::366715336 16
 node 569898584::366713608 16
-   sealed
   break
+bounds
 node 569900040::366712104 16
-   sealed
-  bound
 node 569895960::366726408 16
-  bound
 node 569887680::366728768 128
-  bound
 node 569871168::366730688 128
-   sealed
   break
+bounds
 node 569864896::366724032 128
-   sealed
-  bound
 node 569870552::366724312 16
-  bound
 node 569892296::366721352 16
-  bound
 node 569895416::366717656 16
-  bound
 node 569897144::366711400 16
-   sealed

@@ -1,19 +1,10 @@
 coords web-mercator 2^30
-showtrack ../spor2.vect
-showtrack ../spor56.vect
-usebounds mUlheim.vect
+bounds
 node 557690200::359744696 16
-  bound
 node 557699400::359747288 16
-  bound
 node 557706744::359747752 16
-  bound
 node 557711352::359746952 16
-  bound
 node 557715320::359744088 16
-  bound
 node 557720136::359738856 16
-  bound
 node 557724440::359732104 16
-  bound
 node 557730808::359714744 16

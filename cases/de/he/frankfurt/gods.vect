@@ -4,8 +4,8 @@ usebounds bound/griesheim.vect
 usebounds bound/griesheim-kun-syd.vect
 usebounds bound/hbf.vect
 usebounds bound/galluswarte.vect
+bounds
 node 562593692::363722290 16
-  bound
 node 562579686::363717266 16
   break
 node 562581617::363715126 16

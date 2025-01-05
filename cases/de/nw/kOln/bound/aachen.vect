@@ -1,69 +1,41 @@
 coords web-mercator 2^30
-showtrack ../spor8.vect
-nocross
-usebounds hbf.vect
-usebounds bbf-indad.vect
-usebounds bbf-udad.vect
-usebounds neuss.vect
-usebounds bonn.vect
+bounds
 node 557585816::359698408 16
-   sealed
-  bound
 node 557582104::359694968 16
-  bound
 node 557580008::359692584 16
-  bound
 node 557577736::359689192 16
-   sealed
-  break
-node 557577144::359690920 16
-   sealed
-  bound
-node 557576696::359689592 16
-  bound
 node 557575592::359687720 16
-  bound
+  break
+bounds
+node 557577144::359690920 16
+node 557576696::359689592 16
+node 557575592::359687720 16
 node 557573832::359685592 16
-  bound
 node 557569000::359682536 16
-  bound
 node 557565160::359682184 16
-  bound
 node 557552312::359686712 16
-  bound
 node 557528904::359690488 16
-   sealed
   break
+bounds
 node 557528792::359688776 16
-   sealed
-  bound
 node 557548616::359685416 16
-  bound
 node 557555160::359683016 16
-  bound
 node 557569848::359673336 16
-   sealed
   break
+bounds
 node 557570952::359673800 16
-   sealed
-  bound
 node 557559576::359680888 16
-  bound
-node 557558264::359681912 16
-  bound
-node 557571688::359679272 16
-  bound
-node 557575288::359679112 16
-  bound
-node 557585224::359677352 16
-  bound
-node 557592520::359678360 16
-  bound
-node 557596472::359680264 16
-   sealed
+node 557552312::359686712 16
   break
-node 557595448::359683016 16
-   sealed
-  bound
+bounds
+node 557555160::359683016 16
+node 557560644::359681484 1
+node 557571688::359679272 16
+node 557575288::359679112 16
+node 557585224::359677352 16
+node 557592520::359678360 16
+node 557596472::359680264 16
+  break
+bounds
 node 557598872::359687192 16
-   sealed
+node 557595448::359683016 16

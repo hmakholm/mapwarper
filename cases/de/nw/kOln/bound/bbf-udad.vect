@@ -1,37 +1,18 @@
 coords web-mercator 2^30
-showtrack ../spor6.vect
-showtrack ../spor8.vect
-nocross
-usebounds hbf.vect
-usebounds neuss.vect
-usebounds aachen.vect
-usebounds bonn.vect
+bounds
 node 557595448::359683016 16
-  bound
 node 557591848::359681048 16
-  bound
 node 557588072::359679688 16
-  bound
 node 557583192::359679256 16
-  bound
 node 557575400::359680264 16
-  bound
 node 557567832::359681496 16
-  bound
 node 557565912::359682544 56
-  bound
-node 557571416::359702792 16
   break
-node 557574600::359705288 16
-  bound
-node 557584648::359690120 16
-  bound
-node 557595272::359684744 16
-  bound
-node 557598872::359687192 16
-  bound
-node 557602152::359696824 16
-  bound
-node 557603144::359700808 16
-  bound
+bounds
 node 557606216::359706440 80
+node 557603144::359700808 16
+node 557602152::359696824 16
+node 557598872::359687192 16
+node 557595272::359684744 16
+node 557584648::359690120 16
+node 557574600::359705288 16

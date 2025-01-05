@@ -1,90 +1,43 @@
 coords web-mercator 2^30
-showtrack ../spor01.vect
-showtrack ../spor02.vect
-showtrack ../spor08.vect
-showtrack ../spor09.vect
-showtrack ../spor15.vect
-showtrack ../spor19.vect
-showtrack ../spor21.vect
-nocross
+bounds
 node 569864896::366724032 128
-   sealed
-  bound
 node 569870520::366724328 112
-  bound
 node 569891592::366721544 112
-  bound
 node 569907080::366714632 112
-  bound
 node 569912936::366713816 16
-  bound
 node 569924344::366710232 16
-  bound
 node 569932808::366707544 16
-  bound
 node 569941944::366705592 16
-  bound
 node 569943672::366704856 112
-  bound
 node 569945680::366703984 96
-  bound
 node 569955200::366701992 88
-  bound
 node 569961432::366701144 80
-  bound
 node 569966024::366700840 80
-  bound
 node 569972136::366699240 80
-  bound
 node 569972520::366697752 80
-  bound
 node 569980968::366696520 80
-  bound
 node 569984520::366696376 80
-  bound
 node 569993512::366697560 80
-  bound
 node 569997120::366696384 128
-   sealed
   break
+bounds
 node 569996992::366705728 128
-   sealed
-  bound
 node 569992200::366703400 112
-  bound
 node 569985864::366702664 112
-  bound
 node 569971496::366704472 80
-  bound
 node 569968856::366707912 16
-  bound
 node 569960264::366709128 16
-  bound
 node 569957816::366708344 112
-  bound
 node 569951976::366708280 112
-  bound
 node 569942584::366709792 136
-  bound
 node 569935912::366712728 112
-  bound
 node 569931160::366716344 16
-  bound
 node 569929432::366717032 16
-  bound
 node 569924168::366718728 16
-  bound
 node 569910936::366718328 112
-  bound
 node 569908264::366718920 112
-  bound
 node 569894008::366728216 16
-  bound
 node 569887528::366729512 16
-  bound
 node 569881144::366729320 112
-  bound
 node 569873896::366731240 16
-  bound
 node 569867072::366734400 128
-   sealed
