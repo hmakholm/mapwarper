@@ -29,13 +29,23 @@ public class TileDownloader {
     synchronized(threads) {
       dt = threads.computeIfAbsent(spec.tileset, DownloadThread::new);
     }
-    return dt.request(spec, whenDone);
+    return dt.subscribe(dt.queue, spec, whenDone);
+  }
+
+  public Runnable watch(TileSpec spec, Consumer<TileBitmap> whenDone) {
+    DownloadThread dt;
+    synchronized(threads) {
+      dt = threads.computeIfAbsent(spec.tileset, DownloadThread::new);
+    }
+    return dt.subscribe(dt.watchers, spec, whenDone);
   }
 
   private class DownloadThread extends Thread {
     final TileCache cache ;
 
     final Map<TileSpec, Set<Consumer<TileBitmap>>> queue =
+        new LinkedHashMap<>();
+    final Map<TileSpec, Set<Consumer<TileBitmap>>> watchers =
         new LinkedHashMap<>();
 
     DownloadThread(Tileset tileset) {
@@ -45,18 +55,21 @@ public class TileDownloader {
       start();
     }
 
-    Runnable request(TileSpec spec, Consumer<TileBitmap> whenDone) {
+    private Runnable subscribe(Map<TileSpec, Set<Consumer<TileBitmap>>> map,
+        TileSpec spec, Consumer<TileBitmap> whenDone) {
       synchronized( this ) {
         Set<Consumer<TileBitmap>> subscribers =
-            queue.computeIfAbsent(spec, spec0 -> new LinkedHashSet<>());
+            map.computeIfAbsent(spec, spec0 -> new LinkedHashSet<>());
         subscribers.add(whenDone);
-        notify();
+        if( map == queue ) notify();
       }
       return () -> {
         synchronized( TileDownloader.this ) {
-          Set<Consumer<TileBitmap>> subscribers = queue.get(spec);
-          if( subscribers != null )
+          Set<Consumer<TileBitmap>> subscribers = map.get(spec);
+          if( subscribers != null ) {
             subscribers.remove(whenDone);
+            if( subscribers.isEmpty() ) map.remove(spec);
+          }
         }
       };
     }
@@ -102,9 +115,13 @@ public class TileDownloader {
         if( got == null )
           got = cache.getTile(toDownload, TileCache.DOWNLOAD);
         synchronized(this) {
-          Set<Consumer<TileBitmap>> subscribers = queue.remove(toDownload);
           var finalGot = got;
-          subscribers.forEach(c -> c.accept(finalGot));
+          var subscribers = queue.remove(toDownload);
+          if( subscribers != null )
+            subscribers.forEach(c -> c.accept(finalGot));
+          subscribers = watchers.remove(toDownload);
+          if( subscribers != null )
+            subscribers.forEach(c -> c.accept(finalGot));
         }
       }
     }

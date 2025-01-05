@@ -299,9 +299,6 @@
    Lup-værktøjet kan bruges til at fremtvinge download af tiles der
    ikke allerede findes.
 
->   TODO: disse downloads slår ikke igennem på allerede oprettede
->   render-tiles i grundkortet.
-
    Værktøj: skift til quick warp
      * Der er kun et af disse -- det bevarer det allerede valgte
        grundkort og y-skala.

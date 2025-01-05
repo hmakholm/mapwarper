@@ -143,6 +143,8 @@ abstract class CommonRenderer implements RenderWorker {
           if( (aspec & FallbackChain.DOWNLOAD_BIT) != 0 &&
               cacheLookupLevel == TileCache.DISK )
             nt.requestDownload();
+          else
+            nt.watchForDownload();
         }
         localCache[lci] = bitmap;
         localCacheIndex[lci] = shortcode;
@@ -155,11 +157,7 @@ abstract class CommonRenderer implements RenderWorker {
   @Override
   public void dispose() {
     synchronized(this) {
-      for( var nt : tileDict.values() ) {
-        if( nt.downloadRequested != null ) {
-          nt.downloadRequested.run();
-        }
-      }
+      tileDict.values().forEach(NeededTile::cancelSubscriptions);
     }
   }
 
@@ -179,6 +177,7 @@ abstract class CommonRenderer implements RenderWorker {
     boolean checkedCache;
 
     Runnable downloadRequested;
+    Runnable downloadWatched;
     TileBitmap midcache;
 
     public NeededTile(Tileset tileset, long shortcode) {
@@ -192,8 +191,16 @@ abstract class CommonRenderer implements RenderWorker {
       }
     }
 
+    void watchForDownload() {
+      if( downloadWatched == null && downloadRequested == null ) {
+        downloadWatched =
+            tileset.context.downloader.watch(this, this::downloadComplete);
+      }
+    }
+
     void downloadComplete(TileBitmap bitmap) {
       synchronized( this ) {
+        if( midcache != null ) return;
         midcache = bitmap;
       }
       synchronized( colsToRenderNow ) {
@@ -202,6 +209,13 @@ abstract class CommonRenderer implements RenderWorker {
       }
       target.pokeSchedulerAsync();
     };
+
+    void cancelSubscriptions() {
+      if( downloadRequested != null )
+        downloadRequested.run();
+      if( downloadWatched != null )
+        downloadWatched.run();
+    }
   }
 
 }
