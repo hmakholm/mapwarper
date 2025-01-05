@@ -3,6 +3,7 @@ package net.makholm.henning.mapwarper.gui.files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,6 +39,28 @@ public class FSCache {
   public Set<VectFile> getModifiedFiles() {
     synchronized(modifiedFiles) {
       return new LinkedHashSet<>(modifiedFiles);
+    }
+  }
+
+  public void cleanCache(Path focusDir) {
+    synchronized(this) {
+      knownDirs.clear();
+      int beforeCount = knownFiles.size();
+      for( var it = knownFiles.values().iterator(); it.hasNext(); ) {
+        VectFile vf = it.next();
+        if( !vf.okToForget() )
+          continue;
+        if( focusDir != null &&
+            vf.path.startsWith(focusDir) &&
+            focusDir.startsWith(vf.path.getParent()) )
+          continue;
+        it.remove();
+      }
+      int afterCount = knownFiles.size();
+      if( beforeCount != afterCount )
+        System.err.printf(Locale.ROOT,
+            "Cleared %d of %d cached files\n",
+            beforeCount-afterCount, beforeCount);
     }
   }
 

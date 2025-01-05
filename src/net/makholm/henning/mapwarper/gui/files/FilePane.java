@@ -277,6 +277,7 @@ public class FilePane {
         badnesses.add(e.getMessage());
       }
     }
+    cache.cleanCache(focusDir);
     return badnesses;
   }
 

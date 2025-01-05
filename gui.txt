@@ -539,8 +539,8 @@
      * Indholdet af flere foreskellige vect-fil kan være i RAM mens
        man skifter mellem dem, og de kan alle være rettet.
      * Kommandoen gemmer alle ændringer.
->    * Filer der hverken er i brug eller vist i sidepanelet droppes
->      fra RAM-cachen.
+     * Filer der hverken er i brug eller vist i sidepanelet droppes
+       fra RAM-cachen.
      * Hvis den "åbne" fil ikke har et navn endnu vises en Gem
        Som-dialog initialiseret til fokuskataloget.
 

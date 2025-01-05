@@ -167,6 +167,10 @@ public class VectFile {
     }
   }
 
+  boolean okToForget() {
+    return !isModified && changePokes.isEmpty();
+  }
+
   /**
    * Must be called with the lock held.
    */
