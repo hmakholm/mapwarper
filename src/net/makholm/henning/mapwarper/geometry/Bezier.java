@@ -170,7 +170,6 @@ public final class Bezier extends LongHashed {
           firstHalf().offset(rightDist, newP1, wantMid),
           lastHalf.offset(rightDist, wantMid, newP4));
     }
-
   }
 
   @Override

@@ -35,7 +35,6 @@ import net.makholm.henning.mapwarper.tiles.OpenStreetMap;
 import net.makholm.henning.mapwarper.tiles.OpenTopoMap;
 import net.makholm.henning.mapwarper.tiles.TileContext;
 import net.makholm.henning.mapwarper.tiles.Tileset;
-import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.TrackNode;
 import net.makholm.henning.mapwarper.util.MathUtil;
 import net.makholm.henning.mapwarper.util.MutableLongRect;
@@ -466,9 +465,6 @@ public class MapView {
       var kindList = new ArrayList<>(editingChain.kinds);
       Collections.reverse(nodeList);
       Collections.reverse(kindList);
-      for( int i=0; i<kindList.size(); i++ )
-        if( kindList.get(i) == SegKind.TWO_SIDED_BOUND )
-          kindList.set(i, SegKind.BOUND);
       var newChain = new SegmentChain(nodeList, kindList);
       files.activeFile().rewriteContent(undoList, "Reverse track",
           content -> {

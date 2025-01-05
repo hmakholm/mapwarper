@@ -432,7 +432,7 @@
 
    Kommando: Skift sporretning
      * vender rækkefølgen af den aktive sporkæde om
->    * kan også bruges hvis vi implementerer sidefølsomme marginer
+     * bruges også til at vende de sidefølsomme marginer
 
    Kommando: Kopier.
      * Den aktive segmentkæde kopieres til clipboard i .vect format.

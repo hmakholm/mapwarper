@@ -11,8 +11,7 @@ public enum SegKind {
   STRAIGHT("straight", RGB.STRAIGHT_SEGMENT),
   SLEW("slew", RGB.STRAIGHT_SLEW),
   MAGIC("connect", RGB.CURVED_SLEW),
-  BOUND("bounds", RGB.BOUND_SEGMENT),
-  TWO_SIDED_BOUND("bound", RGB.BOUND_SEGMENT);
+  BOUND("bounds", RGB.BOUND_SEGMENT);
 
   public final int rgb;
   public final String keyword;
@@ -23,7 +22,7 @@ public enum SegKind {
   }
 
   public SegKind chainClass() {
-    return isTrackVariant() ? TRACK : BOUND;
+    return isTrackVariant() ? TRACK : this;
   }
 
   public boolean isTrackVariant() {

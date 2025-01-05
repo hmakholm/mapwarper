@@ -59,12 +59,6 @@ class WarpMargins {
                 rightList.add(nextNode.to(prevNode));
             }
             break;
-          case TWO_SIDED_BOUND:
-            if( prevLocal.y < 0 && nextLocal.y < 0 )
-              leftList.add(prevNode.to(nextNode));
-            else if( prevLocal.y > 0 && nextLocal.y > 0 )
-              rightList.add(prevNode.to(nextNode));
-            break;
           default:
             // anything else is not a bound at all
           }

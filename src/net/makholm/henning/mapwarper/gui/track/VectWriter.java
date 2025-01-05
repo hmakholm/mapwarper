@@ -61,7 +61,7 @@ public class VectWriter {
     }
     boolean needsBreak = false;
     for( var chain : chains.values() ) {
-      SegKind defaultKind = null;
+      SegKind defaultKind = chain.chainClass;
       for( int i=0; i<chain.numNodes; i++ ) {
         if( i > 0 ) {
           SegKind kind = chain.kinds.get(i-1);
@@ -70,25 +70,13 @@ public class VectWriter {
         } else {
           if( needsBreak )
             ps.println("  break");
-          defaultKind = perhapsDeclareChain(chain, ps);
+          if( defaultKind != SegKind.TRACK )
+            ps.println(defaultKind.keyword);
         }
         chain.nodes.get(i).print(ps);
       }
       needsBreak = true;
     }
-  }
-
-  private SegKind perhapsDeclareChain(SegmentChain chain, PrintStream ps) {
-    for( var kind : chain.kinds ) {
-      switch( kind ) {
-      case BOUND:
-        ps.println(kind.keyword);
-        return kind;
-      default:
-        break;
-      }
-    }
-    return SegKind.TRACK;
   }
 
   private int orderingForChain(SegmentChain chain) {

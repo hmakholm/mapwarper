@@ -41,7 +41,6 @@ public class Smoother {
         }
         break;
       case STRAIGHT:
-      case TWO_SIDED_BOUND:
       case BOUND:
         new StraightSegment(this, seg);
         break;
@@ -146,7 +145,6 @@ public class Smoother {
       case SLEW:
         // Slew segments are _skipped over_
         continue;
-      case TWO_SIDED_BOUND:
       case BOUND:
         // These end the entire path construction
         return -100;
