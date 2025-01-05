@@ -64,7 +64,7 @@ public class TileDownloader {
         if( map == queue ) notify();
       }
       return () -> {
-        synchronized( TileDownloader.this ) {
+        synchronized( DownloadThread.this ) {
           Set<Consumer<TileBitmap>> subscribers = map.get(spec);
           if( subscribers != null ) {
             subscribers.remove(whenDone);
