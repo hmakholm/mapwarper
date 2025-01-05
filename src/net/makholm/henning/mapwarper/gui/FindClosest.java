@@ -146,12 +146,12 @@ implements XyTree.Callback<L> {
     // Shoot, all the clever ideas failed. We'll have to bisect it and
     // try each half separately.
     // We'll recurse into the half with the closest endpoint first --
-    // there's somewhat better that the other half can then be
+    // there's somewhat better chance that the other half can then be
     // quickly discarded afterwards.
-    Bezier firstHalf = curve.firstHalf();
-    double sqdistM = firstHalf.p4.sqDist(focus);
-    consider(data, sqdist1, firstHalf, sqdistM);
-    consider(data, sqdist4, curve.reverse.get().firstHalf(), sqdistM);
+    var split = curve.split(0.5);
+    double sqdistM = split.front().p4.sqDist(focus);
+    consider(data, sqdist1, split.front(), sqdistM);
+    consider(data, sqdistM, split.back(), sqdist4);
   }
 
 }

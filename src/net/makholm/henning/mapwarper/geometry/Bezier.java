@@ -17,6 +17,15 @@ public final class Bezier extends LongHashed {
   public final Lazy<AxisRect> bbox;
   public final Lazy<Bezier> reverse;
 
+  /**
+   * We treat dv1 = 3(p2-p1)-(p4-p1) and dv4=3(p4-p3)-(p4-p1)
+   * as the authoritative truth about what the curve does between
+   * the endpoints.
+   *
+   * This lets us recognize simpler curves exactly: the curve is
+   * a line iff dv1=dv4=0, and it is a quadratic curve iff
+   * dv1+dv4=0.
+   */
   private Bezier(Point p1, Vector dv1, Vector dv4, Point p4) {
     this.p1 = p1;
     this.p4 = p4;
@@ -79,13 +88,22 @@ public final class Bezier extends LongHashed {
         scratch.apply(at, p4));
   }
 
-  public Bezier firstHalf() {
-    Point pM = pointAt(0.5);
-    Vector minusDelta = pM.to(p1);
-    return new Bezier(p1,
-        minusDelta.plus(0.5, v1),
-        minusDelta.plus(0.5, derivativeAt(0.5)),
-        pM);
+  public record SplitBezier(Bezier front, Bezier back) {}
+
+  public SplitBezier split(double t) {
+    Point pM = pointAt(t);
+    if( isExactlyALine() )
+      return new SplitBezier(line(p1, pM), line(pM,p4));
+    Vector vM = derivativeAt(t);
+    Vector minusDeltaFront = pM.to(p1);
+    Vector minusDeltaBack = p4.to(pM);
+    Bezier front = new Bezier(
+        p1, minusDeltaFront.plus(t, v1),
+        minusDeltaFront.plus(t, vM), pM);
+    Bezier back = new Bezier(
+        pM, minusDeltaBack.plus(1-t, vM),
+        minusDeltaBack.plus(1-t, v4), p4);
+    return new SplitBezier(front, back);
   }
 
   public UnitVector dir1() {
@@ -165,10 +183,10 @@ public final class Bezier extends LongHashed {
     if( Math.abs(wantMid.to(gotMid).dot(midNormal)) < 1 )
       return List.of(candidate);
     else {
-      var lastHalf = reverse.get().firstHalf().reverse.get();
+      var split = split(0.5);
       return TreeList.concat(
-          firstHalf().offset(rightDist, newP1, wantMid),
-          lastHalf.offset(rightDist, wantMid, newP4));
+          split.front().offset(rightDist, newP1, wantMid),
+          split.back().offset(rightDist, wantMid, newP4));
     }
   }
 
