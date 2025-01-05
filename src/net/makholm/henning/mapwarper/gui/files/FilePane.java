@@ -297,9 +297,9 @@ public class FilePane {
       alsoChanged = answer == JOptionPane.YES_OPTION;
     }
     Map<Path, FileContent> undoMap = cache.revertContent(alsoChanged);
+    mapView.setEditingChain(null);
     if( undoMap.isEmpty() )
       return;
-    mapView.setEditingChain(null);
     mapView.undoList.pushItem(new UndoList.UndoItem() {
       @Override
       public String undoDesc() {
