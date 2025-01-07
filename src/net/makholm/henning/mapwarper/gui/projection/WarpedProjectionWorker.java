@@ -5,6 +5,7 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
@@ -13,6 +14,7 @@ import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.gui.FindClosest;
 import net.makholm.henning.mapwarper.gui.track.ChainRef;
+import net.makholm.henning.mapwarper.util.RootFinder;
 import net.makholm.henning.mapwarper.util.TreeList;
 
 final class WarpedProjectionWorker extends MinimalWarpWorker
@@ -91,91 +93,60 @@ implements ProjectionWorker {
     return local;
   }
 
+  private int searches, probes, maxprobes;
+
+  @Override
+  public void dumpSearchStats() {
+    // Disable the stats output by making the definition impossible
+    if( searches < 0 ) {
+      System.err.printf(Locale.ROOT,
+          " %d searches used %d probes, avg %.2f, max %d\n",
+          searches, probes, (double)probes/searches, maxprobes);
+      searches = probes = maxprobes = 0;
+    }
+  }
+
   private LocalPoint locateWithLeftingRef(Point target, double lefting1) {
     // We only expect to get this close when following the errors on
     // a straight section of track. However, we'll grab the opportunity
     // whenever it presents ...
     double epsilon = Math.abs(yscale) * 0.01;
-    PointWithNormal p0 = null, p1;
-    double err0 = 0, err1;
-    double lefting0 = lefting1;
 
-    // First stage: move towards where the point appears to be, in
-    // exponential increments if the error wasn't a reliable guide.
-    for(;;) {
-      p1 = normalAt(lefting1);
-      err1 = p1.signedDistanceFromNormal(target);
-
-      if( Math.abs(err1) < epsilon )
-        return found(target, lefting1, p1);
-      else if( err0 * err1 < 0 ) {
-        // once we've found a sign difference, break out and start a
-        // bisection phase.
-        break;
-      } else {
-        double expmove = 2 * (lefting1 - lefting0);
-        double errmove = err1;
-        lefting0 = lefting1;
-        p0 = p1;
-        err0 = err1;
-
-        lefting1 += Math.abs(expmove) > Math.abs(errmove) ?
-            expmove : errmove;
+    double foundLefting = new RootFinder(xscale) {
+      int count;
+      @Override
+      protected double f(double lefting) {
+        count++;
+        PointWithNormal p = normalAt(lefting);
+        double ndist = p.signedDistanceFromNormal(target);
+        if( Math.abs(ndist) < epsilon )
+          return 0;
+        else
+          return -ndist;
       }
-    }
-
-    // bisection loop
-    int count = 0;
-    for(;;) {
-      // interpolate between lefting0 and lefting1
-      double frac = err1 / (err1-err0);
-
-      if( Math.abs(lefting0 - lefting1) < xscale ||
-          p0.normal == p1.normal ) {
-        // Either the points are very close, or the normals are _so_
-        // equal that they must have come from the same straight segment.
-        double lefting = lefting0 + frac*(lefting1-lefting0);
-        return found(target, lefting, normalAt(lefting));
+      @SuppressWarnings("unused")
+      @Override
+      protected double derivative(double lefting) {
+        // Experimentally, providing a precise derivative doesn't even reduce
+        // the (already quite small) average number of probes per conversion
+        // by even one. So it's not worth the extra work ...
+        if( true ) return Double.NaN;
+        PointWithNormal p = normalAt(lefting);
+        double downing = p.to(target).dot(p.normal);
+        double curvature = curvatureAt(lefting);
+        return 1-downing*curvature;
       }
-
-      // The trouble with an interpolating bisection is that we might end
-      // up chopping off tiny pieces at the same end of the interval all
-      // the time if the function doesn't cooperate. Thus:
-      if( count++ % 2 == 0 ) {
-        // Half of the time, the guess was close to an endpoint, move
-        // it inwards so the next interval is at most 2/3 of the current,
-        // no matter what.
-        // So in the worst case it will take about 3½ guesses for each
-        // bit of precision.
-        if( frac < 1.0/3 ) frac = 1.0/3;
-        else if( frac > 2.0/3 ) frac = 2.0/3;
-      } else {
-        // The other half of the time, adjust guesses near the endpoints
-        // just enough that the original guess will be in the middle of the
-        // next interval.
-        frac += frac*(2*frac-1)*(frac-1);
+      double run(double a) {
+        var result = rootNear(a);
+        searches++;
+        probes += count;
+        maxprobes = Math.max(maxprobes, count);
+        return result;
       }
+    }.run(lefting1);
 
-      double leftingM = lefting0 + frac*(lefting1-lefting0);
-      PointWithNormal pM = normalAt(leftingM);
-      double errM = pM.signedDistanceFromNormal(target);
-      if( Math.abs(errM) < epsilon )
-        return found(target, leftingM, pM);
-
-      if( err0 * errM > 0 ) {
-        lefting0 = leftingM;
-        p0 = pM;
-        err0 = errM;
-      } else {
-        lefting1 = leftingM;
-        p1 = pM;
-        err1 = errM;
-      }
-    }
-  }
-
-  private LocalPoint found(Point target, double lefting, PointWithNormal pwn) {
-    return new LocalPoint(target, segment, lefting,
+    PointWithNormal pwn = normalAt(foundLefting);
+    return new LocalPoint(target, segment, foundLefting,
         target.minus(pwn).dot(pwn.normal) + slews.segmentSlew(segment),
         pwn.normal);
   }

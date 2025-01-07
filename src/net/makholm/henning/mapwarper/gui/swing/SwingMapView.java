@@ -575,6 +575,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     currentTrackPainter.paint(ggt, lbounds);
 
     paintVectorOverlay(toolResponse.previewOverlay(), g, bounds);
+    logic.translator().dumpSearchStats();
   }
 
   private void paintVectorOverlay(VectorOverlay vo, Graphics2D g,
