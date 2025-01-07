@@ -87,28 +87,28 @@ public abstract class RootFinder {
       return MathUtil.avg(a, b);
     }
     for(;;) {
+      // Invariants here: a < b and fa = f(a) < 0 < f(b) = fb
       double width = b-a;
       double x, fx;
       if( width <= precision ) {
         // Plain linear interpolation
-        return a - (b-a)*fa/(fb-fa);
-      } else if( Math.abs(fa) <= Math.abs(fb) ) {
+        return a - width*fa/(fb-fa);
+      } else if( -fa <= fb ) {
         double d = derivative(a);
         // Use linear interpolation if we get NaN, 0, or negative
-        if( !(d>0) ) d = (fb-fa)/(b-a);
-        double jump = Math.max(minjump, -fa/d);
+        double jump = Math.max(minjump, d>0 ? -fa/d : width*fa/(fa-fb));
         // First try to jump the distance predicted by the derivative, except
         // don't jump more than half the interval. If we would jump more than
         // half the distance to b, but still |fa|<|fb|, the function must
         // have a weird shape anyway, and we're better served by cutting in
         // halves until we narrow in on a more uniform interval.
-        if( jump*2 < width ) {
+        if( jump <= width/2 ) {
           x = a+jump; fx = f(x); if( fx == 0 ) return x;
           if( fx > 0 ) { b = x; fb = fx; continue; } else { a = x; fa = fx; }
           // Next, try the same jump distance once more, in case the function
-          // was just a bit concave down, though still not jumping more than
-          // half the remaining distance.
-          if( jump*3 < width ) {
+          // was just a bit concave down, though still not jumping further
+          // than half the orginal interval.
+          if( jump <= width/4 ) {
             x += jump; fx = f(x); if( fx == 0 ) return x;
             if( fx > 0 ) { b = x; fb = fx; continue; } else { a = x; fa = fx; }
           }
@@ -116,12 +116,11 @@ public abstract class RootFinder {
       } else {
         // the case for |fb|<|fa| is the same, mutatis mutandis
         double d = derivative(b);
-        if( !(d>0) ) d = (fb-fa)/(b-a);
-        double jump = Math.max(minjump, fb/d);
-        if( jump*2 < width ) {
+        double jump = Math.max(minjump, d>0 ? fb/d : width*fb/(fb-fa));
+        if( jump <= width/2 ) {
           x = b-jump; fx = f(x); if( fx == 0 ) return x;
           if( fx < 0 ) { a = x; fa = fx; continue; } else { b = x; fb = fx; }
-          if( jump*3 < width ) {
+          if( jump <= width/4 ) {
             x -= jump; fx = f(x); if( fx == 0 ) return x;
             if( fx < 0 ) { a = x; fa = fx; continue; } else { b = x; fb = fx; }
           }

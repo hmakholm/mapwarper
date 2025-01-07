@@ -97,7 +97,7 @@ implements ProjectionWorker {
 
   @Override
   public void dumpSearchStats() {
-    // Disable the stats output by making the definition impossible
+    // Disable the stats output by making the condition impossible
     if( searches < 0 ) {
       System.err.printf(Locale.ROOT,
           " %d searches used %d probes, avg %.2f, max %d\n",
