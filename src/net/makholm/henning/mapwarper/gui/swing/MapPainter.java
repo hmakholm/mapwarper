@@ -280,7 +280,6 @@ class MapPainter {
           activeInstance.dispose();
           activeInstance = null;
         }
-        return false;
       } else {
         synchronized( RenderBuffer.this ) {
           if( activeInstance != wantInstance ) {
@@ -289,8 +288,8 @@ class MapPainter {
             activeInstance = wantInstance;
           }
         }
-        return true;
       }
+      return activeInstance != null;
     }
 
     /** Runs in the UI thread */
