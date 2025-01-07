@@ -174,6 +174,11 @@ implements ProjectionWorker {
       return List.of(Bezier.line(l1, l4));
     } else if( l1.segment == l4.segment ) {
       return global2localSameSegment(l1, global, l4, 0);
+    } else if( l4.segment == l1.segment+1 &&
+        l4.lefting == warp.nodeLeftings[l4.segment] ) {
+      // Important special case, e.g. when a segment of the existing warp
+      // gets new _tangents_ due to other changes, but keeps its _endpoints_.
+      return global2localSameSegment(l1, global, l4, 0);
     } else {
       // For now fall back to representing everything as straight lines
       return Collections.singletonList(Bezier.line(l1, l4));
