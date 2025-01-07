@@ -1,7 +1,5 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
-import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -77,7 +75,12 @@ implements ProjectionWorker {
 
     // Don't bother to store the result in the cache -- points where we
     // have a local reference are usually very ephemeral.
-    return locateWithLeftingRef(key, nearbyLocal.x * xscale);
+    if( nearbyLocal instanceof LocalPoint lp ) {
+      selectCurve(lp.segment);
+      return locateWithLeftingRef(key, lp.lefting);
+    } else {
+      return locateWithLeftingRef(key, nearbyLocal.x * xscale);
+    }
   }
 
   private LocalPoint cacheLookup(GlobalPoint global) {
@@ -87,8 +90,8 @@ implements ProjectionWorker {
     var easy = warp.easyPoints.get(global);
     if( easy == null ) return null;
 
-    local = new LocalPoint(global, easy.segment(),
-        easy.lefting(), easy.downing(), easy.tangent().turnRight());
+    local = new LocalPoint(easy.segment(), easy.lefting(), easy.downing(),
+        easy.tangent().turnRight());
     global2localCache.put(global, local);
     return local;
   }
@@ -146,7 +149,7 @@ implements ProjectionWorker {
     }.run(lefting1);
 
     PointWithNormal pwn = normalAt(foundLefting);
-    return new LocalPoint(target, segment, foundLefting,
+    return new LocalPoint(segment, foundLefting,
         target.minus(pwn).dot(pwn.normal) + slews.segmentSlew(segment),
         pwn.normal);
   }
@@ -156,7 +159,7 @@ implements ProjectionWorker {
     final int segment;
     final UnitVector normal;
 
-    private LocalPoint(Point global, int segment,
+    private LocalPoint(int segment,
         double lefting, double downing, UnitVector normal) {
       super(lefting / xscale, downing / yscale);
       this.lefting = lefting;
@@ -173,12 +176,12 @@ implements ProjectionWorker {
     if( warp.easyCurves.contains(global) ) {
       return List.of(Bezier.line(l1, l4));
     } else if( l1.segment == l4.segment ) {
-      return global2localSameSegment(l1, global, l4, 0);
+      return global2localOneSegment(l1.segment, l1, global, l4, 0);
     } else if( l4.segment == l1.segment+1 &&
         l4.lefting == warp.nodeLeftings[l4.segment] ) {
       // Important special case, e.g. when a segment of the existing warp
       // gets new _tangents_ due to other changes, but keeps its _endpoints_.
-      return global2localSameSegment(l1, global, l4, 0);
+      return global2localOneSegment(l1.segment, l1, global, l4, 0);
     } else {
       // For now fall back to representing everything as straight lines
       return Collections.singletonList(Bezier.line(l1, l4));
@@ -197,60 +200,52 @@ implements ProjectionWorker {
    * @param l1 the already converted point p1 of {@code global}.
    * @param l4 the already converted point p4 of {@code global}.
    */
-  private List<Bezier> global2localSameSegment(
-      LocalPoint l1, Bezier global, LocalPoint l4, int level) {
+  private List<Bezier> global2localOneSegment(
+      int seg, LocalPoint l1, Bezier global, LocalPoint l4, int level) {
     if( l1.sqDist(l4) < 8 || level > 5)
       return List.of(Bezier.line(l1, l4));
-    selectCurve(l1.segment);
-    AffineTransform at1, at4;
+    selectCurve(seg);
+    Vector v1, v4;
     if( currentSegmentIsStraight() ) {
       if( global.isExactlyALine() )
         return List.of(Bezier.line(l1, l4));
-      at1 = at4 = backwardsLinear(l1.normal.turnLeft().scale(xscale),
-          l1.normal.scale(yscale));
+      v1 = delta2local(global.v1, l1.normal, xscale);
+      v4 = delta2local(global.v4, l4.normal, xscale);
     } else {
-      at1 = backwardsLinear(l1);
-      at4 = backwardsLinear(l4);
+      v1 = delta2local(global.v1, l1);
+      v4 = delta2local(global.v4, l4);
     }
-    var v1 = applyDelta(at1, global.v1);
-    var v4 = applyDelta(at4, global.v4);
     Bezier candidate = Bezier.withVs(l1, v1, v4, l4);
     var got = candidate.pointAt(0.5);
-    var want = global2localWithHint(global.pointAt(0.5), got);
+    var want = locateWithLeftingRef(global.pointAt(0.5), got.x*xscale);
     if( want.sqDist(got) < 8 ) {
       // this looks good!
       return List.of(candidate);
-    } else if( want.segment != l1.segment ) {
-      // Huh? This sometimes happens when there are singularities around.
+    } else if( want.segment != seg ) {
+      // Huh? This sometimes happens when we're far from the track
+      // and and the x scale varies wildly.
       return List.of(candidate);
     } else {
       var split = global.split(0.5);
       return TreeList.concat(
-          global2localSameSegment(l1, split.front(), want, level+1),
-          global2localSameSegment(want, split.back(), l4, level+1));
+          global2localOneSegment(seg, l1, split.front(), want, level+1),
+          global2localOneSegment(seg, want, split.back(), l4, level+1));
     }
   }
 
-  private AffineTransform backwardsLinear(LocalPoint lp) {
+  private Vector delta2local(Vector v, LocalPoint lp) {
     setLeftingWithCurrentSegment(lp.lefting);
     double curvature = curvatureAt(lp.lefting);
     double curvebase = warp.curves.segmentSlew(segment);
     double factor = 1-(lp.downing-curvebase)*curvature;
     if( factor < 0.01 ) factor = 0.01;
-    return backwardsLinear(lp.normal.turnLeft().scale(xscale*factor),
-        lp.normal.scale(yscale));
+    return delta2local(v, lp.normal, factor*xscale);
   }
 
-  private AffineTransform backwardsLinear(Vector left, Vector down) {
-    var at = new AffineTransform(left.x, left.y, down.x, down.y, 0, 0);
-    try {
-      at.invert();
-    } catch (NoninvertibleTransformException e) {
-      // Huh, this definitely shouldn't happen
-      e.printStackTrace();
-      return AffineTransform.getScaleInstance(xscale, yscale);
-    }
-    return at;
+  private Vector delta2local(Vector v, UnitVector down, double xscale) {
+    double y = down.dot(v);
+    double x = down.y*v.x - down.x*v.y;
+    return Vector.of(x/xscale, y/yscale);
   }
 
 }

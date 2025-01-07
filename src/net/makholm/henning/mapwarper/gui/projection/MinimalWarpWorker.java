@@ -2,11 +2,10 @@ package net.makholm.henning.mapwarper.gui.projection;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
-import net.makholm.henning.mapwarper.geometry.TransformHelper;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.gui.track.SegmentChain;
 
-class MinimalWarpWorker extends TransformHelper {
+class MinimalWarpWorker {
 
   protected final WarpedProjection warp;
   protected final SegmentChain.HasSegmentSlew slews;
