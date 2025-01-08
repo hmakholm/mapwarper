@@ -15,7 +15,6 @@ public final class Bezier extends LongHashed {
   public final Vector dv1, dv4;
 
   public final Lazy<AxisRect> bbox;
-  public final Lazy<Bezier> reverse;
 
   /**
    * We treat dv1 = 3(p2-p1)-(p4-p1) and dv4=3(p4-p3)-(p4-p1)
@@ -40,7 +39,6 @@ public final class Bezier extends LongHashed {
     bbox = Lazy.of(() -> new AxisRect(
         new AxisRect(p1,p2),
         new AxisRect(p3,p4)));
-    reverse = Lazy.of(() -> new Bezier(this));
   }
 
   private Bezier(Bezier toReverse) {
@@ -54,9 +52,11 @@ public final class Bezier extends LongHashed {
     dv1 = toReverse.dv4.reverse();
     dv4 = toReverse.dv1.reverse();
     bbox = toReverse.bbox;
-    reverse = Lazy.eager(toReverse);
   }
 
+  public Bezier reverse() {
+    return new Bezier(this);
+  }
   public static Bezier cubic(Point p1, Point p2, Point p3, Point p4) {
     Vector md = p1.minus(p4);
     Vector dv1 = md.plus(3, p2.minus(p1));

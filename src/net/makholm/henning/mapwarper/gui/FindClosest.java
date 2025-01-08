@@ -89,7 +89,7 @@ implements XyTree.Callback<L> {
       double tmp = sqdist1;
       sqdist1 = sqdist4;
       sqdist4 = tmp;
-      curve = curve.reverse.get();
+      curve = curve.reverse();
     }
 
     if( sqdist1 < sqDistLimit ) {

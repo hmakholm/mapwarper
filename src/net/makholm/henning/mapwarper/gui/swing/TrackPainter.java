@@ -259,7 +259,7 @@ final class TrackPainter extends LongHashed {
     for( var cs : chain.localize(translator).curves )
       for( var c : cs ) {
         outline = TreeList.concat(
-            c.reverse.get().offset(10),
+            c.reverse().offset(10),
             outline,
             List.of(c));
       }
