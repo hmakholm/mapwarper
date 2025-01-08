@@ -1,6 +1,5 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -12,6 +11,7 @@ import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.gui.FindClosest;
 import net.makholm.henning.mapwarper.gui.track.ChainRef;
+import net.makholm.henning.mapwarper.util.ListMapper;
 import net.makholm.henning.mapwarper.util.RootFinder;
 import net.makholm.henning.mapwarper.util.TreeList;
 
@@ -179,13 +179,56 @@ implements ProjectionWorker {
       return global2localOneSegment(l1.segment, l1, global, l4, 0);
     } else if( l4.segment == l1.segment+1 &&
         l4.lefting == warp.nodeLeftings[l4.segment] ) {
-      // Important special case, e.g. when a segment of the existing warp
-      // gets new _tangents_ due to other changes, but keeps its _endpoints_.
+      // Another important easy case is when a segment of the existing
+      // warp gets new _tangents_ due to nearby changes, but keeps its
+      // _endpoints_.
       return global2localOneSegment(l1.segment, l1, global, l4, 0);
+    } else if( l1.segment < l4.segment ) {
+      return global2local(l1.segment, l1, global, l4, l4.segment);
     } else {
-      // For now fall back to representing everything as straight lines
-      return Collections.singletonList(Bezier.line(l1, l4));
+      var revglobal = global.reverse();
+      var revlocal = global2local(l4.segment, l4, revglobal, l1, l1.segment);
+      return ListMapper.reverse(ListMapper.map(revlocal, Bezier::reverse));
     }
+  }
+
+  private List<Bezier> global2local(int seg1, LocalPoint l1, Bezier global,
+      LocalPoint l4, int seg4) {
+    if( Math.abs(l4.x - l1.x) < 3 )
+      return List.of(Bezier.line(l1, l4));
+    while( seg1 < warp.nodeLeftings.length-1 &&
+        warp.nodeLeftings[seg1+1] < l1.lefting+xscale ) seg1++;
+    while( seg4 >= 0 && warp.nodeLeftings[seg4] > l4.lefting-xscale ) seg4--;
+    if( seg1 >= seg4 )
+      return global2localOneSegment(seg1, l1, global, l4, 0);
+
+    // Divide the curve along a node line in the middle
+    int node = (seg1+seg4+1)/2;
+    PointWithNormal divider = warp.nodesWithNormals[node];
+    double xx1 = divider.signedDistanceFromNormal(global.p1);
+    double xx4 = divider.signedDistanceFromNormal(global.p4);
+    double t;
+    if( xx1 < 0 && xx4 > 0 ) {
+      t = new RootFinder(0.01) {
+        @Override
+        protected double f(double tt) {
+          double xx = divider.signedDistanceFromNormal(global.pointAt(tt));
+          return Math.abs(xx) < xscale/4 ? 0 : xx;
+        }
+      }.rootBetween(0, xx1, 1, xx4);
+    } else {
+      // TODO these other cases are weird. Expected to happen only for
+      // segments far from the warped track, not worth bothering with?
+      return List.of(Bezier.line(l1, l4));
+    }
+    var split = global.split(t);
+    Point gMid = split.front().p4;
+    LocalPoint lMid = new LocalPoint(node, warp.nodeLeftings[node],
+        divider.to(gMid).dot(divider.normal) + warp.curves.nodeSlew(node),
+        divider.normal);
+    return TreeList.concat(
+        global2local(seg1, l1, split.front(), lMid, node-1),
+        global2local(node, lMid, split.back(), l4, seg4));
   }
 
   /**

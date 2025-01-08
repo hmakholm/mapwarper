@@ -10,6 +10,7 @@ import java.util.Set;
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
+import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
@@ -39,6 +40,8 @@ public final class WarpedProjection extends BaseProjection {
   record EasyPoint(int segment, double lefting, double downing,
       UnitVector tangent) {}
 
+  final PointWithNormal[] nodesWithNormals;
+
   final LinkedHashMap<GlobalPoint, EasyPoint> easyPoints =
       new LinkedHashMap<>();
   /** These are all straight in warped coords <em>by construction</em>. */
@@ -66,11 +69,13 @@ public final class WarpedProjection extends BaseProjection {
     for( var p : mainContent.usebounds() )
       usedFiles.add(cache.getFile(p).content());
 
+    nodesWithNormals = new PointWithNormal[track.numNodes];
     nodeLeftings = new double[track.numNodes];
     double t = 0;
     UnitVector tangent = curves.get(0).dir1();
-    easyPoints.put(GlobalPoint.of(track.nodes.get(0)),
-        new EasyPoint(0, 0, 0, tangent));
+    GlobalPoint node = GlobalPoint.of(track.nodes.get(0));
+    easyPoints.put(node, new EasyPoint(0, 0, 0, tangent));
+    nodesWithNormals[0] = new PointWithNormal(node, tangent.turnRight());
     for( int i=0; i<track.numSegments; i++ ) {
       nodeLeftings[i] = t;
       var curve = curves.get(i);
@@ -80,8 +85,9 @@ public final class WarpedProjection extends BaseProjection {
       tangent = curve.dir4();
       easyPoints.put(GlobalPoint.of(curve.p4),
           new EasyPoint(i+1, t, curves.segmentSlew(i), tangent));
-      easyPoints.put(GlobalPoint.of(track.nodes.get(i+1)),
-          new EasyPoint(i+1, t, curves.nodeSlew(i+1), tangent));
+      node = GlobalPoint.of(track.nodes.get(i+1));
+      easyPoints.put(node, new EasyPoint(i+1, t, curves.nodeSlew(i+1), tangent));
+      nodesWithNormals[i+1] = new PointWithNormal(node, tangent.turnRight());
     }
     nodeLeftings[track.numSegments] = totalLength = t;
 

@@ -1,7 +1,5 @@
 package net.makholm.henning.mapwarper.util;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -12,16 +10,23 @@ public class ListMapper {
       return null;
     switch( list.size() ) {
     case 0:
-      return Collections.emptyList();
+      return List.of();
     case 1:
-      return Collections.singletonList(f.apply(list.get(0)));
+      return List.of(f.apply(list.get(0)));
+    case 2:
+      return List.of(f.apply(list.get(0)), f.apply(list.get(1)));
     default:
-      if( list instanceof FrozenArray ||
-          list instanceof ArrayList )
-        return FrozenArray.mapIndexing(list, f);
-      else
-        return FrozenArray.mapIterating(list, f);
+      return FrozenArray.map(list, f);
     }
+  }
+
+  public static <T> List<T> reverse(List<T> list) {
+    if( list == null || list.size() <= 1 )
+      return list;
+    else if( list.size() == 2 )
+      return List.of(list.get(1), list.get(0));
+    else
+      return FrozenArray.reverse(list);
   }
 
 }

@@ -1,6 +1,7 @@
 package net.makholm.henning.mapwarper.util;
 
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
@@ -34,25 +35,42 @@ public class FrozenArray<T> extends AbstractList<T> {
   }
 
   public final <U> FrozenArray<U> map(Function<T,U> f) {
-    return mapIndexing(this, f);
+    return map(this, f);
   }
 
-  public static <T,U> FrozenArray<U> mapIndexing(List<T> list, Function<T,U> f) {
+  public static <T,U> FrozenArray<U> map(List<T> list, Function<T,U> f) {
     Object[] mapped = new Object[list.size()];
-    for( int i=0; i<mapped.length; i++ )
-      mapped[i] = f.apply(list.get(i));
+    if( list instanceof FrozenArray<T> fa ) {
+      for( int i=0; i<mapped.length; i++ )
+        mapped[i] = f.apply(fa.get(i));
+    } else if( list instanceof ArrayList<T> alist ) {
+      for( int i=0; i<mapped.length; i++ )
+        mapped[i] = f.apply(alist.get(i));
+    } else {
+      int i = 0;
+      for( T val : list )
+        mapped[i++] = f.apply(val);
+      if( i != mapped.length )
+        throw BadError.of("List said it had %d elements, but produced only %d",
+            mapped.length, i);
+    }
     return new FrozenArray<U>(mapped, 0);
   }
 
-  public static <T,U> FrozenArray<U> mapIterating(List<T> list, Function<T,U> f) {
-    Object[] mapped = new Object[list.size()];
-    int i = 0;
-    for( T val : list )
-      mapped[i++] = f.apply(val);
-    if( i != mapped.length )
-      throw BadError.of("List said it had %d elements, but produced only %d",
-          mapped.length, i);
-    return new FrozenArray<U>(mapped, 0);
+  public static <T> FrozenArray<T> reverse(List<T> list) {
+    Object[] reversed = new Object[list.size()];
+    int max = reversed.length-1;
+    if( list instanceof FrozenArray<T> || list instanceof ArrayList<T> ) {
+      for( int i=0; i<reversed.length; i++ )
+        reversed[i] = list.get(max-i);
+    } else {
+      int i = 0;
+      for( T val : list ) reversed[max - i++] = val;
+      if( i != reversed.length )
+        throw BadError.of("List said it had %d elements, but produced only %d",
+            reversed.length, i);
+    }
+    return new FrozenArray<T>(reversed, 0);
   }
 
   @Override
