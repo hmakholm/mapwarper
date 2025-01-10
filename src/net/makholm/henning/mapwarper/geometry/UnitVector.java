@@ -22,6 +22,11 @@ public class UnitVector extends Vector {
     return new UnitVector(x * factor, y * factor);
   }
 
+  public static UnitVector withBearing(double degrees) {
+    double radians = degrees * (Math.PI/180);
+    return new UnitVector(Math.sin(radians), -Math.cos(radians));
+  }
+
   @Override
   public UnitVector normalize() {
     return this;

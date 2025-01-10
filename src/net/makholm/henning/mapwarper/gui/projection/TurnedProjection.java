@@ -34,6 +34,16 @@ public final class TurnedProjection extends Projection {
     }
   }
 
+  public static Projection invert(Projection base) {
+    if( base instanceof TurnedProjection tp ) {
+      if( tp.quadrants == 2 )
+        return tp.base;
+      else
+        return new TurnedProjection(tp.base, (tp.quadrants+2)%4);
+    } else
+      return new TurnedProjection(base, 2);
+  }
+
   private final AffineTransform local2next, next2local;
 
   private TurnedProjection(Projection base, int quadrants) {
