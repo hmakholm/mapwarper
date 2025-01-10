@@ -28,17 +28,12 @@ final class MarginedWarpRenderer extends BaseWarpRenderer {
         (margins.leftMargin(worker, xmid) - ybase) / yscale - 0.5;
     double rightMargin =
         (margins.rightMargin(worker, xmid) - ybase) / yscale - 0.5;
-    if( yscale < 0 ) {
-      double tmp = leftMargin;
-      leftMargin = rightMargin;
-      rightMargin = tmp;
-    }
 
     // Handle curvature singularities
     double radius = 1/worker.curvatureAt(xmid);
     double curvecenter = (radius + slews.segmentSlew(worker.segment) - ybase)
         / yscale - 0.5;
-    if( radius * yscale > 0 ) {
+    if( radius > 0 ) {
       if( curvecenter > ymax ) {
         // OK
       } else if( curvecenter <= ymin ) {

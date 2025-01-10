@@ -11,11 +11,13 @@ import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
 import net.makholm.henning.mapwarper.util.AbortRendering;
+import net.makholm.henning.mapwarper.util.BadError;
 import net.makholm.henning.mapwarper.util.ListMapper;
 
 public final class TurnedProjection extends Projection {
 
-  protected final Projection base;
+  final Projection base;
+  final int quadrants;
 
   /**
    * Turns by 90° such that a warped projection where the track goes
@@ -23,14 +25,22 @@ public final class TurnedProjection extends Projection {
    */
   public static Projection turnCounterclockwise(Projection base) {
     if( base instanceof TurnedProjection tp ) {
-      return tp.base.withScaleAcross(-tp.base.scaleAcross());
+      if( tp.quadrants == 3 )
+        return tp.base;
+      else
+        return new TurnedProjection(tp.base, tp.quadrants+1);
     } else {
-      return new TurnedProjection(base);
+      return new TurnedProjection(base, 1);
     }
   }
 
-  private TurnedProjection(Projection base) {
+  private final AffineTransform local2next, next2local;
+
+  private TurnedProjection(Projection base, int quadrants) {
     this.base = base;
+    this.quadrants = quadrants;
+    local2next = AffineTransform.getQuadrantRotateInstance(quadrants);
+    next2local = AffineTransform.getQuadrantRotateInstance(4-quadrants);
   }
 
   @Override public BaseProjection base() { return base.base(); }
@@ -44,20 +54,30 @@ public final class TurnedProjection extends Projection {
     if( newBase.equals(base) )
       return this;
     else
-      return new TurnedProjection(newBase);
+      return new TurnedProjection(newBase, quadrants);
   }
 
   @Override
   public Projection scaleAndSqueezeSimilarly(BaseProjection realBase) {
-    return new TurnedProjection(base.scaleAndSqueezeSimilarly(realBase));
+    return new TurnedProjection(base.scaleAndSqueezeSimilarly(realBase), quadrants);
   }
 
-  private static Point local2next(Point local) {
-    return Point.at(-local.y, local.x);
+  private Point local2next(Point local) {
+    switch( quadrants ) {
+    case 1: return Point.at(-local.y, local.x);
+    case 2: return Point.at(-local.x, -local.y);
+    case 3: return Point.at(local.y, -local.x);
+    default: throw BadError.of("quadrants=%d", quadrants);
+    }
   }
 
-  private static Point next2local(Point next) {
-    return Point.at(next.y, -next.x);
+  private Point next2local(Point next) {
+    switch( quadrants ) {
+    case 1: return Point.at(next.y, -next.x);
+    case 2: return Point.at(-next.x, -next.y);
+    case 3: return Point.at(-next.y, next.x);
+    default: throw BadError.of("quadrants=%d", quadrants);
+    }
   }
 
   @Override
@@ -69,12 +89,6 @@ public final class TurnedProjection extends Projection {
   public Point projected2local(Point projected) {
     return next2local(base.projected2local(projected));
   }
-
-  private static final AffineTransform local2next =
-      AffineTransform.getQuadrantRotateInstance(1);
-
-  private static final AffineTransform next2local =
-      AffineTransform.getQuadrantRotateInstance(3);
 
   @Override
   public AffineTransform createAffine() {
@@ -123,14 +137,20 @@ public final class TurnedProjection extends Projection {
   @Override
   public RenderFactory makeRenderFactory(LayerSpec spec) {
     RenderFactory inner = base.makeRenderFactory(spec);
-    return target -> inner.makeWorker(new TurnedTarget(target));
+    switch( quadrants ) {
+    case 1: return target -> inner.makeWorker(new Turned90Target(target));
+    case 2: return target -> inner.makeWorker(new Turned180Target(target));
+    case 3: return target -> inner.makeWorker(new Turned270Target(target));
+    default:
+      throw BadError.of("Cannot render at %d×90°", quadrants);
+    }
   }
 
-  private static class TurnedTarget implements RenderTarget {
+  private static class Turned90Target implements RenderTarget {
     private final RenderTarget outer;
     private final int rowsm1;
 
-    TurnedTarget(RenderTarget outer) {
+    Turned90Target(RenderTarget outer) {
       this.outer = outer;
       rowsm1 = outer.rows()-1;
     }
@@ -154,20 +174,79 @@ public final class TurnedProjection extends Projection {
     }
   }
 
+  private static class Turned180Target implements RenderTarget {
+    private final RenderTarget outer;
+    private final int rowsm1, colsm1;
+
+    Turned180Target(RenderTarget outer) {
+      this.outer = outer;
+      rowsm1 = outer.rows()-1;
+      colsm1 = outer.columns()-1;
+    }
+
+    @Override public long left() { return -(outer.left()+outer.columns()); }
+    @Override public long top() { return -(outer.top()+outer.rows()); }
+    @Override public int columns() { return outer.columns(); }
+    @Override public int rows() { return outer.rows(); }
+    @Override public boolean isUrgent() { return outer.isUrgent(); }
+    @Override public void isNowGrownUp() { outer.isNowGrownUp(); }
+    @Override public void pokeSchedulerAsync() { outer.pokeSchedulerAsync(); }
+
+    @Override
+    public void checkCanceled() throws AbortRendering {
+      outer.checkCanceled();
+    }
+
+    @Override
+    public void givePixel(int x, int y, int rgb) {
+      outer.givePixel(colsm1-x, rowsm1-y, rgb);
+    }
+  }
+
+  private static class Turned270Target implements RenderTarget {
+    private final RenderTarget outer;
+    private final int colsm1;
+
+    Turned270Target(RenderTarget outer) {
+      this.outer = outer;
+      colsm1 = outer.columns()-1;
+    }
+
+    @Override public long left() { return outer.top(); }
+    @Override public long top() { return -(outer.left()+outer.columns()); }
+    @Override public int columns() { return outer.rows(); }
+    @Override public int rows() { return outer.columns(); }
+    @Override public boolean isUrgent() { return outer.isUrgent(); }
+    @Override public void isNowGrownUp() { outer.isNowGrownUp(); }
+    @Override public void pokeSchedulerAsync() { outer.pokeSchedulerAsync(); }
+
+    @Override
+    public void checkCanceled() throws AbortRendering {
+      outer.checkCanceled();
+    }
+
+    @Override
+    public void givePixel(int x, int y, int rgb) {
+      outer.givePixel(colsm1-y, x, rgb);
+    }
+  }
+
   @Override
   public boolean equals(Object o) {
     return o == this ||
-        (o instanceof TurnedProjection otp && otp.base.equals(base));
+        (o instanceof TurnedProjection otp &&
+            otp.quadrants == quadrants &&
+            otp.base.equals(base));
   }
 
   @Override
   protected long longHashImpl() {
-    return base.longHash() + 202412151456L;
+    return base.longHash() + 202501100147L * quadrants;
   }
 
   @Override
   public String toString() {
-    return "turned "+base;
+    return "turned("+quadrants+") "+base;
   }
 
 }

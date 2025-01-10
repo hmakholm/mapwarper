@@ -113,7 +113,7 @@ implements ProjectionWorker {
     // We only expect to get this close when following the errors on
     // a straight section of track. However, we'll grab the opportunity
     // whenever it presents ...
-    double epsilon = Math.abs(yscale) * 0.01;
+    double epsilon = yscale * 0.01;
 
     double foundLefting = new RootFinder(xscale) {
       int count;

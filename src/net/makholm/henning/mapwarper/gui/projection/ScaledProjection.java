@@ -19,9 +19,9 @@ final class ScaledProjection extends Projection {
   }
 
   @Override public BaseProjection base() { return base; }
-  @Override public double scaleAcross() { return Math.abs(yscale); }
-  @Override public double scaleAlong() { return Math.abs(xscale); }
-  @Override public double getSqueeze() { return Math.abs(squeeze); }
+  @Override public double scaleAcross() { return yscale; }
+  @Override public double scaleAlong() { return xscale; }
+  @Override public double getSqueeze() { return squeeze; }
 
   @Override
   public Point local2projected(Point local) {
@@ -52,8 +52,7 @@ final class ScaledProjection extends Projection {
 
   @Override
   public Projection withScaleAndSqueeze(double newScale, double newSqueeze) {
-    return base.withScaleAndSqueeze(Math.signum(yscale) * newScale,
-        Math.signum(squeeze) * newSqueeze);
+    return base.withScaleAndSqueeze(newScale, newSqueeze);
   }
 
   @Override
@@ -82,7 +81,7 @@ final class ScaledProjection extends Projection {
 
   @Override
   public String toString() {
-    float zoom = (float)(22 - Math.log(Math.abs(yscale))/Math.log(2));
+    float zoom = (float)(22 - Math.log(yscale)/Math.log(2));
     String zoomstr = zoom == (int)zoom ? "z"+(int)zoom : "z"+zoom;
     if( yscale < 0 ) zoomstr = "-"+zoomstr;
     if( squeeze == 1.0 ) {
