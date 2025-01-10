@@ -162,6 +162,17 @@ public class GuiMain extends JFrame {
 
     command.getAction().putValue(Action.ACCELERATOR_KEY, keystroke);
 
+    for( var comp : new JComponent[] { leftSplitter, rightSplitter } ) {
+      InputMap imap = comp.getInputMap(
+          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+      if( imap.get(keystroke) != null ) {
+        imap.remove(keystroke);
+        var parentMap = imap.getParent();
+        if( parentMap != null )
+          parentMap.remove(keystroke);
+      }
+    }
+
     InputMap inputMap = topLevelComponent.getInputMap(
         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     // System.err.println("Define "+command.codename+" for keystroke "+keystroke);
