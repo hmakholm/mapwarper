@@ -40,6 +40,10 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
     this.renderPassesWanted = 3;
   }
 
+  protected long combinedChain() {
+    return fallbackChain | supersample.supersamplingChain;
+  }
+
   @Override
   protected boolean renderColumn(int col, double xmid,
       int ymin, int ymax, double ybase) {

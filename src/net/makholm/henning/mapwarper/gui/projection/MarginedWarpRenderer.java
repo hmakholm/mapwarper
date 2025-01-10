@@ -67,7 +67,7 @@ final class MarginedWarpRenderer extends BaseWarpRenderer {
     if( rightMargin < ymax ) {
       int start = (int)Math.max(ymin, rightMargin);
       hadAllPixels &= renderWithoutSupersampling(col, xmid,
-          start, ymax, ybase, -1);
+          start, ymax, ybase, fallbackChain, -1);
       if( start == ymin )
         return hadAllPixels;
       else
@@ -76,14 +76,18 @@ final class MarginedWarpRenderer extends BaseWarpRenderer {
     if( leftMargin > ymin ) {
       int end = (int)Math.min(ymax, Math.ceil(leftMargin));
       hadAllPixels &= renderWithoutSupersampling(col, xmid,
-          ymin, end, ybase, -1);
+          ymin, end, ybase, fallbackChain, -1);
       if( end == ymax )
         return hadAllPixels;
       else
         ymin = end+1;
     }
 
-    return hadAllPixels & super.renderColumn(col, xmid, ymin, ymax, ybase);
+    if( renderPassesCompleted < 2 )
+      return hadAllPixels & renderWithoutSupersampling(col, xmid,
+          ymin, ymax, ybase, combinedChain(), 0);
+    else
+      return hadAllPixels & super.renderColumn(col, xmid, ymin, ymax, ybase);
   }
 
   private void blackout(int col, int ymin, int ymax) {
