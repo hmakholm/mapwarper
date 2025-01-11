@@ -33,10 +33,10 @@ implements ProjectionWorker {
   }
 
   /** This is used for the initial margin classification. */
-  WarpedProjectionWorker(WarpedProjection warp, double xscale) {
+  WarpedProjectionWorker(WarpedProjection warp) {
     super(warp, i -> 0);
     this.owner = warp;
-    this.xscale = xscale;
+    this.xscale = 1;
     this.yscale = 1;
   }
 
@@ -154,7 +154,7 @@ implements ProjectionWorker {
         pwn.normal);
   }
 
-  private class LocalPoint extends Point {
+  class LocalPoint extends Point {
     final double lefting, downing;
     final int segment;
     final UnitVector normal;
