@@ -2,8 +2,8 @@ comment Passagertog Hagen -> Siegen
 coords web-mercator 2^30
 usebounds bound/hbf.vect
 usebounds bound/schwerte.vect
-node 559122375::357748455 16
-  slew
+node 559122078::357748631 1
+  straight
 node 559123290::357742723 56
 node 559123713::357740375 56
 node 559123863::357739193 1
