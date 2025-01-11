@@ -7,7 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import net.makholm.henning.mapwarper.gui.track.FileContent;
+import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.util.PokePublisher;
 
 public class FSCache {

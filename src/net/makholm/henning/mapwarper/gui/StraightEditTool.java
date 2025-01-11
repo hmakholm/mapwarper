@@ -4,8 +4,8 @@ import java.util.ArrayList;
 
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
-import net.makholm.henning.mapwarper.gui.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.SegKind;
+import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackNode;
 
 class StraightEditTool extends EditTool {

@@ -21,7 +21,7 @@ import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.gui.swing.GuiMain;
 import net.makholm.henning.mapwarper.gui.swing.PokeReceiver;
 import net.makholm.henning.mapwarper.gui.swing.SwingFilePane;
-import net.makholm.henning.mapwarper.gui.track.FileContent;
+import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.util.LongHashed;
 import net.makholm.henning.mapwarper.util.NiceError;
 import net.makholm.henning.mapwarper.util.PokePublisher;

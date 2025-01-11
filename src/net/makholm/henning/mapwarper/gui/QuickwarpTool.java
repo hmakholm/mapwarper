@@ -11,10 +11,10 @@ import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.QuickWarp;
 import net.makholm.henning.mapwarper.gui.projection.TurnedProjection;
-import net.makholm.henning.mapwarper.gui.track.ChainRef;
-import net.makholm.henning.mapwarper.gui.track.TrackHighlight;
-import net.makholm.henning.mapwarper.gui.track.VisibleTrackData;
+import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.track.SegKind;
+import net.makholm.henning.mapwarper.track.TrackHighlight;
+import net.makholm.henning.mapwarper.track.VisibleTrackData;
 
 public class QuickwarpTool extends ProjectionSwitchingTool {
 

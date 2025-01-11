@@ -3,7 +3,7 @@ package net.makholm.henning.mapwarper.gui.projection;
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
-import net.makholm.henning.mapwarper.gui.track.SegmentChain;
+import net.makholm.henning.mapwarper.track.SegmentChain;
 
 class MinimalWarpWorker {
 

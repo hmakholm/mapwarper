@@ -7,10 +7,10 @@ import net.makholm.henning.mapwarper.geometry.LineSeg;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
-import net.makholm.henning.mapwarper.gui.track.ChainRef;
-import net.makholm.henning.mapwarper.gui.track.SegmentChain;
-import net.makholm.henning.mapwarper.gui.track.TrackHighlight;
+import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.track.SegKind;
+import net.makholm.henning.mapwarper.track.SegmentChain;
+import net.makholm.henning.mapwarper.track.TrackHighlight;
 import net.makholm.henning.mapwarper.track.TrackNode;
 import net.makholm.henning.mapwarper.util.TreeList;
 

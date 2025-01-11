@@ -19,9 +19,9 @@ import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
 import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer;
-import net.makholm.henning.mapwarper.gui.track.FileContent;
-import net.makholm.henning.mapwarper.gui.track.SegmentChain;
+import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.track.SegKind;
+import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackNode;
 
 public final class WarpedProjection extends BaseProjection {

@@ -16,13 +16,13 @@ import net.makholm.henning.mapwarper.gui.overlays.CircleOverlay;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
-import net.makholm.henning.mapwarper.gui.track.ChainRef;
-import net.makholm.henning.mapwarper.gui.track.FileContent;
-import net.makholm.henning.mapwarper.gui.track.SegmentChain;
-import net.makholm.henning.mapwarper.gui.track.TrackHighlight;
-import net.makholm.henning.mapwarper.gui.track.VisibleTrackData;
+import net.makholm.henning.mapwarper.track.ChainRef;
+import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.track.SegKind;
+import net.makholm.henning.mapwarper.track.SegmentChain;
+import net.makholm.henning.mapwarper.track.TrackHighlight;
 import net.makholm.henning.mapwarper.track.TrackNode;
+import net.makholm.henning.mapwarper.track.VisibleTrackData;
 import net.makholm.henning.mapwarper.util.TreeList;
 
 class EditTool extends Tool {

@@ -1,4 +1,4 @@
-package net.makholm.henning.mapwarper.gui.track;
+package net.makholm.henning.mapwarper.track;
 
 import static java.util.Collections.singletonList;
 

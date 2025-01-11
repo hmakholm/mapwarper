@@ -1,4 +1,4 @@
-package net.makholm.henning.mapwarper.gui.track;
+package net.makholm.henning.mapwarper.track;
 
 import java.io.PrintStream;
 import java.nio.file.Path;
@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import net.makholm.henning.mapwarper.georaster.WebMercator;
-import net.makholm.henning.mapwarper.track.SegKind;
 
 public class VectWriter {
 

@@ -27,7 +27,7 @@ import net.makholm.henning.mapwarper.gui.MouseAction;
 import net.makholm.henning.mapwarper.gui.MouseAction.ToolResponse;
 import net.makholm.henning.mapwarper.gui.Teleporter;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
-import net.makholm.henning.mapwarper.gui.track.VisibleTrackData;
+import net.makholm.henning.mapwarper.track.VisibleTrackData;
 
 /**
  * The most framework-dependent UI code goes here.

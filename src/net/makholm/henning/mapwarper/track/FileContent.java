@@ -1,4 +1,4 @@
-package net.makholm.henning.mapwarper.gui.track;
+package net.makholm.henning.mapwarper.track;
 
 import java.nio.file.Path;
 import java.util.Collection;
@@ -11,8 +11,6 @@ import java.util.Set;
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
-import net.makholm.henning.mapwarper.track.SegKind;
-import net.makholm.henning.mapwarper.track.TrackNode;
 import net.makholm.henning.mapwarper.util.Lazy;
 import net.makholm.henning.mapwarper.util.LongHashed;
 import net.makholm.henning.mapwarper.util.SetFreezer;

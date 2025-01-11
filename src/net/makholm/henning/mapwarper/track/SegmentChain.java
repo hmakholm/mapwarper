@@ -1,4 +1,4 @@
-package net.makholm.henning.mapwarper.gui.track;
+package net.makholm.henning.mapwarper.track;
 
 import java.util.List;
 
@@ -6,8 +6,6 @@ import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
-import net.makholm.henning.mapwarper.track.SegKind;
-import net.makholm.henning.mapwarper.track.TrackNode;
 import net.makholm.henning.mapwarper.util.BadError;
 import net.makholm.henning.mapwarper.util.FrozenArray;
 import net.makholm.henning.mapwarper.util.Lazy;

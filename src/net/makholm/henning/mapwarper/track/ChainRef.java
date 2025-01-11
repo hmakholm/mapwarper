@@ -1,4 +1,4 @@
-package net.makholm.henning.mapwarper.gui.track;
+package net.makholm.henning.mapwarper.track;
 
 public record ChainRef<T>(T data, SegmentChain chain, int index) {
 

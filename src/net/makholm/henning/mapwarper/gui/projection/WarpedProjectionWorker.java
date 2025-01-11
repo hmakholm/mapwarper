@@ -10,7 +10,7 @@ import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.gui.FindClosest;
-import net.makholm.henning.mapwarper.gui.track.ChainRef;
+import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.util.ListMapper;
 import net.makholm.henning.mapwarper.util.RootFinder;
 import net.makholm.henning.mapwarper.util.TreeList;

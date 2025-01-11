@@ -2,8 +2,8 @@ package net.makholm.henning.mapwarper.gui.projection;
 
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
-import net.makholm.henning.mapwarper.gui.track.SegmentChain;
 import net.makholm.henning.mapwarper.rgb.RGB;
+import net.makholm.henning.mapwarper.track.SegmentChain;
 
 final class MarginedWarpRenderer extends BaseWarpRenderer {
 

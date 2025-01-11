@@ -1,4 +1,4 @@
-package net.makholm.henning.mapwarper.gui.track;
+package net.makholm.henning.mapwarper.track;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -8,8 +8,6 @@ import java.util.Map;
 
 import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
-import net.makholm.henning.mapwarper.track.SegKind;
-import net.makholm.henning.mapwarper.track.TrackNode;
 import net.makholm.henning.mapwarper.util.NiceError;
 import net.makholm.henning.mapwarper.util.Regexer;
 

@@ -4,7 +4,7 @@ import java.awt.Cursor;
 
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
-import net.makholm.henning.mapwarper.gui.track.VisibleTrackData;
+import net.makholm.henning.mapwarper.track.VisibleTrackData;
 
 final class ExploreTool extends Tool {
 

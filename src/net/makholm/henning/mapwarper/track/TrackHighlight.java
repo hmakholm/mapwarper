@@ -1,4 +1,4 @@
-package net.makholm.henning.mapwarper.gui.track;
+package net.makholm.henning.mapwarper.track;
 
 import net.makholm.henning.mapwarper.rgb.RGB;
 import net.makholm.henning.mapwarper.util.LongHashed;

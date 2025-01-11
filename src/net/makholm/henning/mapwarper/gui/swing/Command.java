@@ -11,8 +11,8 @@ import javax.swing.JMenuItem;
 import net.makholm.henning.mapwarper.gui.Commands;
 import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
-import net.makholm.henning.mapwarper.gui.track.FileContent;
-import net.makholm.henning.mapwarper.gui.track.SegmentChain;
+import net.makholm.henning.mapwarper.track.FileContent;
+import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.util.BadError;
 
 @SuppressWarnings("serial")

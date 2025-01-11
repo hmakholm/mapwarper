@@ -12,11 +12,11 @@ import java.util.function.Function;
 
 import net.makholm.henning.mapwarper.gui.UndoList;
 import net.makholm.henning.mapwarper.gui.swing.GuiMain;
-import net.makholm.henning.mapwarper.gui.track.ChainRef;
-import net.makholm.henning.mapwarper.gui.track.FileContent;
-import net.makholm.henning.mapwarper.gui.track.VectParser;
-import net.makholm.henning.mapwarper.gui.track.VectWriter;
+import net.makholm.henning.mapwarper.track.ChainRef;
+import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.track.TrackNode;
+import net.makholm.henning.mapwarper.track.VectParser;
+import net.makholm.henning.mapwarper.track.VectWriter;
 import net.makholm.henning.mapwarper.util.NiceError;
 import net.makholm.henning.mapwarper.util.PokePublisher;
 import net.makholm.henning.mapwarper.util.Regexer;

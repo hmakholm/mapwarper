@@ -12,7 +12,7 @@ import javax.swing.KeyStroke;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.swing.Command;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
-import net.makholm.henning.mapwarper.gui.track.FileContent;
+import net.makholm.henning.mapwarper.track.FileContent;
 
 public class UndoList {
 
