@@ -336,6 +336,7 @@ public class MapView {
 
   int toggleState =
       Toggles.SUPERSAMPLE.bit() |
+      Toggles.SHOW_LABELS.bit() |
       Toggles.EXT_BOUNDS.bit() |
       Toggles.CROSSHAIRS.bit() |
       Toggles.MAIN_TRACK.bit();
@@ -507,7 +508,7 @@ public class MapView {
       VectFile vf = files.cache.getFile(showpath);
       pokes.add(vf.changePokes);
       FileContent showContent = vf.content();
-      vdt.showTrackChainsIn(showContent);
+      vdt.showTrackChainsIn(showpath, showContent);
       addUsebounds(pokes, vdt, showContent);
     }
     vdt.setFlags(toggleState);

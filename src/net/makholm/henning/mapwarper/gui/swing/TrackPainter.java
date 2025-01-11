@@ -2,6 +2,8 @@ package net.makholm.henning.mapwarper.gui.swing;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
@@ -83,6 +85,17 @@ final class TrackPainter extends LongHashed {
 
   void paint(Graphics2D g, AxisRect paintBounds) {
     this.g = g;
+
+    if( trackdata.hasFlag(Toggles.SHOW_LABELS) ) {
+      trackdata.showTrackChainsIn().forEach((path, content) -> {
+        String name = path.getFileName().toString();
+        for( var chain : content.chains() ) {
+          if( chain.isTrack() )
+            showTrackLabel(name, chain);
+        }
+      });
+    }
+
     g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL,
         RenderingHints.VALUE_STROKE_PURE);
 
@@ -95,7 +108,7 @@ final class TrackPainter extends LongHashed {
     drawHighlight(trackdata.highlight());
 
     linestyle(RGB.OTHER_TRACK, BUTT_STROKE);
-    for( var show: trackdata.showTrackChainsIn() )
+    for( var show: trackdata.showTrackChainsIn().values() )
       for( var chain: show.chains() )
         if( chain.isTrack() ) {
           g.draw(chain2Path(chain, 0, chain.numSegments));
@@ -152,6 +165,43 @@ final class TrackPainter extends LongHashed {
     }
 
     this.g = null;
+  }
+
+  private static final Font labelFont =
+      SwingUtils.getANiceDefaultFont().deriveFont(11.0f);
+
+  private void showTrackLabel(String filename, SegmentChain chain) {
+    if( chain.numSegments < 1 ) return;
+    String[] text = new String[] { filename, chain.numSegments+" segments" };
+    g.setFont(labelFont);
+    FontMetrics metrics = g.getFontMetrics();
+
+    int xmargin = 2;
+    int ymargin = 1;
+    int width = 0;
+    for( var s : text )
+      width = Math.max(width, metrics.stringWidth(s));
+    width += 2*xmargin;
+    int height = 2*ymargin+text.length*metrics.getHeight();
+
+    var local = chain.localize(translator);
+    for( var curve : new Bezier[] {
+        local.curves.get(0).get(0),
+        local.curves.last().get(local.curves.last().size()-1).reverse() }) {
+      var left = Math.round( curve.v1.x > 0 ? curve.p1.x - 3 - width : curve.p1.x + 2);
+      var top = Math.round( curve.v1.y > 0 ? curve.p1.y - 3 - height : curve.p1.y + 2);
+      var gg = (Graphics2D)g.create();
+      gg.translate(left, top);
+      gg.setColor(new Color(0xDDEECCAA, true));
+      gg.fill(new Rectangle2D.Double(0, 0, width, height));
+      var x = xmargin;
+      var y = ymargin+metrics.getAscent();
+      gg.setColor(Color.BLACK);
+      for( var s : text ) {
+        gg.drawString(s, x, y);
+        y += metrics.getHeight();
+      }
+    }
   }
 
   private static final float[] glowWidths = { 16, 13, 10 };

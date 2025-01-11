@@ -10,6 +10,7 @@ public enum Toggles {
   CROSSHAIRS(false, true, "showCrosshairs", "Show crosshairs"),
   MAIN_TRACK(false, true, "showTrack", "Show main track"),
   EXT_BOUNDS(false, false, "showBounds", "Show indirect bounds"),
+  SHOW_LABELS(false, true, "showLabels", "Show track labels"),
   LENS_MAP(true, false, ":lensMapFlagBit", null),
   NO_MAIN_TILES_OUTSIDE_MARGINS(true, false, ":clearMarginsFlagBit", null);
   ;

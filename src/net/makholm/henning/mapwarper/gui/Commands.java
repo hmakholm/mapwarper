@@ -239,8 +239,9 @@ public class Commands {
     // Without Ctrl, but possibly shifted, in QUERTY order
     keymap.accept("F3", new NearestNodeDebugTool(this));
     keymap.accept("F4", new TilecacheDebugTool(this));
-    keymap.accept("F6", Toggles.SUPERSAMPLE.command(this));
-    keymap.accept("F7", Toggles.DARKEN_MAP.command(this));
+    keymap.accept("F5", Toggles.SUPERSAMPLE.command(this));
+    keymap.accept("F6", Toggles.DARKEN_MAP.command(this));
+    keymap.accept("F7", Toggles.SHOW_LABELS.command(this));
     keymap.accept("F8", Toggles.CURVATURE.command(this));
     keymap.accept("F9", Toggles.EXT_BOUNDS.command(this));
     keymap.accept("F10", Toggles.CROSSHAIRS.command(this));
@@ -323,11 +324,12 @@ public class Commands {
     zoom.add(teleport);
     view.addSeparator();
 
-    view.add(Toggles.DARKEN_MAP.command(this));
-    view.add(Toggles.CURVATURE.command(this));
-    view.add(Toggles.EXT_BOUNDS.command(this));
-    view.add(Toggles.CROSSHAIRS.command(this));
     view.add(Toggles.MAIN_TRACK.command(this));
+    view.add(Toggles.CROSSHAIRS.command(this));
+    view.add(Toggles.EXT_BOUNDS.command(this));
+    view.add(Toggles.CURVATURE.command(this));
+    view.add(Toggles.SHOW_LABELS.command(this));
+    view.add(Toggles.DARKEN_MAP.command(this));
     view.add(Toggles.SUPERSAMPLE.command(this));
     view.add(repaint);
     view.add(refresh);

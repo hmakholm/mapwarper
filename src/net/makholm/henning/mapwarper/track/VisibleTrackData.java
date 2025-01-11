@@ -1,7 +1,11 @@
 package net.makholm.henning.mapwarper.track;
 
+import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -21,7 +25,7 @@ public final class VisibleTrackData extends LongHashed {
   private final Set<SegmentChain> currentFileChains = new LinkedHashSet<>();
 
   private final Set<FileContent> showBoundChainsIn = new LinkedHashSet<>();
-  private final Set<FileContent> showTrackChainsIn = new LinkedHashSet<>();
+  private final Map<Path, FileContent> showTrackChainsIn = new LinkedHashMap<>();
 
   private int flags;
 
@@ -39,7 +43,7 @@ public final class VisibleTrackData extends LongHashed {
     editingChain = orig.editingChain;
     currentFileChains.addAll(orig.currentFileChains);
     showBoundChainsIn.addAll(orig.showBoundChainsIn);
-    showTrackChainsIn.addAll(orig.showTrackChainsIn);
+    showTrackChainsIn.putAll(orig.showTrackChainsIn);
     flags = orig.flags;
   }
 
@@ -90,8 +94,8 @@ public final class VisibleTrackData extends LongHashed {
     return showBoundChainsIn;
   }
 
-  public Iterable<FileContent> showTrackChainsIn() {
-    return showTrackChainsIn;
+  public Map<Path, FileContent> showTrackChainsIn() {
+    return Collections.unmodifiableMap(showTrackChainsIn);
   }
 
   public void showBoundChainsIn(FileContent file) {
@@ -100,10 +104,10 @@ public final class VisibleTrackData extends LongHashed {
       showBoundChainsIn.add(file);
   }
 
-  public void showTrackChainsIn(FileContent file) {
+  public void showTrackChainsIn(Path p, FileContent file) {
     checkEditable();
     if( file.numTrackChains != 0 )
-      showTrackChainsIn.add(file);
+      showTrackChainsIn.put(p, file);
   }
 
   public void setFlags(int newFlags) {
@@ -141,8 +145,10 @@ public final class VisibleTrackData extends LongHashed {
     for( var bounds : showBoundChainsIn )
       hash += bounds.longHash();
     hash = hashStep(hash);
-    for( var other : showTrackChainsIn )
-      hash += other.longHash();
+    for( var path : showTrackChainsIn.keySet() ) {
+      var content = showTrackChainsIn.get(path);
+      hash += hashStep(content.longHash() ^ path.hashCode());
+    }
     return hash;
   }
 
