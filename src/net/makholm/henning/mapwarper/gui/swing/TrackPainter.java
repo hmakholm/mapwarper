@@ -46,6 +46,11 @@ final class TrackPainter extends LongHashed {
   private static final BasicStroke ROUND_STROKE =
       new BasicStroke(linewidth,
           BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+  private static final BasicStroke DASHED_STROKE =
+      new BasicStroke(linewidth,
+          BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+          10.0f,
+          new float[] { 10.0f }, 0);
 
   TrackPainter(SwingMapView owner, VisibleTrackData trackdata) {
     var logic = owner.logic;
@@ -93,7 +98,7 @@ final class TrackPainter extends LongHashed {
     for( var show: trackdata.showTrackChainsIn() )
       for( var chain: show.chains() )
         if( chain.isTrack() ) {
-          strokeChain(chain);
+          g.draw(chain2Path(chain, 0, chain.numSegments));
         }
 
     for( var bounds: trackdata.showBoundChainsIn() )
@@ -269,12 +274,23 @@ final class TrackPainter extends LongHashed {
     currentPath.closePath();
     g.setColor(new Color(0x50_CCEE00, true));
     g.fill(endPath());
-    linestyle(color, ROUND_STROKE);
-    strokeChain(chain);
-  }
-
-  private void strokeChain(SegmentChain chain) {
-    g.draw(chain2Path(chain, 0, chain.numSegments));
+    g.setColor(new Color(color));
+    int start = 0;
+    for( int end = 1; end < chain.numNodes; end++ ) {
+      if( end == chain.numNodes-1 ||
+          chain.kinds.get(end) != chain.kinds.get(end-1) ) {
+        switch( chain.kinds.get(end-1) ) {
+        case LBOUND:
+          g.setStroke(DASHED_STROKE);
+          break;
+        default:
+          g.setStroke(BUTT_STROKE);
+          break;
+        }
+        g.draw(chain2Path(chain, start, end));
+        start = end;
+      }
+    }
   }
 
   private Path2D chain2Path(SegmentChain chain, int fromNode, int toNode) {

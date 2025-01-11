@@ -6,7 +6,8 @@ public enum SegKind {
   STRAIGHT(ChainClass.TRACK, 0xABCDFF, "straight"),
   SLEW    (ChainClass.TRACK, 0x0080DD, "slew"),
   MAGIC   (ChainClass.TRACK, 0xDD5500, "connect"),
-  BOUND   (ChainClass.BOUND, 0x99F488, "bounds");
+  BOUND   (ChainClass.BOUND, 0x99F488, "bounds"),
+  LBOUND  (ChainClass.BOUND, 0x99F488, "local");
 
   public final ChainClass klass;
   public final int rgb;

@@ -74,6 +74,8 @@ public class Commands {
   private final Tool magicTool =
       new SlewingEditTool(this, SegKind.MAGIC, "arc joiner");
   private final Tool boundTool = new BoundEditTool(this);
+  private final Tool localBoundTool =
+      new BoundSnappingTool(this, SegKind.LBOUND, "locally straight bound");
 
   private final Cmd unzoom = simple("unzoom", "Fit visible",
       self -> self.mapView.unzoomCommand());
@@ -235,6 +237,7 @@ public class Commands {
     keymap.accept("C-Z", mapView.undoList.undo.getCommand(this, 1));
 
     // Without Ctrl, but possibly shifted, in QUERTY order
+    keymap.accept("F3", new NearestNodeDebugTool(this));
     keymap.accept("F4", new TilecacheDebugTool(this));
     keymap.accept("F6", Toggles.SUPERSAMPLE.command(this));
     keymap.accept("F7", Toggles.DARKEN_MAP.command(this));
@@ -274,7 +277,7 @@ public class Commands {
     keymap.accept("C", trackTool);
     keymap.accept("V", weakTrackTool);
     keymap.accept("B", boundTool);
-    keymap.accept("N", new NearestNodeDebugTool(this));
+    keymap.accept("N", localBoundTool);
     keymap.accept("<", squeeze);
     keymap.accept(">", stretch);
 
@@ -330,11 +333,13 @@ public class Commands {
     view.add(refresh);
 
     var tools = menu.addSubmenu("Tools");
-    tools.add(trackTool);
     tools.add(straightTool);
+    tools.add(trackTool);
+    tools.add(weakTrackTool);
     tools.add(slewTool);
     tools.add(magicTool);
     tools.add(boundTool);
+    tools.add(localBoundTool);
     tools.addSeparator();
     tools.add(quickwarp);
     tools.add(lens);

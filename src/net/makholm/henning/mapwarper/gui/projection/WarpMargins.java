@@ -4,6 +4,8 @@ import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.LineSeg;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
+import net.makholm.henning.mapwarper.geometry.UnitVector;
+import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjectionWorker.LocalPoint;
 import net.makholm.henning.mapwarper.track.FileContent;
@@ -77,7 +79,11 @@ class WarpMargins {
           switch( chain.kinds.get(i) ) {
           case BOUND:
             LineSeg ls = prevNode.to(nextNode);
-            thisSeg = pwn -> pwn.intersectWithNormal(ls);
+            thisSeg = (local, global) -> global.intersectWithNormal(ls);
+            break;
+          case LBOUND:
+            ls = prevLocal.to(nextLocal);
+            thisSeg = (local, gobal) -> local.intersectWithNormal(ls);
             break;
           default:
             // anything else is not a bound at all
@@ -102,16 +108,16 @@ class WarpMargins {
   }
 
   interface MarginSource {
-    abstract double get(PointWithNormal pwn);
+    abstract double get(PointWithNormal pwnLocal, PointWithNormal pwnGlobal);
   }
 
   private static final XyTree.Unioner<MarginSource> treeJoiner =
       new XyTree.Unioner<MarginSource>() {
     @Override
     protected MarginSource combine(MarginSource a, MarginSource b) {
-      return pwn -> {
-        double aa = a.get(pwn);
-        double bb = b.get(pwn);
+      return (local, global) -> {
+        double aa = a.get(local, global);
+        double bb = b.get(local, global);
         return aa >= 0 && aa < bb ? aa : bb;
       };
     }
@@ -119,12 +125,13 @@ class WarpMargins {
 
   private class MarginFinder implements XyTree.Callback<MarginSource> {
     final double lefting;
-    final PointWithNormal pwnGlobal;
+    final PointWithNormal pwnLocal, pwnGlobal;
 
     double closest = maxMargin;
 
-    MarginFinder(double lefting, PointWithNormal pwnGlobal) {
-      this.lefting = lefting;
+    MarginFinder(PointWithNormal pwnLocal, PointWithNormal pwnGlobal) {
+      this.lefting = pwnLocal.x;
+      this.pwnLocal = pwnLocal;
       this.pwnGlobal = pwnGlobal;
     }
 
@@ -139,7 +146,7 @@ class WarpMargins {
 
     @Override
     public void accept(MarginSource source) {
-      double got = source.get(pwnGlobal);
+      double got = source.get(pwnLocal, pwnGlobal);
       if( got >= 0 && got < closest )
         closest = got;
     }
@@ -150,21 +157,26 @@ class WarpMargins {
     }
   }
 
+  private static final UnitVector UP = Vector.of(0, -1).normalize();
+  private static final UnitVector DOWN = Vector.of(0, 1).normalize();
+
   public double leftMargin(MinimalWarpWorker worker, double lefting) {
     if( lefting < 0 || lefting > owner.totalLength )
       return Double.POSITIVE_INFINITY;
-    PointWithNormal pwn = worker.normalAt(lefting);
+    PointWithNormal pwnGlobal = worker.normalAt(lefting);
     double slew = owner.curves.segmentSlew(worker.segment);
-    var mf = new MarginFinder(lefting, pwn.reverse());
+    PointWithNormal pwnLocal = new PointWithNormal(lefting, slew, UP);
+    var mf = new MarginFinder(pwnLocal, pwnGlobal.reverse());
     return slew - mf.findMargin(leftBoundaryTree);
   }
 
   public double rightMargin(MinimalWarpWorker worker, double lefting) {
     if( lefting < 0 || lefting > owner.totalLength )
       return Double.NEGATIVE_INFINITY;
-    PointWithNormal pwn = worker.normalAt(lefting);
+    PointWithNormal pwnGlobal = worker.normalAt(lefting);
     double slew = owner.curves.segmentSlew(worker.segment);
-    var mf = new MarginFinder(lefting, pwn);
+    PointWithNormal pwnLocal = new PointWithNormal(lefting, slew, DOWN);
+    var mf = new MarginFinder(pwnLocal, pwnGlobal);
     return slew + mf.findMargin(rightBoundaryTree);
   }
 

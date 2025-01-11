@@ -36,7 +36,13 @@ public class LocalSegmentChain {
     Bezier lastLocalCurve = null;
     for( int i=0; i<global.numSegments; i++ ) {
       Bezier globalCurve = globalCurves.get(i);
-      List<Bezier> localCurves = proj.global2local(globalCurve);
+      List<Bezier> localCurves;
+      if( global.kinds.get(i) == SegKind.LBOUND )
+        localCurves = List.of(Bezier.line(
+            proj.global2local(globalCurve.p1),
+            proj.global2local(globalCurve.p4)));
+      else
+        localCurves = proj.global2local(globalCurve);
       Bezier firstLocalCurve = localCurves.get(0);
       lastLocalCurve = localCurves.get(localCurves.size()-1);
 

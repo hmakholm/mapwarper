@@ -1,7 +1,6 @@
 comment Fjentog Dietikon til tunnelstationen spor 31-34
 coords web-mercator 2^30
 usebounds bound/hb.vect
-usebounds bound/klip-herdern.vect
 node 562169923::375935424 16
   straight
 node 562180937::375939552 16
@@ -59,8 +58,13 @@ node 562340229::376003516 16
 node 562342603::376004473 16
   break
 bounds
-node 562274090::375970946 16
-node 562279577::375976418 16
-node 562288010::375980973 56
-node 562300830::375986189 16
-node 562309711::375988538 16
+node 562200418::375942280 16
+  local
+node 562249809::375960382 1
+  local
+node 562262370::375966432 16
+  break
+bounds
+node 562281014::375973890 16
+  local
+node 562308760::375985954 16
