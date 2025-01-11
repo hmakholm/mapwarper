@@ -15,7 +15,7 @@ import net.makholm.henning.mapwarper.util.XyTree;
 
 public final class SegmentChain extends LongHashed {
 
-  public final SegKind chainClass;
+  public final ChainClass chainClass;
 
   public int numNodes;
   public int numSegments;
@@ -23,7 +23,7 @@ public final class SegmentChain extends LongHashed {
   public FrozenArray<SegKind> kinds;
 
   public SegmentChain(List<TrackNode> nodes0,
-      List<SegKind> kinds0, SegKind chainClass) {
+      List<SegKind> kinds0, ChainClass chainClass) {
     this.chainClass = chainClass;
     this.nodes = FrozenArray.freeze(nodes0);
     this.kinds = FrozenArray.freeze(kinds0);
@@ -43,11 +43,11 @@ public final class SegmentChain extends LongHashed {
   }
 
   public boolean isTrack() {
-    return chainClass == SegKind.TRACK;
+    return chainClass == ChainClass.TRACK;
   }
 
   public boolean isBound() {
-    return chainClass == SegKind.BOUND;
+    return chainClass == ChainClass.BOUND;
   }
 
   public SegmentChain subchain(int fromNode, int toNode) {

@@ -23,6 +23,7 @@ import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
 import net.makholm.henning.mapwarper.rgb.RGB;
+import net.makholm.henning.mapwarper.track.ChainClass;
 import net.makholm.henning.mapwarper.track.LocalSegmentChain;
 import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.SegmentChain;
@@ -81,7 +82,7 @@ final class TrackPainter extends LongHashed {
         RenderingHints.VALUE_STROKE_PURE);
 
     SegmentChain editingChain = trackdata.editingChain();
-    SegKind editingClass =
+    ChainClass editingClass =
         editingChain == null ? null : editingChain.chainClass;
 
     var showAuxCrosshairsIn = new ArrayList<SegmentChain>();
@@ -91,24 +92,24 @@ final class TrackPainter extends LongHashed {
     linestyle(RGB.OTHER_TRACK, BUTT_STROKE);
     for( var show: trackdata.showTrackChainsIn() )
       for( var chain: show.chains() )
-        if( chain.chainClass == SegKind.TRACK ) {
+        if( chain.isTrack() ) {
           strokeChain(chain);
         }
 
     for( var bounds: trackdata.showBoundChainsIn() )
       for( var chain: bounds.chains() )
-        if( chain.chainClass == SegKind.BOUND ) {
+        if( chain.isBound() ) {
           drawBoundChain(chain, RGB.OTHER_BOUND);
-          if( editingClass == SegKind.BOUND )
+          if( editingClass == ChainClass.BOUND )
             showAuxCrosshairsIn.add(chain);
         }
 
     if( trackdata.hasFlag(Toggles.CURVATURE) ) {
       Iterable<SegmentChain> which = trackdata.currentFileChains();
-      if( editingClass == SegKind.TRACK )
+      if( editingClass == ChainClass.TRACK )
         which = Collections.singletonList(editingChain);
       for( var chain : which ) {
-        if( chain.chainClass == SegKind.TRACK )
+        if( chain.isTrack() )
           drawCurvature(chain);
       }
     }
@@ -119,7 +120,7 @@ final class TrackPainter extends LongHashed {
     if( trackdata.hasFlag(Toggles.MAIN_TRACK) ) {
       var trackChains = new ArrayList<SegmentChain>();
       for( var chain : trackdata.currentFileChains() ) {
-        if( chain.chainClass == SegKind.TRACK )
+        if( chain.isTrack() )
           trackChains.add(chain);
         else
           drawBoundChain(chain, RGB.BOUND_SEGMENT);
@@ -137,7 +138,7 @@ final class TrackPainter extends LongHashed {
 
     if( editingChain != null ) {
       if( trackdata.hasFlag(Toggles.MAIN_TRACK) ) {
-        if( editingChain.chainClass == SegKind.TRACK )
+        if( editingChain.isTrack() )
           drawTrackChain(editingChain);
         else
           drawBoundChain(editingChain, RGB.BOUND_SEGMENT);

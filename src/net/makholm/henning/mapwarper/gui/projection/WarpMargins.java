@@ -7,7 +7,6 @@ import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjectionWorker.LocalPoint;
 import net.makholm.henning.mapwarper.track.FileContent;
-import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackNode;
 import net.makholm.henning.mapwarper.util.SingleMemo;
@@ -47,7 +46,7 @@ class WarpMargins {
     var worker = new WarpedProjectionWorker(owner);
     for( FileContent track : owner.usedFiles ) {
       for( SegmentChain chain : track.chains() ) {
-        if( chain.chainClass != SegKind.BOUND ) continue;
+        if( !chain.isBound() ) continue;
         TrackNode prevNode = chain.nodes.get(0), nextNode;
         LocalPoint prevLocal = worker.global2local(prevNode), nextLocal;
         for( int i=0; i<chain.numSegments;

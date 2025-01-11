@@ -12,7 +12,6 @@ import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.QuickWarp;
 import net.makholm.henning.mapwarper.gui.projection.TurnedProjection;
 import net.makholm.henning.mapwarper.track.ChainRef;
-import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.TrackHighlight;
 import net.makholm.henning.mapwarper.track.VisibleTrackData;
 
@@ -29,8 +28,7 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
           activeFileContent().segmentTree.apply(translator()),
           ChainRef::data,
           5, pos, 2);
-      if( segment != null &&
-          segment.chain().chainClass == SegKind.TRACK ) {
+      if( segment != null && segment.chain().isTrack() ) {
         var curve = segment.chain().smoothed().get(segment.index());
         var curvature = curve.signedCurvatureAt(0.5);
         if( Math.abs(curvature) > 1e-6 ) {

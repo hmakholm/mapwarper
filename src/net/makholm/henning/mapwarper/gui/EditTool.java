@@ -16,6 +16,7 @@ import net.makholm.henning.mapwarper.gui.overlays.CircleOverlay;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
+import net.makholm.henning.mapwarper.track.ChainClass;
 import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.track.SegKind;
@@ -29,7 +30,7 @@ class EditTool extends Tool {
   protected final SegKind kind;
   protected final List<SegKind> kindx1;
   protected final String kindDescription;
-  protected final SegKind chainClass;
+  protected final ChainClass chainClass;
 
   protected EditTool(Commands owner, SegKind kind, String kindDescription) {
     super(owner, kind.toString(), "Draw "+kindDescription+"s");

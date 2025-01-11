@@ -19,8 +19,8 @@ import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
 import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer;
+import net.makholm.henning.mapwarper.track.ChainClass;
 import net.makholm.henning.mapwarper.track.FileContent;
-import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackNode;
 
@@ -51,7 +51,7 @@ public final class WarpedProjection extends BaseProjection {
       throws CannotWarp {
     this.sourcename0 = source.path;
     var mainContent = source.content();
-    this.track = mainContent.uniqueChain(SegKind.TRACK);
+    this.track = mainContent.uniqueChain(ChainClass.TRACK);
     if( track == null ) {
       if( mainContent.numTrackChains == 0 )
         throw new CannotWarp(source.shortname()+

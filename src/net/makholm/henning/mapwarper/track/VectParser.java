@@ -27,7 +27,7 @@ public class VectParser {
   private List<TrackNode> nodeCollector = new ArrayList<>();
   private List<SegKind> kindCollector = new ArrayList<>();
 
-  SegKind chainClass;
+  ChainClass chainClass;
   SegKind currentKind;
 
   public void giveLine(String line) {
@@ -42,7 +42,7 @@ public class VectParser {
         chainClass = currentKind.chainClass();
       }
       nodeCollector.add(node);
-      currentKind = chainClass;
+      currentKind = chainClass == null ? null : chainClass.defaultKind();
 
     } else if( re.is("break") ) {
       flushChain();
@@ -51,7 +51,7 @@ public class VectParser {
       SegKind kind = kindsByKeyword.get(re.full);
 
       if( nodeCollector.isEmpty() ) {
-        if( kind != kind.chainClass() ) {
+        if( kind != kind.klass.defaultKind() ) {
           throw NiceError.of("%d: got '%s' when there's no open chain",
               lnum, kind);
         }

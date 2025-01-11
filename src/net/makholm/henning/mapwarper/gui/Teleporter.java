@@ -9,7 +9,6 @@ import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
 import net.makholm.henning.mapwarper.tiles.Tileset;
-import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackNode;
 import net.makholm.henning.mapwarper.util.FrozenArray;
@@ -128,7 +127,7 @@ public class Teleporter {
           continue;
         } else {
           score = -center.sqDist(p);
-          if( chain.chainClass != SegKind.TRACK )
+          if( !chain.isTrack() )
             score *= 4;
         }
         if( score > bestScore ) {

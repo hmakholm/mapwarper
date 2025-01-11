@@ -30,7 +30,7 @@ class BoundEditTool extends EditTool {
     ChainRef<?> found = FindClosest.point(
         activeFileContent().nodeTree(translator()), ChainRef::data,
         SNAP_DISTANCE, local);
-    if( found != null && found.chain().chainClass == SegKind.BOUND ) {
+    if( found != null && found.chain().isBound() ) {
       return found.chain().nodes.get(found.index());
     }
 

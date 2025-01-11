@@ -134,7 +134,7 @@ public final class FileContent extends LongHashed {
     return numTrackChains > 0 || numBoundChains == 0;
   }
 
-  public SegmentChain uniqueChain(SegKind chainClass) {
+  public SegmentChain uniqueChain(ChainClass chainClass) {
     SegmentChain found = null;
     for( var chain : chains )
       if( chain.chainClass == chainClass ) {

@@ -165,7 +165,7 @@ public final class VisibleTrackData extends LongHashed {
     var tree = joiner.empty();
     for( var content : showBoundChainsIn ) {
       for( var chain : content.chains() ) {
-        if( chain.chainClass == SegKind.BOUND )
+        if( chain.isBound() )
           tree = joiner.union(tree, chain.localize(proj).nodeTree.get());
       }
     }

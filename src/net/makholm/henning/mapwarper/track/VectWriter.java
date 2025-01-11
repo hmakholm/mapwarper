@@ -60,7 +60,7 @@ public class VectWriter {
     }
     boolean needsBreak = false;
     for( var chain : chains.values() ) {
-      SegKind defaultKind = chain.chainClass;
+      SegKind defaultKind = chain.chainClass.defaultKind();
       for( int i=0; i<chain.numNodes; i++ ) {
         if( i > 0 ) {
           SegKind kind = chain.kinds.get(i-1);
@@ -80,7 +80,7 @@ public class VectWriter {
 
   private int orderingForChain(SegmentChain chain) {
     int usePosition = Integer.MAX_VALUE;
-    if( chain.chainClass == SegKind.TRACK )
+    if( chain.isTrack() )
       usePosition -= 1000;
     usePosition -= chain.numSegments;
 
