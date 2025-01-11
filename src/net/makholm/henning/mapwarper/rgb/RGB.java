@@ -4,6 +4,7 @@ public class RGB {
 
   public static final int OPAQUE = 0xFF000000;
 
+  public static final int WEAK_SEGMENT     = 0xFFAA33 | OPAQUE;
   public static final int TRACK_SEGMENT    = 0xFFEEDD | OPAQUE;
   public static final int STRAIGHT_SEGMENT = 0xABCDFF | OPAQUE;
   public static final int STRAIGHT_SLEW    = 0x0080DD | OPAQUE;

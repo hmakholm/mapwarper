@@ -127,8 +127,10 @@ class Smoother {
       return 1;
     case TRACK:
       return 2;
-    case MAGIC:
+    case WEAK:
       return 3;
+    case MAGIC:
+      return 4;
     case SLEW:
       return SLEWPRIO;
     case BOUND:
@@ -283,6 +285,7 @@ class Smoother {
     switch( kind ) {
     case STRAIGHT:
     case TRACK:
+    case WEAK:
       break;
     case SLEW:
       if( t1.dot(chord) <= 0 || t4.dot(chord) <= 0 ) {

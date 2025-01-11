@@ -8,6 +8,7 @@ import net.makholm.henning.mapwarper.rgb.RGB;
 public enum SegKind {
 
   TRACK("track", RGB.TRACK_SEGMENT),
+  WEAK("weak", RGB.WEAK_SEGMENT),
   STRAIGHT("straight", RGB.STRAIGHT_SEGMENT),
   SLEW("slew", RGB.STRAIGHT_SLEW),
   MAGIC("connect", RGB.CURVED_SLEW),
@@ -26,7 +27,7 @@ public enum SegKind {
   }
 
   public boolean isTrackVariant() {
-    return this == TRACK || this == STRAIGHT ||
+    return this == WEAK || this == TRACK || this == STRAIGHT ||
         this == SLEW || this == MAGIC;
   }
 

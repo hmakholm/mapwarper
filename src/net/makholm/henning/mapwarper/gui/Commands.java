@@ -64,6 +64,8 @@ public class Commands {
   private final Tool explore = new ExploreTool(this);
   public final Tool move = new MoveTool(this);
 
+  private final Tool weakTrackTool =
+      new EditTool(this, SegKind.WEAK, "weak track");
   private final Tool trackTool =
       new EditTool(this, SegKind.TRACK, "curved track");
   private final Tool straightTool = new StraightEditTool(this);
@@ -270,6 +272,7 @@ public class Commands {
     keymap.accept("Z", zoomTool);
     keymap.accept("X", move);
     keymap.accept("C", trackTool);
+    keymap.accept("V", weakTrackTool);
     keymap.accept("B", boundTool);
     keymap.accept("N", new NearestNodeDebugTool(this));
     keymap.accept("<", squeeze);
@@ -292,8 +295,9 @@ public class Commands {
     edit.add(copy);
     edit.add(paste);
     edit.addSeparator();
-    edit.add(trackTool);
     edit.add(straightTool);
+    edit.add(trackTool);
+    edit.add(weakTrackTool);
     edit.add(slewTool);
     edit.add(magicTool);
     edit.add(boundTool);
