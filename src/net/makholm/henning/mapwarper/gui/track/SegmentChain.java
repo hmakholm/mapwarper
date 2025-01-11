@@ -8,10 +8,6 @@ import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
 import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.TrackNode;
-import net.makholm.henning.mapwarper.track.TrackPath;
-import net.makholm.henning.mapwarper.track.TrackSegment;
-import net.makholm.henning.mapwarper.track.smooth.Smoother;
-import net.makholm.henning.mapwarper.track.smooth.TrackSegmentPath;
 import net.makholm.henning.mapwarper.util.BadError;
 import net.makholm.henning.mapwarper.util.FrozenArray;
 import net.makholm.henning.mapwarper.util.Lazy;
@@ -129,13 +125,12 @@ public final class SegmentChain extends LongHashed {
     public double segmentSlew(int i);
   }
 
-  public final class Smoothed
+  public static final class Smoothed
   extends FrozenArray<Bezier> implements HasSegmentSlew {
     private final double[] nodeSlews;
     private final double[] segmentSlews;
 
-    private Smoothed(Bezier[] curves,
-        double[] nodeSlews, double[] segmentSlews) {
+    Smoothed(Bezier[] curves, double[] nodeSlews, double[] segmentSlews) {
       super(curves);
       this.nodeSlews = nodeSlews;
       this.segmentSlews = segmentSlews;
@@ -164,39 +159,7 @@ public final class SegmentChain extends LongHashed {
     }
   }
 
-  private static final double[] NO_SLEWS = {};
-
-  public final Lazy<Smoothed> smoothed = Lazy.of(() -> {
-    Bezier[] curves = new Bezier[numSegments];
-    if( !isTrack() || numSegments == 0 ) {
-      for( int i=0; i<numSegments; i++ )
-        curves[i] = Bezier.line(nodes.get(i), nodes.get(i+1));
-      return new Smoothed(curves, NO_SLEWS, NO_SLEWS);
-    } else {
-      final double[] nodeSlews = new double[numNodes];
-      final double[] segmentSlews = new double[numSegments];
-      TrackSegment[] cliSegs = new TrackSegment[numSegments];
-      for( int i=0; i<numSegments; i++ )
-        cliSegs[i] = new TrackSegment(
-            nodes.get(i), kinds.get(i), nodes.get(i+1));
-      TrackPath tp = new TrackPath(FrozenArray.of(cliSegs));
-      List<TrackSegmentPath> sp = Smoother.smoothen(tp);
-      if( sp.size() != numSegments ) {
-        throw BadError.of("Smoother produced %d outputs for %d inputs.",
-            sp.size(), numSegments);
-      }
-      double accumulatedSlew = 0;
-      for( int i=0; i<numSegments; i++ ) {
-        TrackSegmentPath seg = sp.get(i);
-        accumulatedSlew += seg.slewBefore;
-        curves[i] = seg.renderToBezier();
-        segmentSlews[i] = accumulatedSlew;
-        accumulatedSlew += seg.slewAfter;
-        nodeSlews[i+1] = accumulatedSlew;
-      }
-      return new Smoothed(curves, nodeSlews, segmentSlews);
-    }
-  });
+  public final Lazy<Smoothed> smoothed = Lazy.of(() -> Smoother.smoothen(this));
 
   public Smoothed smoothed() {
     return smoothed.get();
