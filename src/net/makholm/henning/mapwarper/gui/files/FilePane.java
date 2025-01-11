@@ -349,7 +349,8 @@ public class FilePane {
       // they're supposed to be related or we're switching to an entirely
       // part of the world.
       if( oldActive.content().usesBounds(newActive.path) ||
-          newActive.path.startsWith(oldActive.path.getParent()) )
+          (oldActive.path != null && newActive.path != null &&
+          newActive.path.startsWith(oldActive.path.getParent())) )
         showtracks.add(oldActive.path);
     }
   }
