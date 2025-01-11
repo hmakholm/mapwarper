@@ -58,13 +58,13 @@ class WarpMargins {
           if( prevLocal.x < nextLocal.x ) {
             // Single sided bounds are _left_ bounds in the direction
             // they're drawn.
-            if( prevLocal.y < 0 && nextLocal.y < 0 ) {
+            if( !prevLocal.rightOfTrack() && !nextLocal.rightOfTrack() ) {
               rightBound = false;
               leftingMinMax = Point.at(prevLocal.x, nextLocal.x);
             } else
               continue;
           } else {
-            if( prevLocal.y > 0 && nextLocal.y > 0 ) {
+            if( prevLocal.rightOfTrack() && nextLocal.rightOfTrack() ) {
               rightBound = true;
               leftingMinMax = Point.at(nextLocal.x, prevLocal.x);
             } else

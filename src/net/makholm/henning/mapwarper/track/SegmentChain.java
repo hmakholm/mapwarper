@@ -119,12 +119,7 @@ public final class SegmentChain extends LongHashed {
 
   // -------------------------------------------------------------------------
 
-  public interface HasSegmentSlew {
-    public double segmentSlew(int i);
-  }
-
-  public static final class Smoothed
-  extends FrozenArray<Bezier> implements HasSegmentSlew {
+  public static final class Smoothed extends FrozenArray<Bezier> {
     private final double[] nodeSlews;
     private final double[] segmentSlews;
 
@@ -140,7 +135,6 @@ public final class SegmentChain extends LongHashed {
       return nodeSlews[i];
     }
 
-    @Override
     public double segmentSlew(int i) {
       if( i < 0 ) return 0;
       if( i >= segmentSlews.length ) return nodeSlews[nodeSlews.length-1];

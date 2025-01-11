@@ -159,7 +159,7 @@ public final class WarpedProjection extends BaseProjection {
     double minLeft = Double.POSITIVE_INFINITY;
     double maxRight = Double.NEGATIVE_INFINITY;
     WarpMargins m = WarpMargins.get(this);
-    MinimalWarpWorker w = new MinimalWarpWorker(this, curves);
+    MinimalWarpWorker w = new MinimalWarpWorker(this);
     for( double t = scaleAlong/2; t < totalLength; t += scaleAlong ) {
       minLeft = Math.min(minLeft, m.leftMargin(w, t));
       maxRight = Math.max(maxRight, m.rightMargin(w, t));

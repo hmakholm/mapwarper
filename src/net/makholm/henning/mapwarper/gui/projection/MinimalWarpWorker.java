@@ -8,12 +8,11 @@ import net.makholm.henning.mapwarper.track.SegmentChain;
 class MinimalWarpWorker {
 
   protected final WarpedProjection warp;
-  protected final SegmentChain.HasSegmentSlew slews;
+  protected final SegmentChain.Smoothed curves;
 
-  protected MinimalWarpWorker(WarpedProjection owner,
-      SegmentChain.HasSegmentSlew slews) {
+  protected MinimalWarpWorker(WarpedProjection owner) {
     this.warp = owner;
-    this.slews = slews;
+    this.curves = owner.curves;
     lefting = 0;
     selectCurve(0);
     computePoint();
@@ -40,7 +39,7 @@ class MinimalWarpWorker {
   }
 
   protected final double projected2downing(double y) {
-    return y - slews.segmentSlew(segment);
+    return y - curves.segmentSlew(segment);
   }
 
   protected PointWithNormal pointWithNormal(double downing) {

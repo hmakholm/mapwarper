@@ -26,7 +26,7 @@ implements ProjectionWorker {
 
   WarpedProjectionWorker(Projection owner, WarpedProjection warp,
       double xscale, double yscale) {
-    super(warp, warp.curves);
+    super(warp);
     this.owner = owner;
     this.xscale = xscale;
     this.yscale = yscale;
@@ -34,7 +34,7 @@ implements ProjectionWorker {
 
   /** This is used for the initial margin classification. */
   WarpedProjectionWorker(WarpedProjection warp) {
-    super(warp, i -> 0);
+    super(warp);
     this.owner = warp;
     this.xscale = 1;
     this.yscale = 1;
@@ -150,7 +150,7 @@ implements ProjectionWorker {
 
     PointWithNormal pwn = normalAt(foundLefting);
     return new LocalPoint(segment, foundLefting,
-        target.minus(pwn).dot(pwn.normal) + slews.segmentSlew(segment),
+        target.minus(pwn).dot(pwn.normal) + curves.segmentSlew(segment),
         pwn.normal);
   }
 
@@ -166,6 +166,10 @@ implements ProjectionWorker {
       this.downing = downing;
       this.segment = segment;
       this.normal = normal;
+    }
+
+    public boolean rightOfTrack() {
+      return downing > curves.segmentSlew(segment);
     }
   }
 
@@ -224,7 +228,7 @@ implements ProjectionWorker {
     var split = global.split(t);
     Point gMid = split.front().p4;
     LocalPoint lMid = new LocalPoint(node, warp.nodeLeftings[node],
-        divider.to(gMid).dot(divider.normal) + warp.curves.nodeSlew(node),
+        divider.to(gMid).dot(divider.normal) + curves.nodeSlew(node),
         divider.normal);
     return TreeList.concat(
         global2local(seg1, l1, split.front(), lMid, node-1),
@@ -279,7 +283,7 @@ implements ProjectionWorker {
   private Vector delta2local(Vector v, LocalPoint lp) {
     setLeftingWithCurrentSegment(lp.lefting);
     double curvature = curvatureAt(lp.lefting);
-    double curvebase = warp.curves.segmentSlew(segment);
+    double curvebase = curves.segmentSlew(segment);
     double factor = 1-(lp.downing-curvebase)*curvature;
     if( factor < 0.01 ) factor = 0.01;
     return delta2local(v, lp.normal, factor*xscale);

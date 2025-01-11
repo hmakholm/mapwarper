@@ -13,7 +13,7 @@ class BaseWarpRenderer extends SupersamplingRenderer {
       LayerSpec spec, double xpixsize, double ypixsize, RenderTarget target,
       SupersamplingRecipe supersample, long fallbackChain) {
     super(spec, xpixsize, ypixsize, target, supersample, fallbackChain);
-    this.worker = new MinimalWarpWorker(warp, warp.curves);
+    this.worker = new MinimalWarpWorker(warp);
   }
 
   @Override

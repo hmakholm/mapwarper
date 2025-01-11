@@ -8,7 +8,7 @@ import net.makholm.henning.mapwarper.track.SegmentChain;
 final class MarginedWarpRenderer extends BaseWarpRenderer {
 
   private final WarpMargins margins;
-  private final SegmentChain.HasSegmentSlew slews;
+  private final SegmentChain.Smoothed curves;
 
   protected MarginedWarpRenderer(WarpedProjection warp, WarpMargins margins,
       LayerSpec spec, double xpixsize, double ypixsize, RenderTarget target,
@@ -16,7 +16,7 @@ final class MarginedWarpRenderer extends BaseWarpRenderer {
     super(warp, spec, xpixsize, ypixsize, target,
         supersample, fallbackChain);
     this.margins = margins;
-    this.slews = warp.curves;
+    this.curves = warp.curves;
   }
 
   @Override
@@ -31,7 +31,7 @@ final class MarginedWarpRenderer extends BaseWarpRenderer {
 
     // Handle curvature singularities
     double radius = 1/worker.curvatureAt(xmid);
-    double curvecenter = (radius + slews.segmentSlew(worker.segment) - ybase)
+    double curvecenter = (radius + curves.segmentSlew(worker.segment) - ybase)
         / yscale - 0.5;
     if( radius > 0 ) {
       if( curvecenter > ymax ) {
