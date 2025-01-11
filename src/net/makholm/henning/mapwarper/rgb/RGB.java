@@ -4,13 +4,6 @@ public class RGB {
 
   public static final int OPAQUE = 0xFF000000;
 
-  public static final int WEAK_SEGMENT     = 0xFFAA33 | OPAQUE;
-  public static final int TRACK_SEGMENT    = 0xFFEEDD | OPAQUE;
-  public static final int STRAIGHT_SEGMENT = 0xABCDFF | OPAQUE;
-  public static final int STRAIGHT_SLEW    = 0x0080DD | OPAQUE;
-  public static final int CURVED_SLEW      = 0xDD5500 | OPAQUE;
-  public static final int BOUND_SEGMENT    = 0x99F488 | OPAQUE;
-
   public static final int OUTSIDE_BITMAP   = 0x00DEAD00;
 
   public static final int OTHER_TRACK     = 0xC8C8C8 | OPAQUE;

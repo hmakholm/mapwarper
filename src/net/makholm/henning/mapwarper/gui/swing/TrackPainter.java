@@ -123,7 +123,7 @@ final class TrackPainter extends LongHashed {
         if( chain.isTrack() )
           trackChains.add(chain);
         else
-          drawBoundChain(chain, RGB.BOUND_SEGMENT);
+          drawBoundChain(chain, SegKind.BOUND.rgb);
       }
       for( var chain : trackChains )
         drawTrackChain(chain);
@@ -141,7 +141,7 @@ final class TrackPainter extends LongHashed {
         if( editingChain.isTrack() )
           drawTrackChain(editingChain);
         else
-          drawBoundChain(editingChain, RGB.BOUND_SEGMENT);
+          drawBoundChain(editingChain, SegKind.BOUND.rgb);
       }
       drawCrosshairs(editingChain, 64, 0xFFFF00);
     }
