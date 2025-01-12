@@ -53,7 +53,7 @@ public class GuiMain extends JFrame {
   private GuiMain(TileContext tiles, String filearg) {
     setMainIcon();
     setTitle("Mapwarper v3");
-    setSize(1500, 800);
+    setSize(1850, 820);
     setDefaultCloseOperation(EXIT_ON_CLOSE);
 
     FSCache fileCache = new FSCache();

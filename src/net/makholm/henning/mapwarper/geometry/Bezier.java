@@ -180,7 +180,8 @@ public final class Bezier extends LongHashed {
     UnitVector midNormal = derivativeAt(0.5).normalize().turnRight();
     Point wantMid = pointAt(0.5).plus(rightDist, midNormal);
     Point gotMid = candidate.pointAt(0.5);
-    if( Math.abs(wantMid.to(gotMid).dot(midNormal)) < 1 )
+    if( Math.abs(wantMid.to(gotMid).dot(midNormal)) < 1 ||
+        displacement.sqnorm() < 9 )
       return List.of(candidate);
     else {
       var split = split(0.5);

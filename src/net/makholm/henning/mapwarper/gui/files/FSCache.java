@@ -68,6 +68,7 @@ public class FSCache {
   public Map<Path, FileContent> revertContent(boolean alsoChanged) {
     Map<Path, FileContent> undoMap = new LinkedHashMap<>();
     synchronized(this) {
+      knownDirs.clear();
       for( var vf : knownFiles.values() )
         vf.forgetContent(alsoChanged ? undoMap : null);
     }

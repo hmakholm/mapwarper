@@ -240,6 +240,7 @@ public class FilePane {
           return false;
         }
         cache.refreshDirectory(toSaveTo.getParent());
+        activeFile.contentHasBeenSaved(vf.content());
         activeFile = vf;
         Path newFocus = toSaveTo.getParent();
         if( !newFocus.startsWith(focusDir) )
@@ -298,6 +299,7 @@ public class FilePane {
     }
     Map<Path, FileContent> undoMap = cache.revertContent(alsoChanged);
     mapView.setEditingChain(null);
+    updateViewEventually();
     if( undoMap.isEmpty() )
       return;
     mapView.undoList.pushItem(new UndoList.UndoItem() {

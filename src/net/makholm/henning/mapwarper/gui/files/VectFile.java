@@ -196,6 +196,13 @@ public class VectFile {
     return !isModified && changePokes.isEmpty();
   }
 
+  synchronized void contentHasBeenSaved(FileContent content) {
+    if( content.equals(currentContent) && path == null ) {
+      onDisk = currentContent;
+      sendChangePoke();
+    }
+  }
+
   /**
    * Must be called with the lock held.
    */

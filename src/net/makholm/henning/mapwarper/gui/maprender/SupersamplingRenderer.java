@@ -41,7 +41,10 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
   }
 
   protected long combinedChain() {
-    return fallbackChain | supersample.supersamplingChain;
+    if( supersample == null )
+      return fallbackChain;
+    else
+      return fallbackChain | supersample.supersamplingChain;
   }
 
   @Override
