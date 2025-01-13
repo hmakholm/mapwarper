@@ -102,7 +102,6 @@ public final class TileCache {
 
     Entry(TileSpec spec) {
       this.spec = spec;
-      totalBytes += cost;
     }
 
     // These fields belong to the TileCache lock:
@@ -117,15 +116,23 @@ public final class TileCache {
     TileBitmap bitmap;
   }
 
+  public synchronized void clear() {
+    long savedMax = maxBytes;
+    maxBytes=1;
+    perhapsDiscardSomeEntries();
+    maxBytes = savedMax;
+  }
+
   /** Called with the global lock held */
   private void perhapsDiscardSomeEntries() {
     if( totalBytes < maxBytes )
       return;
-    System.err.println("Evicting time tiles, since "+totalBytes+
+    System.err.println("Evicting some tiles, since "+totalBytes+
         " used, and the limit is "+maxBytes);
     long target = maxBytes - (maxBytes >> 4);
     int checkedCandidates = 0;
     int evictedCandidates = 0;
+    int evictedHadBitmap = 0;
     boolean rebuiltListOnce = false;
     while(totalBytes > target) {
       if( nextToEvict >= evictionCandidates.length ) {
@@ -146,13 +153,15 @@ public final class TileCache {
         // Even if is is not recently used (huh, what's up with that?)
         // it's unsafe to forget it just now.
       } else {
+        if( e.bitmap != null ) evictedHadBitmap++;
         evictedCandidates++;
         map.remove(e.spec);
         totalBytes -= e.cost;
       }
     }
     System.err.println("  After evicting "+evictedCandidates+" of "+
-        checkedCandidates+" candidates, we're using "+totalBytes+" bytes. " +
+        checkedCandidates+" candidates, ("+evictedHadBitmap+" of which "+
+        "had a bitmap), we're using "+totalBytes+" bytes. " +
         map.size() + " tiles still cached.");
   }
 
