@@ -1,5 +1,8 @@
 package net.makholm.henning.mapwarper.track;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -29,6 +32,15 @@ public class VectParser {
 
   ChainClass chainClass;
   SegKind currentKind;
+
+  public FileContent readFromDisk() throws IOException {
+    try( var br = new BufferedReader(new FileReader(readingFromPath.toFile())) ) {
+      for( String line; (line = br.readLine()) != null; ) {
+        giveLine(line);
+      }
+    }
+    return result();
+  }
 
   public void giveLine(String line) {
     lnum++ ;
