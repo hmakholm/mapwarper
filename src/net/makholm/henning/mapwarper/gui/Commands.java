@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.gui;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -15,7 +16,10 @@ import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.ToggleCommand;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.tiles.Tileset;
+import net.makholm.henning.mapwarper.track.ChainClass;
 import net.makholm.henning.mapwarper.track.SegKind;
+import net.makholm.henning.mapwarper.track.SegmentChain;
+import net.makholm.henning.mapwarper.track.TrackNode;
 
 public class Commands {
 
@@ -34,6 +38,40 @@ public class Commands {
 
     mapView.currentTool = move;
   }
+
+  private final Command switchSmoothing =
+      new ToggleCommand(this, "newSmoothing", "New smoothing mode") {
+    @Override
+    public boolean getCurrentState() {
+      return mapView.editingChain != null && mapView.editingChain.isTrack() &&
+          mapView.editingChain.nodes.get(0).size >= 10_000;
+    }
+
+    @Override
+    public void setNewState(boolean b) {
+      if( mapView.editingChain != null && mapView.editingChain.isTrack() ) {
+
+        var nodes = new ArrayList<>(mapView.editingChain.nodes);
+        var n = nodes.get(0);
+        n = new TrackNode((int)n.x, (int)n.y,
+            b ? n.size + 10_000 : n.size % 10_000);
+        nodes.set(0, n);
+        SegmentChain newchain = new SegmentChain(nodes,
+            mapView.editingChain.kinds, ChainClass.TRACK);
+        files.activeFile().rewriteContent(
+            mapView.undoList, "Switch smoothing mode", fc -> {
+              var chains = fc.chainsCopy();
+              chains.remove(mapView.editingChain);
+              chains.add(newchain);
+              return fc.withChains(chains);
+            });
+        mapView.setEditingChain(newchain);
+      }
+    }
+  };
+
+  private final Command jumpWorst =
+      simple("jumpWorst", "Jump to worst node", self -> self.mapView.jumpWorst());
 
   private final ToggleCommand[] toggles; {
     toggles = new ToggleCommand[Toggles.values().length];
@@ -272,6 +310,8 @@ public class Commands {
     keymap.accept("A", magicTool);
     keymap.accept("S", straightTool);
     keymap.accept("D", slewTool);
+    keymap.accept("F", switchSmoothing);
+    keymap.accept("G", jumpWorst);
     keymap.accept("L", lens);
 
     keymap.accept("Z", zoomTool);
@@ -349,6 +389,8 @@ public class Commands {
     tools.add(zoomTool);
     tools.add(move);
     tools.add(explore);
+
+    menu.add(switchSmoothing);
   }
 
   public void defineTilesetMenu(Tileset tiles, IMenu menu) {

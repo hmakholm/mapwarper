@@ -332,6 +332,17 @@ public class MapView {
     }
   }
 
+  public void jumpWorst() {
+    if( editingChain != null && editingChain.isTrack() ) {
+      var dest = editingChain.smoothed().worstWhere;
+      if( dest != null ) {
+        var move = translator().global2local(dest).minus(mouseLocal);
+        positionX += move.x;
+        positionY += move.y;
+      }
+    }
+  }
+
   // -------------------------------------------------------------------------
 
   int toggleState =

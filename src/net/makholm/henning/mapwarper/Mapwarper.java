@@ -124,6 +124,7 @@ public class Mapwarper {
     VERBS.put("maplink", MaplinkCommand::new);
     VERBS.put("tileurl", TileurlCommand::new);
     VERBS.put("downloadtile", DownloadtileCommand::new);
+    VERBS.put("newsmooth", NewsmoothCommand::new);
     VERBS.put("gui", GuiCommand::new);
   }
 

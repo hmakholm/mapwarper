@@ -161,7 +161,8 @@ final class TrackPainter extends LongHashed {
         else
           drawBoundChain(editingChain, SegKind.BOUND.rgb);
       }
-      drawCrosshairs(editingChain, 64, 0xFFFF00);
+      drawCrosshairs(editingChain, 64,
+          editingChain.nodes.get(0).size >= 10_000 ? 0xFFFFFF : 0xFFFF00);
     }
 
     this.g = null;

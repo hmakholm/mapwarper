@@ -64,6 +64,7 @@ public final class SegmentChain extends LongHashed {
   @Override
   protected long longHashImpl() {
     long h = nodes.get(0).pos;
+    h ^= nodes.get(0).size;
     for( int i=0; i<numSegments; i++ ) {
       h = hashStep(h);
       h ^= nodes.get(i+1).pos;
@@ -122,11 +123,15 @@ public final class SegmentChain extends LongHashed {
   public static final class Smoothed extends FrozenArray<Bezier> {
     private final double[] nodeSlews;
     private final double[] segmentSlews;
+    public final double worstDiff;
+    public final TrackNode worstWhere;
 
-    Smoothed(Bezier[] curves, double[] nodeSlews, double[] segmentSlews) {
+    Smoothed(Bezier[] curves, double[] nodeSlews, double[] segmentSlews
+        , double worstDiff, TrackNode worstWhere) {
       super(curves);
       this.nodeSlews = nodeSlews;
       this.segmentSlews = segmentSlews;
+      this.worstDiff = worstDiff; this.worstWhere = worstWhere;
     }
 
     public double nodeSlew(int i) {

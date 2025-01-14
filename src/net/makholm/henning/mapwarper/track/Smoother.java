@@ -23,7 +23,25 @@ class Smoother {
       smoother.handleTheAllSlewsCase();
     } else {
       Collections.sort(smoother.subchains);
-      smoother.subchains.forEach(smoother::decideSubchain);
+      smoother.subchains.forEach(smoother::decideSubchainNew);
+      if( chain.nodes.get(0).size < 10_000 ) {
+        UnitVector[] newTangents = smoother.tangents.clone();
+        Arrays.fill(smoother.tangents, null);
+        smoother.subchains.forEach(smoother::decideSubchain);
+
+        double prevlen = 0;
+        for( int i=0; i<chain.numNodes; i++ ) {
+          double nowlen = i==chain.numNodes-1 ? 0 :
+            chain.nodes.get(i).dist(chain.nodes.get(i+1));
+          double anglediff = smoother.tangents[i].turnRight().dot(newTangents[i]);
+          double absdiff = Math.abs(anglediff)*Math.max(prevlen,nowlen)/4;
+          if( absdiff > smoother.worstDiff ) {
+            smoother.worstDiff = absdiff;
+            smoother.worstWhere = chain.nodes.get(i);
+          }
+          prevlen = nowlen;
+        }
+      }
     }
     smoother.makeCurves();
     return smoother.wrapUp();
@@ -31,7 +49,7 @@ class Smoother {
 
   private static SegmentChain.Smoothed trivialSmoothed() {
     return new SegmentChain.Smoothed(
-        new Bezier[0], new double[] {0}, new double[0]);
+        new Bezier[0], new double[] {0}, new double[0], 0, null);
   }
 
   private final SegmentChain chain;
@@ -151,6 +169,31 @@ class Smoother {
     Arrays.fill(tangents, dir);
   }
 
+  private void decideSubchainNew(Subchain sc) {
+    int nsegs = sc.segments.size();
+    var firstnode = sc.nodes.get(0);
+    var lastnode = sc.nodes.get(nsegs);
+    if( nsegs == 1 && firstnode.get() == null && lastnode.get() == null ) {
+      var dir = sc.segments.get(0).normalize();
+      firstnode.put(dir);
+      lastnode.put(dir);
+      return;
+    }
+
+    for( int i=1; i<nsegs; i++ ) {
+      var triple = doubleArc(sc.segments.get(i-1), sc.segments.get(i));
+      sc.nodes.get(i).put(triple[1]);
+    }
+    if( firstnode.get() == null ) {
+      var dir = singleArc(sc.nodes.get(1).get(), sc.segments.get(0));
+      firstnode.put(dir);
+    }
+    if( lastnode.get() == null ) {
+      var dir = singleArc(sc.nodes.get(nsegs-1).get(), sc.segments.get(nsegs-1));
+      lastnode.put(dir);
+    }
+  }
+
   private void decideSubchain(Subchain sc) {
     int nsegs = sc.segments.size();
     var firstnode = sc.nodes.get(0);
@@ -188,8 +231,9 @@ class Smoother {
 
     for( int i=1; i<triples.length-1; i++ ) {
       var dir = triples[i][1];
-      if( triples[i-1] != null && triples[i+1] != null )
+      if( triples[i-1] != null && triples[i+1] != null ) {
         dir = combineTangents(triples[i-1][2], dir, triples[i+1][0]);
+      }
       sc.nodes.get(i).put(dir);
     }
     if( firstnode.get() == null )
@@ -197,6 +241,9 @@ class Smoother {
     if( lastnode.get() == null )
       lastnode.put(triples[triples.length-2][2]);
   }
+
+  double worstDiff = 0;
+  TrackNode worstWhere = null;
 
   /**
    * Get the direction of the far end of an arc whose endpoints are known,
@@ -351,7 +398,8 @@ class Smoother {
   }
 
   private SegmentChain.Smoothed wrapUp() {
-    return new SegmentChain.Smoothed(curves, nodeSlews, segmentSlews);
+    return new SegmentChain.Smoothed(curves, nodeSlews, segmentSlews,
+        worstDiff, worstWhere);
   }
 
 }
