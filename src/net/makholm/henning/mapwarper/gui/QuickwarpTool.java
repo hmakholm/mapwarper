@@ -41,7 +41,7 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
             public VisibleTrackData previewTrackData() { return vdt; }
 
             @Override
-            public void execute() {
+            public void execute(ExecuteWhy why) {
               var point = curve.pointAt(0.5);
               var normal = curve.derivativeAt(0.5).normalize().turnRight();
               var center = point.plus(1/curvature, normal);
@@ -50,6 +50,8 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
               if( curvature > 0 )
                 proj = TurnedProjection.invert(proj);
               owner.mapView.setProjection(proj, pos);
+              if( why != ExecuteWhy.SHIFT_PRESSED )
+                owner.mapView.selectEditingTool();
             }
           };
         }
@@ -59,10 +61,12 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
     if( !mapView().projection.base().isWarp() )
       return NO_RESPONSE;
     else if( translator().local2global(pos) instanceof PointWithNormal pwn ) {
-      return () -> {
+      return why -> {
         var quickwarp = new QuickWarp(pwn, pwn.normal.turnLeft());
         var proj = mapView().projection.scaleAndSqueezeSimilarly(quickwarp);
         mapView().setProjection(proj);
+        if( why != ExecuteWhy.SHIFT_PRESSED )
+          owner.mapView.selectEditingTool();
       };
     } else {
       System.err.println(translator()+" didn't give us a PointWithNormal.");
@@ -100,7 +104,7 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
       @Override public VectorOverlay previewOverlay() { return overlay; };
 
       @Override
-      public void execute() {
+      public void execute(ExecuteWhy why) {
         var translator = owner.mapView.translator();
         var midLocal = arrow.a.interpolate(0.5, arrow.b);
         Point a = translator.local2global(arrow.a);
@@ -111,6 +115,8 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
         if( proj.getSqueeze() < 5 )
           proj = proj.withSqueeze(5);
         owner.mapView.setProjection(proj, midLocal);
+        if( why != ExecuteWhy.SHIFT_PRESSED )
+          owner.mapView.selectEditingTool();
       }
     };
   }

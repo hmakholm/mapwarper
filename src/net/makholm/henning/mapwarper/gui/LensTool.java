@@ -19,9 +19,9 @@ public class LensTool extends Tool {
       return NO_RESPONSE;
     else if( currentLens.box.contains(pos) ) {
       var r = ctrlHeld(modifiers) ? lensMinusCommand() : lensPlusCommand();
-      return r == null ? NO_RESPONSE : () -> r.run();
+      return r == null ? NO_RESPONSE : why -> r.run();
     } else {
-      return () -> mapView().cancelLens();
+      return why -> mapView().cancelLens();
     }
   }
 
@@ -76,7 +76,7 @@ public class LensTool extends Tool {
           return overlay;
         }
         @Override
-        public void execute() {
+        public void execute(ExecuteWhy why) {
           var visible = mapView().visibleArea;
           if( chosen.xmin() >= visible.left &&
               chosen.xmax() <= visible.right &&

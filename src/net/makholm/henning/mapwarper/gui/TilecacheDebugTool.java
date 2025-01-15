@@ -44,7 +44,7 @@ public class TilecacheDebugTool extends Tool {
         translator());
     return new ToolResponse() {
       @Override public VectorOverlay previewOverlay() { return overlay; }
-      @Override public void execute() { }
+      @Override public void execute(ExecuteWhy why) { }
     };
   }
 

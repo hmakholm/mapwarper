@@ -45,7 +45,7 @@ public class NearestNodeDebugTool extends Tool {
       @Override
       public VectorOverlay previewOverlay() { return overlay; }
       @Override
-      public void execute() {}
+      public void execute(ExecuteWhy why) {}
     };
   }
 
@@ -70,7 +70,7 @@ public class NearestNodeDebugTool extends Tool {
       @Override
       public VisibleTrackData previewTrackData() { return underlay; }
       @Override
-      public void execute() {}
+      public void execute(ExecuteWhy why) {}
     };
   }
 

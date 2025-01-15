@@ -16,7 +16,7 @@ public class ZoomTool extends ProjectionSwitchingTool {
 
   @Override
   protected ToolResponse clickResponse(Point pos, int modifiers) {
-    return () -> {
+    return qhy -> {
       Runnable got = prepareZoom(ctrlHeld(modifiers) ? 4 : 0.25);
       if( got != null ) got.run();
     };
@@ -30,7 +30,7 @@ public class ZoomTool extends ProjectionSwitchingTool {
       @Override public BoxOverlay previewOverlay() { return overlay; }
 
       @Override
-      public void execute() {
+      public void execute(ExecuteWhy why) {
         var visible = new AxisRect(mapView().visibleArea);
         if( !visible.contains(pos1) ) {
           SwingUtils.beep();

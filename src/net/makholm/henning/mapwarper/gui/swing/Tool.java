@@ -64,11 +64,11 @@ public abstract class Tool extends Command implements MouseAction {
     return (flags & InputEvent.ALT_DOWN_MASK) != 0;
   }
 
-  public static final MouseAction DRAG_THE_MAP = (p,m) -> () -> {
+  public static final MouseAction DRAG_THE_MAP = (p,m) -> why -> {
     throw BadError.of("DRAG_THE_MAP is recognized by ==; this is never called.");
   };
 
-  public static final ToolResponse NO_RESPONSE = () -> {};
+  public static final ToolResponse NO_RESPONSE = why -> {};
 
   // -------------------------------------------------------------------------
 

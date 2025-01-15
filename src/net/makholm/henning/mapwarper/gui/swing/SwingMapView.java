@@ -61,7 +61,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   private Point toolResponsePoint = Point.ORIGIN;
   private int toolResponseModifiers;
   private MouseAction toolResponseTool = null;
-  private ToolResponse toolResponse = () -> {};
+  private ToolResponse toolResponse = why -> {};
   private VectorOverlay previousOverlay;
 
   private boolean everPaintedYet;
@@ -388,7 +388,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
       refreshToolResponse(true);
       ongoingToolDrag = null;
       invalidateToolResponse();
-      toolResponse.execute();
+      toolResponse.execute(MouseAction.ExecuteWhy.DRAG);
       // artificially kill the modifiers right after a drag so one can
       // see the result.
       modifierState = 0;
@@ -405,7 +405,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
       readMousePosition(e);
       refreshToolResponse(true);
       invalidateToolResponse();
-      toolResponse.execute();
+      toolResponse.execute(MouseAction.ExecuteWhy.CLICK);
       modifierState = 0;
       refreshScene();
     }

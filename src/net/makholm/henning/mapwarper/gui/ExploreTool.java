@@ -37,7 +37,7 @@ final class ExploreTool extends Tool {
     @Override
     public VisibleTrackData previewTrackData() { return noVectorLayers; }
     @Override
-    public void execute() { }
+    public void execute(ExecuteWhy why) { }
   };
 
 }

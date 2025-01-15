@@ -25,6 +25,8 @@ public interface MouseAction {
     return null;
   }
 
+  public enum ExecuteWhy { CLICK, DRAG, SHIFT_PRESSED };
+
   public interface ToolResponse {
     default public VisibleTrackData previewTrackData() { return null; }
 
@@ -32,7 +34,7 @@ public interface MouseAction {
 
     default public Cursor cursor() { return null; }
 
-    public void execute();
+    public void execute(ExecuteWhy why);
   }
 
 }

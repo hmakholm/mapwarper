@@ -346,6 +346,13 @@ public class MapView {
     }
   }
 
+  void selectEditingTool() {
+    if( editingChain != null ) {
+      currentTool = editingChain.isTrack() ?
+          window.commands.trackTool : window.commands.boundTool;
+    }
+  }
+
   // -------------------------------------------------------------------------
 
   int toggleState =

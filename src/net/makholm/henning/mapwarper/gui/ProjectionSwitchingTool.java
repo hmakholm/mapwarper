@@ -23,7 +23,7 @@ public abstract class ProjectionSwitchingTool extends Tool {
   @Override
   public ToolResponse mouseResponse(Point pos, int modifiers) {
     if( shiftHeld(modifiers) ) {
-      return () -> owner.swing.commitToTempProjection();
+      return why -> owner.swing.commitToTempProjection();
     } else {
       return clickResponse(pos, modifiers);
     }
@@ -33,7 +33,7 @@ public abstract class ProjectionSwitchingTool extends Tool {
   public Runnable shiftDownProjectionSwitcher(Point pos, int modifiers) {
     if( mapView().disableTempProjectionsOnShift )
       return null;
-    return clickResponse(pos, modifiers)::execute;
+    return () -> clickResponse(pos, modifiers).execute(MouseAction.ExecuteWhy.SHIFT_PRESSED);
   }
 
   @Override
@@ -45,7 +45,7 @@ public abstract class ProjectionSwitchingTool extends Tool {
       }
       @Override
       public Runnable shiftDownProjectionSwitcher(Point pos1, int modifiers1) {
-        return dragResponse(pos0, pos1)::execute;
+        return () -> dragResponse(pos0, pos1).execute(MouseAction.ExecuteWhy.SHIFT_PRESSED);
       }
     };
   }

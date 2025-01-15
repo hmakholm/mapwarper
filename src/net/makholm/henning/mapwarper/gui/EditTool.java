@@ -426,7 +426,7 @@ class EditTool extends Tool {
       return tracks;
     }
     @Override
-    public void execute() {
+    public void execute(ExecuteWhy why) {
       if( !enableExecute ) {
         SwingUtils.beep();
         return;
@@ -446,6 +446,7 @@ class EditTool extends Tool {
         System.err.println("  Executing edit: "+undoDesc);
         owner.files.activeFile().rewriteContent(
             mapView().undoList, undoDesc, c->newContent);
+        mapView().selectEditingTool();
       }
       mapView().setEditingChain(action.editingChain);
     }
