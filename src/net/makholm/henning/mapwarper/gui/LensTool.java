@@ -93,11 +93,6 @@ public class LensTool extends Tool {
     };
   }
 
-  @Override
-  public void escapePressed() {
-    mapView().cancelLens();
-  }
-
   public int naturalZoom() {
     return FallbackChain.naturalZoom(
         mapView().projection.scaleAcross(), mapView().lensTiles);

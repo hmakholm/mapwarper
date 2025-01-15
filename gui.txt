@@ -202,7 +202,8 @@
        croppes om nødvendigt til vinduets kanter.
      - Ctrl-KLIK for at formindske zoomniveauet (mere pixellering).
      - KLIK udenfor området for at afskaffe det.
-     - ESC afskaffer også området.
+
+   ESC afskaffer også området.
 
    Kommandoer (`[`, `]`): formindsk og forstør zoomniveauet i luppen
      * Når zoomniveauet forstørres, fjernes de dele af lupområdet som
@@ -310,24 +311,6 @@
        fra et specifikt punkt.
      - Skift-KLIK: samme, men den nye projektion viser sig allerede
        fra man trykker Skift ned. (Stretch goal).
->    - ESC for at skifte tilbage til seneste ikke-anonyme projektion
->      og position.
->       * hvis dette var et warp hvis spor i mellemtiden er ændret,
->         får man et warp med det nye spor. Hvis det i mellemtiden er
->         blevet ikke-warpbart, får man et fejlbip.
->       * gør ingenting hvis den aktuelle projektion ikke er anonym,
->         men hukommelsen overlever skift til andre værktøjer såsom
->         lup og redigering.
->       * ud over projektionen er de data der bliver husket de
->         virkelige koordinater for det oprindelige slip-punkt, samt
->         dettes _relative_ position i forhold til vinduet, så tingene
->         stadig giver mening hvis vinduet i mellemtiden har ændret
->         størrelse.
->       * hvis der ikke er foretaget redigering siden skiftet til
->         anonym projektion er dette ekstraordinært også betydningen
->         af Fortryd, selv når det anonyme værktøj ikke er aktivt.
->         - Hmm, kan det tænkes sammen med fortrydelse af at opfriske
->           warp-grundlag?
 
    Redigering af spor og grænser
    -----------------------------
@@ -346,6 +329,9 @@
      Implementeret som: det er faktisk sigtekornene der angiver
      tilstanden; så behøver vi ikke finde på konsistent afvigende
      farver for alle segmenttyperne.
+
+   ESC gør den aktive kæde inaktiv. Hvis den kun havde et punkt,
+   forsvinder det helt.
 
    Værktøj: Rediger segmenter.
      * Der er et af disse for hver segmenttype.
@@ -370,8 +356,6 @@
      - KLIK langt fra eksisterende segmenter mens der ikke er nogen
        aktiv kæde. Der dannes en ny aktiv kæde med en enkelt knude og
        ingen segmenter.
-     - ESC for at gøre den aktive kæde inaktiv. Hvis den kun havde et
-       punkt, forsvinder det helt.
      - KLIK et segment i den aktive kæde som har en anden type end det
        værktøjets. Segmentet ændrer type.
      - KLIK i alle andre situationer tilføjer en ny knude til den

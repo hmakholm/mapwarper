@@ -48,11 +48,6 @@ public abstract class Tool extends Command implements MouseAction {
     return this;
   }
 
-  public void escapePressed() {
-    // nothing by default, but tools may define their own cancelling
-    // actions here.
-  }
-
   public static boolean mouseHeld(int flags) {
     return (flags & InputEvent.BUTTON1_DOWN_MASK) != 0;
   }

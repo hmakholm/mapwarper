@@ -32,11 +32,6 @@ final class ExploreTool extends Tool {
     return DRAG_THE_MAP;
   }
 
-  @Override
-  public void escapePressed() {
-    owner.move.invoke();
-  }
-
   private static final ToolResponse myResponse = new ToolResponse() {
     final VisibleTrackData noVectorLayers = new VisibleTrackData().freeze();
     @Override

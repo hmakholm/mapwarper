@@ -220,7 +220,7 @@ public class Commands {
 
   public void defineKeyBindings(BiConsumer<String, Command> keymap) {
     keymap.accept("Escape", simple("esc", "Escape",
-        self -> self.mapView.currentTool.escapePressed()));
+        self -> self.mapView.escapePressed()));
 
     // Letters with Ctrl, in alphabetical order
     keymap.accept("C-C", copy);

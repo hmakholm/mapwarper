@@ -54,11 +54,6 @@ class EditTool extends Tool {
     ensureAppropriateEditingChain();
   }
 
-  @Override
-  public void escapePressed() {
-    mapView().setEditingChain(null);
-  }
-
   record ProposedAction(String undoDesc,
       TrackHighlight highlight, TrackNode newNode,
       Set<SegmentChain> fileContent, SegmentChain editingChain) {}

@@ -332,6 +332,20 @@ public class MapView {
     }
   }
 
+  void escapePressed() {
+    if( lensRect != null ) {
+      cancelLens();
+    } else if( editingChain != null ) {
+      setEditingChain(null);
+      return;
+    } else if( currentTool instanceof ExploreTool ) {
+      currentTool = window.commands.move;
+      return;
+    } else {
+      SwingUtils.beep();
+    }
+  }
+
   // -------------------------------------------------------------------------
 
   int toggleState =
