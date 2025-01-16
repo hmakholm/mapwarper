@@ -15,6 +15,7 @@ import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
 import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer;
+import net.makholm.henning.mapwarper.rgb.RGB;
 import net.makholm.henning.mapwarper.util.MathUtil;
 import net.makholm.henning.mapwarper.util.RootFinder;
 import net.makholm.henning.mapwarper.util.TreeList;
@@ -170,6 +171,16 @@ public class CircleWarp extends BaseProjection {
           @Override
           protected PointWithNormal locateColumn(double x, double y) {
             return local2global(x, y);
+          }
+          @Override
+          protected boolean renderColumn(int col, double xmid, int ymin,
+              int ymax, double ybase) {
+            while( ybase + ymin * yscale <= 0 && ymin <= ymax ) {
+              target.givePixel(col, ymin, RGB.SINGULARITY);
+              if( ymin == ymax ) return true;
+              ymin++;
+            }
+            return super.renderColumn(col, xmid, ymin, ymax, ybase);
           }
         };
   }
