@@ -186,6 +186,15 @@ public class CircleWarp extends BaseProjection {
   }
 
   @Override
+  public Projection makeQuickwarp(Point local, boolean tryCircle) {
+    if( tryCircle )
+      return this;
+    var down = UnitVector.withBearing(bearing0 - local.x*degxscale);
+    var right = down.turnLeft().scale(Math.max(100, Math.abs(local.y))/radius);
+    return QuickWarp.ofAffine(center, right, down);
+  }
+
+  @Override
   public boolean equals(Object obj) {
     return obj == this ||
         (obj instanceof CircleWarp o &&

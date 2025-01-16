@@ -61,6 +61,15 @@ final class ScaledProjection extends Projection {
   }
 
   @Override
+  public Projection makeQuickwarp(Point local, boolean circle) {
+    var projected = Point.at(local.x * xscale, local.y * yscale);
+    var got = base.makeQuickwarp(projected, circle);
+    return got.withScaleAndSqueeze(
+        got.scaleAcross()*yscale,
+        got.getSqueeze()*squeeze);
+  }
+
+  @Override
   public boolean equals(Object o) {
     return o == this ||
         (o instanceof ScaledProjection osp &&

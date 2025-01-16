@@ -6,6 +6,7 @@ import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
+import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
@@ -22,6 +23,14 @@ public class QuickWarp extends BaseProjection {
     this.origin = origin;
     this.direction = direction;
     this.normal = direction.turnRight();
+  }
+
+  public static Projection ofAffine(Point global,
+      Vector xBecomes, Vector yBecomes) {
+    var base = new QuickWarp(global, xBecomes.normalize());
+    var yscale = yBecomes.length();
+    var squeeze = xBecomes.length()/yscale;
+    return base.withScaleAndSqueeze(yscale, squeeze);
   }
 
   @Override
@@ -70,6 +79,11 @@ public class QuickWarp extends BaseProjection {
                 origin.plus(x, direction).plus(y, normal), normal);
           }
         };
+  }
+
+  @Override
+  public Projection makeQuickwarp(Point local, boolean circle) {
+    return this;
   }
 
   @Override

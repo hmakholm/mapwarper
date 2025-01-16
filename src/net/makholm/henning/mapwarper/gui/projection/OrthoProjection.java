@@ -61,6 +61,11 @@ public final class OrthoProjection extends BaseProjection {
   }
 
   @Override
+  public Projection makeQuickwarp(Point local, boolean circle) {
+    return this;
+  }
+
+  @Override
   public boolean equals(Object o) {
     // This is a singleton instance, so equality checking is easy
     return o == this;

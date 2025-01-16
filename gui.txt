@@ -310,7 +310,9 @@
      - KLIK hvis man er i warped projektion for at ekstrapolere affint
        fra et specifikt punkt.
      - Skift-KLIK: samme, men den nye projektion viser sig allerede
-       fra man trykker Skift ned. (Stretch goal).
+       fra man trykker Skift ned.
+     - Alt-KLIK fra en warpet projektion: skift til et anonymt warp
+       langs en _cirkel_ der oskulerer sporet der hvor man klikker.
 
    Redigering af spor og grænser
    -----------------------------

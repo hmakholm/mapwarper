@@ -131,6 +131,30 @@ public final class WarpedProjection extends BaseProjection {
   }
 
   @Override
+  public Projection makeQuickwarp(Point local, boolean circle) {
+    MinimalWarpWorker worker = new MinimalWarpWorker(this);
+    double curvature = worker.curvatureAt(local.x);
+    double downing = worker.projected2downing(local.y);
+    PointWithNormal point = worker.pointWithNormal(downing);
+    double xscale = worker.speedAt(local.x);
+    if( Math.abs(curvature) > 1.0e-6 ) {
+      if( circle ) {
+        PointWithNormal pwn = worker.normalAt(local.x);
+        var got = new CircleWarp(pwn.pointOnNormal(1/curvature), pwn);
+        if( curvature > 0 )
+          return TurnedProjection.turnCounterclockwise(got, 2);
+        else
+          return got;
+      } else {
+        double relative = 1 - downing*curvature;
+        xscale *= Math.max(0.01, Math.abs(relative));
+      }
+    }
+    return QuickWarp.ofAffine(point,
+        point.normal.turnLeft().scale(xscale), point.normal);
+  }
+
+  @Override
   protected RenderFactory makeRenderFactory(LayerSpec spec,
       double xscale, double yscale) {
     FallbackChain fallback = new FallbackChain(spec, xscale, yscale);

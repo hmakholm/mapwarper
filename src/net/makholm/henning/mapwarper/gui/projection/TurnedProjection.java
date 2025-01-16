@@ -24,14 +24,18 @@ public final class TurnedProjection extends Projection {
    * to the right becomes one where the track goes up.
    */
   public static Projection turnCounterclockwise(Projection base) {
+    return turnCounterclockwise(base, 1);
+  }
+
+  public static Projection turnCounterclockwise(Projection base, int quadrants) {
     if( base instanceof TurnedProjection tp ) {
-      if( tp.quadrants == 3 )
-        return tp.base;
-      else
-        return new TurnedProjection(tp.base, tp.quadrants+1);
-    } else {
-      return new TurnedProjection(base, 1);
+      quadrants = (quadrants + tp.quadrants) % 4;
+      base = tp.base;
     }
+    if( quadrants == 0 )
+      return base;
+    else
+      return new TurnedProjection(base, quadrants);
   }
 
   public static Projection invert(Projection base) {
@@ -142,6 +146,12 @@ public final class TurnedProjection extends Projection {
   @Override
   public ProjectionWorker createNonAffineWorker() {
     return new TurningWorker();
+  }
+
+  @Override
+  public Projection makeQuickwarp(Point local, boolean circle) {
+    var got = base.makeQuickwarp(local2next(local), circle);
+    return turnCounterclockwise(got, quadrants);
   }
 
   @Override

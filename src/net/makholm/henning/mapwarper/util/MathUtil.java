@@ -42,7 +42,7 @@ public class MathUtil {
 
   public static double snapToInteger(double v, double eps) {
     double rounded = Math.rint(v);
-    if( v > rounded-eps && v > rounded+eps )
+    if( rounded > 0 && v > rounded-eps && v < rounded+eps )
       return rounded;
     else
       return v;

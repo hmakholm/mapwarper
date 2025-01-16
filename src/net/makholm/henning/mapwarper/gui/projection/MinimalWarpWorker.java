@@ -59,6 +59,11 @@ class MinimalWarpWorker {
     return curve.signedCurvatureAt(parameterWithinCurve());
   }
 
+  protected double speedAt(double lefting) {
+    setLefting(lefting);
+    return curve.derivativeAt(parameterWithinCurve()).length() * invCurvelen;
+  }
+
   private UnitVector currentNormal() {
     if( commonNormal != null )
       return commonNormal;

@@ -400,8 +400,8 @@ public class MapView {
 
   void warpCommand(Tileset targetTiles) {
     try {
-      double squeeze = projection.getSqueeze();
-      if( squeeze == 1 ) squeeze = 5;
+      double squeeze = Math.rint(projection.getSqueeze());
+      if( squeeze <= 1 ) squeeze = 5;
       double scale = Math.min(projection.scaleAcross(),
           Coords.zoom2pixsize(targetTiles.guiTargetZoom()));
       var baseWarp = new WarpedProjection(files.activeFile(), files.cache);

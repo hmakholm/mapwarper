@@ -2,18 +2,12 @@ package net.makholm.henning.mapwarper.gui;
 
 import net.makholm.henning.mapwarper.geometry.LineSeg;
 import net.makholm.henning.mapwarper.geometry.Point;
-import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.gui.overlays.ArrowOverlay;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
-import net.makholm.henning.mapwarper.gui.projection.CircleWarp;
 import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.QuickWarp;
-import net.makholm.henning.mapwarper.gui.projection.TurnedProjection;
-import net.makholm.henning.mapwarper.track.ChainRef;
-import net.makholm.henning.mapwarper.track.TrackHighlight;
-import net.makholm.henning.mapwarper.track.VisibleTrackData;
 
 public class QuickwarpTool extends ProjectionSwitchingTool {
 
@@ -23,55 +17,15 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
 
   @Override
   protected ToolResponse clickResponse(Point pos, int modifiers) {
-    if( altHeld(modifiers) ) {
-      ChainRef<?> segment = FindClosest.curve(
-          activeFileContent().segmentTree.apply(translator()),
-          ChainRef::data,
-          5, pos, 2);
-      if( segment != null && segment.chain().isTrack() ) {
-        var curve = segment.chain().smoothed().get(segment.index());
-        var curvature = curve.signedCurvatureAt(0.5);
-        if( Math.abs(curvature) > 1e-6 ) {
-          VisibleTrackData vdt = mapView().currentVisible.clone();
-          vdt.setHighlight(new TrackHighlight(segment.chain(),
-              segment.index(), segment.index()+1, 0x0066FF));
-          vdt.freeze();
-          return new ToolResponse() {
-            @Override
-            public VisibleTrackData previewTrackData() { return vdt; }
-
-            @Override
-            public void execute(ExecuteWhy why) {
-              var point = curve.pointAt(0.5);
-              var normal = curve.derivativeAt(0.5).normalize().turnRight();
-              var center = point.plus(1/curvature, normal);
-              var circle = new CircleWarp(center, point);
-              var proj = mapView().projection.scaleAndSqueezeSimilarly(circle);
-              if( curvature > 0 )
-                proj = TurnedProjection.invert(proj);
-              owner.mapView.setProjection(proj, pos);
-              if( why != ExecuteWhy.SHIFT_PRESSED )
-                owner.mapView.selectEditingTool();
-            }
-          };
-        }
-      }
-    }
-
-    if( !mapView().projection.base().isWarp() )
+    Projection orig = mapView().projection;
+    Projection proj= orig.makeQuickwarp(pos, altHeld(modifiers));
+    if( proj.equals(orig) )
       return NO_RESPONSE;
-    else if( translator().local2global(pos) instanceof PointWithNormal pwn ) {
-      return why -> {
-        var quickwarp = new QuickWarp(pwn, pwn.normal.turnLeft());
-        var proj = mapView().projection.scaleAndSqueezeSimilarly(quickwarp);
-        mapView().setProjection(proj);
-        if( why != ExecuteWhy.SHIFT_PRESSED )
-          owner.mapView.selectEditingTool();
-      };
-    } else {
-      System.err.println(translator()+" didn't give us a PointWithNormal.");
-      return NO_RESPONSE;
-    }
+    return why -> {
+      mapView().setProjection(proj);
+      if( why != ExecuteWhy.SHIFT_PRESSED )
+        owner.mapView.selectEditingTool();
+    };
   }
 
   @Override

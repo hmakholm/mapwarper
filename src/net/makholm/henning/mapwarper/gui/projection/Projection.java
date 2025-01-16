@@ -71,4 +71,6 @@ public abstract class Projection extends LongHashed {
 
   protected abstract ProjectionWorker createNonAffineWorker();
 
+  public abstract Projection makeQuickwarp(Point local, boolean allowCircle);
+
 }
