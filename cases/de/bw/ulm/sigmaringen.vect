@@ -1,4 +1,6 @@
 coords web-mercator 2^30
+usebounds bound/hbf.vect
+usebounds bound/rbf.vect
 node 566449337::371386662 1
   straight
 node 566473944::371407190 1
@@ -45,3 +47,13 @@ node 566644344::371446624 1
 node 566644705::371451824 1
   straight
 node 566645577::371471166 1
+  break
+bounds
+node 566449212::371386031 1
+  local
+node 566479491::371411060 1
+  break
+bounds
+node 566478956::371411780 1
+  local
+node 566448940::371386607 1
