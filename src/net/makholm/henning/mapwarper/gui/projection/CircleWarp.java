@@ -9,25 +9,31 @@ import net.makholm.henning.mapwarper.geometry.LineSeg;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
+import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
 import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer;
+import net.makholm.henning.mapwarper.util.MathUtil;
+import net.makholm.henning.mapwarper.util.RootFinder;
+import net.makholm.henning.mapwarper.util.TreeList;
 
 public class CircleWarp extends BaseProjection {
 
-  public final Point center, focus;
+  public final PointWithNormal center;
+  public final Point focus;
   final double radius;
   final double degxscale;
   final double bearing0;
 
   public CircleWarp(Point center, Point focus) {
-    this.center = center;
+    var radiusVector = center.to(focus);
+    this.center = new PointWithNormal(center, radiusVector.normalize());
     this.focus = focus;
-    this.radius = center.dist(focus);
+    this.radius = radiusVector.length();
     this.degxscale = (180/Math.PI) / radius;
-    this.bearing0 = center.to(focus).bearing();
+    this.bearing0 = radiusVector.bearing();
   }
 
   @Override
@@ -79,8 +85,65 @@ public class CircleWarp extends BaseProjection {
 
       @Override
       public List<Bezier> global2local(Bezier global) {
-        return List.of(Bezier.line(global2local(global.p1),
-            global2local(global.p4)));
+        Point l1 = global2local(global.p1);
+        Point l4 = global2local(global.p4);
+        double z1 = center.signedDistanceFromNormal(global.p1);
+        double z4 = center.signedDistanceFromNormal(global.p4);
+        if( !MathUtil.sameSign(z1, z4) && z1 != 0 && z4 != 0 ) {
+          double tMid;
+          if( z1 < 0 )
+            tMid = new RootFinder(xscale) {
+            @Override protected double f(double t) {
+              return center.signedDistanceFromNormal(global.pointAt(t));
+            }
+          }.rootBetween(0, z1, 1, z4);
+          else
+            tMid = new RootFinder(xscale) {
+            @Override protected double f(double t) {
+              return -center.signedDistanceFromNormal(global.pointAt(t));
+            }
+          }.rootBetween(0, -z1, 1, -z4);
+          var yy = center.signedDistanceAlongNormal(global.pointAt(tMid));
+          if( yy < 0 ) {
+            var x = Math.copySign(180/(degxscale*xscale), z1);
+            var y = -yy/yscale;
+            var split = global.split(tMid);
+            return TreeList.concat(
+                global2local(0, l1, split.front(), Point.at(x,y)),
+                List.of(Bezier.cubic(Point.at(x,0), Point.at(x,-y),
+                    Point.at(-x,-y), Point.at(-x,0))),
+                global2local(0, Point.at(-x,y), split.back(), l4));
+          }
+        }
+        return global2local(0, l1, global, l4);
+      }
+
+      private List<Bezier> global2local(int recLevel,
+          Point l1, Bezier global, Point l4) {
+        if( l1.sqDist(l4) < 8 || recLevel > 5 )
+          return List.of(Bezier.line(l1, l4));
+        var v1 = delta2local(global.v1, global.p1);
+        var v4 = delta2local(global.v4, global.p4);
+        Bezier candidate = Bezier.withVs(l1, v1, v4, l4);
+        var got = candidate.pointAt(0.5);
+        var want = global2local(global.pointAt(0.5));
+        if( want.sqDist(got) < 8 || got.y < 0 )
+          return List.of(candidate);
+        else {
+          var split = global.split(0.5);
+          return TreeList.concat(
+              global2local(recLevel+1, l1, split.front(), want),
+              global2local(recLevel+1, want, split.back(), l4));
+        }
+      }
+
+      private Vector delta2local(Vector global, Point gpoint) {
+        var rvec = center.to(gpoint);
+        var r = rvec.length();
+        var n = rvec.normalize();
+        var dy = global.dot(n) / yscale;
+        var dx = global.dot(n.turnLeft()) * radius / (r * xscale);
+        return Vector.of(dx, dy);
       }
     };
   }

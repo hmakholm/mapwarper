@@ -6,6 +6,10 @@ public class MathUtil {
     return x*x;
   }
 
+  public static boolean sameSign(double a, double b) {
+    return Math.copySign(a, b) == a;
+  }
+
   /**
    * Compute the arithmetic average in a way that avoids producing
    * a result that is larger than both inputs or smaller than both

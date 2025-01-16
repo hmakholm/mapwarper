@@ -45,4 +45,8 @@ public class PointWithNormal extends Point {
     return (p.x-x) * normal.y - (p.y-y) * normal.x;
   }
 
+  public double signedDistanceAlongNormal(Point p) {
+    return (p.x-x) * normal.x + (p.y-y) * normal.y;
+  }
+
 }
