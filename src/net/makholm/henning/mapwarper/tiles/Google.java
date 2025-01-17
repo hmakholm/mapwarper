@@ -19,8 +19,12 @@ class Google extends HttpTileset {
 
   @Override
   public String tileUrl(Tile tile) {
-    return "https://khms0.google.com/kh/v=991?x="
-        + tile.tilex + "&y=" + tile.tiley + "&z=" + tile.zoom;
+    // The 'v' parameter is apparently not a protocol version but something
+    // they bump when they update the photo collection. It appears to
+    // change in lockstep from time to time; I haven't figured if it's
+    // on a schedule or just whenever.
+    return "https://khms0.google.com/kh/v=992?x="
+    + tile.tilex + "&y=" + tile.tiley + "&z=" + tile.zoom;
   }
 
   @Override
