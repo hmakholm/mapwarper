@@ -157,9 +157,7 @@ class BoundEditTool extends BoundSnappingTool {
         List.of(kind),
         chain.kinds.subList(insertAt, chain.numSegments));
     var newChain = new SegmentChain(nodes, kinds, chainClass);
-    return new ProposedAction("Interpolate @", null,
-        global2node(pwna, 0),
-        null, newChain);
+    return new ProposedAction("Interpolate @", null, pwna, null, newChain);
   }
 
   private LineSeg lineSeg(SegmentChain chain, int index) {

@@ -55,7 +55,7 @@ class EditTool extends Tool {
   }
 
   record ProposedAction(String undoDesc,
-      TrackHighlight highlight, TrackNode newNode,
+      TrackHighlight highlight, Point newGlobal,
       Set<SegmentChain> fileContent, SegmentChain editingChain) {}
 
   @Override
@@ -376,14 +376,10 @@ class EditTool extends Tool {
   }
 
   protected TrackNode global2node(Point global) {
-    return global2node(global, 1);
-  }
-
-  protected TrackNode global2node(Point global, int size) {
     long x = Math.round(global.x);
     long y = Math.round(global.y);
     int mask = Coords.EARTH_SIZE-1;
-    return new TrackNode((int)x&mask, (int)y&mask, size);
+    return new TrackNode((int)x&mask, (int)y&mask);
   }
 
   class EditToolResponse implements ToolResponse {
@@ -405,7 +401,7 @@ class EditTool extends Tool {
         }
         tracks.setEditingChain(action.editingChain);
         tracks.freeze();
-        cursor = circleCursor(mapView().mouseLocal, action.newNode, mod1);
+        cursor = circleCursor(mapView().mouseLocal, action.newGlobal, mod1);
       } else if( action.highlight != null ) {
         tracks = mapView().currentVisible.clone();
         tracks.setHighlight(action.highlight());
@@ -413,7 +409,7 @@ class EditTool extends Tool {
         cursor = null;
       } else {
         tracks = null;
-        cursor = circleCursor(mapView().mouseLocal, action.newNode, mod1);
+        cursor = circleCursor(mapView().mouseLocal, action.newGlobal, mod1);
       }
     }
 
@@ -452,17 +448,17 @@ class EditTool extends Tool {
     }
   }
 
-  private CircleOverlay circleCursor(Point local, TrackNode node, int mod1) {
+  private CircleOverlay circleCursor(Point local, Point global, int mod1) {
     int rgb = ctrlHeld(mod1) ? DELETE_HIGHLIGHT : kind.rgb;
-    if( node != null ) {
-      if( node.size == 0 )
-        return new CircleOverlay(rgb, 10,
-            translator().global2localWithHint(node, local));
+    if( global instanceof TrackNode node ) {
       int circleDiameter = diameterAt(node);
       if( circleDiameter > 15) {
         return new CircleOverlay(rgb, circleDiameter,
             translator().global2localWithHint(node, local));
       }
+    } else if( global != null ) {
+      return new CircleOverlay(rgb, 10,
+          translator().global2localWithHint(global, local));
     }
     return new CircleOverlay(rgb, 10, Point.at(local.x+10, local.y+10));
   }
