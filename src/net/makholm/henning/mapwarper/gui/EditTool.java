@@ -129,7 +129,10 @@ class EditTool extends Tool {
       // Ctrl-click deletes a point -- which deletes an entire segment
       // if it's an endpoint.
       var chain = editingChain();
-      if( index == 0 ) {
+      if( chain.numSegments <= 1 ) {
+        return new ProposedAction("Delete chain",
+            new TrackHighlight(chain, DELETE_HIGHLIGHT), null, null, null);
+      } else if( index == 0 ) {
         return actionFromEditingSegment(0, p1, mod1, p2, mod2);
       } else if( index == chain.numNodes-1 ) {
         return actionFromEditingSegment(index-1, p1, mod1, p2, mod2);

@@ -1,6 +1,7 @@
 package net.makholm.henning.mapwarper.track;
 
 import net.makholm.henning.mapwarper.rgb.RGB;
+import net.makholm.henning.mapwarper.util.BadError;
 import net.makholm.henning.mapwarper.util.LongHashed;
 
 public final class TrackHighlight extends LongHashed {
@@ -19,6 +20,9 @@ public final class TrackHighlight extends LongHashed {
 
   public TrackHighlight(SegmentChain chain, int fromNode, int toNode,
       int rgb) {
+    if( 0 > fromNode || fromNode > toNode || toNode > chain.numNodes-1 )
+      throw BadError.of("Cannot highlight node %d..%d of %d-node chain",
+          fromNode, toNode, chain.numNodes);
     this.chain = chain;
     this.fromNode = fromNode;
     this.toNode = toNode;
