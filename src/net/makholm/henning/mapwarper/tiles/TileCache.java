@@ -19,8 +19,12 @@ public final class TileCache {
   public static final byte DISK = 1;
   public static final byte DOWNLOAD = 2;
 
-  // By default, use one third of the Java heap for tiles
-  public long maxBytes = Runtime.getRuntime().maxMemory() / 3;
+  // By default, use one fifth of the Java heap for tiles.
+  // For some reason the pixel arrays seem to collectively use up to
+  // three times their natural size, according to the heap sizes
+  // measured by Runtime, so we'll need to make room for plenty
+  // of slack ...
+  public long maxBytes = Runtime.getRuntime().maxMemory() / 5;
 
   public void setMaxBytes(long bytes) {
     synchronized( TileCache.this ) {
