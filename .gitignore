@@ -1,10 +1,6 @@
 /bin/
 /tilecache/
 *~
-*.jpg
-/cases/**/*.png
-*.png.stamp
-*.prev
 
 
 
