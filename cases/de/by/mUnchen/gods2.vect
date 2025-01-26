@@ -4,7 +4,9 @@ usebounds bound/moosach.vect
 usebounds bound/hbf.vect
 usebounds bound/heimeranplatz.vect
 usebounds bound/mittersendling.vect
-node 571199796::372429366 16
+node 571228797::372388415
+  slew
+node 571199987::372429134
   straight
 node 571173924::372465499 16
   straight
