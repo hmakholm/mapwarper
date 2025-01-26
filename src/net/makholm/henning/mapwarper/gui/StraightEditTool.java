@@ -11,7 +11,7 @@ import net.makholm.henning.mapwarper.track.TrackNode;
 class StraightEditTool extends EditTool {
 
   protected StraightEditTool(Commands owner) {
-    super(owner, SegKind.STRAIGHT, "straight track");
+    super(owner, SegKind.STRONG, "strong track");
   }
 
   @Override

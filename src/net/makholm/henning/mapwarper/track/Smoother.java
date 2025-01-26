@@ -117,7 +117,7 @@ class Smoother {
     if( segment >= chain.numSegments )
       return -1;
     switch( chain.kinds.get(segment) ) {
-    case STRAIGHT:
+    case STRONG:
       // First give directions to endpoints of STRAIGHT segments.
       // Beware that these are not necessarily actually straight --
       // if two of them are neighbors we use the usual algorithm,
@@ -283,7 +283,7 @@ class Smoother {
       Point p1, UnitVector t1, SegKind kind, UnitVector t4, Point p4) {
     var chord = p1.to(p4);
     switch( kind ) {
-    case STRAIGHT:
+    case STRONG:
     case TRACK:
     case WEAK:
       break;

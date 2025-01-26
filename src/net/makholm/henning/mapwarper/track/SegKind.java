@@ -1,9 +1,9 @@
 package net.makholm.henning.mapwarper.track;
 
 public enum SegKind {
+  STRONG  (ChainClass.TRACK, 0xABCDFF, "straight"),
   TRACK   (ChainClass.TRACK, 0xFFEEDD, "track"),
   WEAK    (ChainClass.TRACK, 0xFFAA33, "weak"),
-  STRAIGHT(ChainClass.TRACK, 0xABCDFF, "straight"),
   SLEW    (ChainClass.TRACK, 0x0080DD, "slew"),
   MAGIC   (ChainClass.TRACK, 0xDD5500, "connect"),
   BOUND   (ChainClass.BOUND, 0x99F488, "bounds"),
