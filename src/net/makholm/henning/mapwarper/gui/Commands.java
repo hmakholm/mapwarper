@@ -65,14 +65,15 @@ public class Commands {
   public final Tool move = new MoveTool(this);
 
   private final Tool weakTrackTool =
-      new EditTool(this, SegKind.WEAK, "weak track");
+      new TrackEditTool(this, SegKind.WEAK, "weak track");
   final Tool trackTool =
-      new EditTool(this, SegKind.TRACK, "curved track");
-  private final Tool straightTool = new StraightEditTool(this);
+      new TrackEditTool(this, SegKind.TRACK, "curved track");
+  private final Tool straightTool =
+      new TrackEditTool(this, SegKind.STRONG, "strong track");
   private final Tool slewTool =
-      new SlewingEditTool(this, SegKind.SLEW, "displacement joiner");
+      new TrackEditTool(this, SegKind.SLEW, "displacement joiner");
   private final Tool magicTool =
-      new SlewingEditTool(this, SegKind.MAGIC, "arc joiner");
+      new TrackEditTool(this, SegKind.MAGIC, "arc joiner");
   final Tool boundTool = new BoundEditTool(this);
   private final Tool localBoundTool =
       new BoundSnappingTool(this, SegKind.LBOUND, "locally straight bound");

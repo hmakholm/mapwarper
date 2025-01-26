@@ -388,30 +388,23 @@
          * mens Ctrl holdes nede, vises de udpegede segment med
            rød indikering.
    Særhandlinger for "bound":
-     - Alt-KLIK: Ny tangent i enden af kæden. Tag den ende af kæden
-       hvis endepunkt er tættest på. Sidste segment i kæden erstattes
-       af et segment gennem det gamle endepunkt og klikpunktet. Gamle
-       næstsidste knude flyttes til skæringspunktet mellem det nye
-       sidste segment og det gamle næstsidste.
-     - Alt-TRÆK: Ny tangent i midten af kæden. Det nye segment går
-       gennem endepunkterne for trækket. Det splejses ind ved den
-       eksisterende knude i kæden der er tættest på
-       startpunktet. Denne knude erstattes af to nye knuder i
-       skæringspunkterne.
-   Særhandlinger for "straight":
+     - Alt-TRÆK: Ny tangent. Det nye segment går gennem endepunkterne
+       for trækket. Det splejses ind i den aktive kæde ved den knude
+       som er tættest på der hvor trækket begynder. Hvis tangenten
+       ikke skærer de segmenter der allerede rører kunden (eller, i
+       tilfælde af en endeknude, forlængensen af sidste segment),
+       sker der ingenting.
+     - Alt-KLIK på ydersiden af et segment: Fjern segmentet og forlæng
+       dets nabosegmenter til deres skæringspunkt.
+   Særhandlinger for alle typer _spor_:
      - Alt-TRÆK i en knude: Knuden flyttes, men kun langs det
        udglattede spors tangent i punktet.
-   Særhandlinger for "slew" og "autoslew":
      - Alt-TRÆK i en knude: Delkæden indtil næste slew-segment i hver
-       ende flyttes sidelæns!
-         * Hvis man trækker en knude i enden af sådan en delkæde,
-           snapper forskydningen evt til en position hvor
-           sideforskydningen er 0.
->        * Sådan et snap ved "slew - straight" konverterer til en
->          enkelt "straight".  Snap ved "autoslew - straight"
->          konverterer til ordinært spor hvis begge ender af det nye
->          segment har retning forankret i en "straight".
->             Hmm, det er vist pålideligere at gøre manuelt.
+       retning flyttes sidelæns!
+         * Den sidelæns afstand kan snappe til en værdi der gør
+           forskydningen i et af de afgrænsende slew-segmenter til 0.
+     Den af disse to muligheder der giver den mindste afstand til
+     musens position _på skærmen_ vælges.
 
    Kommando: Skift sporretning
      * vender rækkefølgen af den aktive sporkæde om
