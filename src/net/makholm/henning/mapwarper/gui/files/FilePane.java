@@ -210,12 +210,20 @@ public class FilePane {
     return active.path == null && active.isModified();
   }
 
+  public JFileChooser locatedFileChooser() {
+    var fc = new JFileChooser();
+    if( activeFile.path != null )
+      fc.setCurrentDirectory(activeFile.path.getParent().toFile());
+    else
+      fc.setCurrentDirectory(focusDir.toFile());
+    return fc;
+  }
+
   public boolean saveAsIfNecessary() {
     if( activeFile.path != null )
       return true;
     else {
-      var fc = new JFileChooser();
-      fc.setCurrentDirectory(focusDir.toFile());
+      var fc = locatedFileChooser();
       fc.setFileFilter(new FileNameExtensionFilter(
           "Vector track files", VectFile.EXTENSION.substring(1)));
       fc.setAcceptAllFileFilterUsed(false);

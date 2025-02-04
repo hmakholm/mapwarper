@@ -193,6 +193,8 @@ public class Commands {
     return tilesetCommands.computeIfAbsent(name, TilesetCommands::new);
   }
 
+  private final Command export = new Exporter(this);
+
   private final Cmd newFile = simple("new", "New",
       self -> self.files.newCommand());
 
@@ -293,6 +295,9 @@ public class Commands {
     files.add(newFile);
     files.add(saveAll);
     files.add(revert);
+    files.addSeparator();
+    files.add(export);
+    files.addSeparator();
     files.add(quit);
 
     var edit = menu.addSubmenu("Edit");
