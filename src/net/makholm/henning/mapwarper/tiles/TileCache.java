@@ -10,11 +10,6 @@ import net.makholm.henning.mapwarper.georaster.TileBitmap;
  */
 public final class TileCache {
 
-  /**
-   * Set during batch operations.
-   */
-  public static boolean alwaysDownloadImmediately;
-
   public static final byte RAM = 0;
   public static final byte DISK = 1;
   public static final byte DOWNLOAD = 2;
@@ -52,8 +47,6 @@ public final class TileCache {
         map.put(spec, e);
         totalBytes += e.cost;
       }
-      if( alwaysDownloadImmediately )
-        howFarToLook = DOWNLOAD;
       e.lruStamp = stampcounter++;
       if( howFarToLook > e.requested )
         e.requested = howFarToLook;

@@ -31,7 +31,9 @@ public abstract class SimpleRenderer extends CommonRenderer {
 
   @Override
   public final void doSomeWork() throws AbortRendering {
-    if( renderPassesCompleted == 0 )
+    if( cacheLookupLevel == TileCache.DOWNLOAD ) {
+      // Keep it like that
+    } else if( renderPassesCompleted == 0 )
       cacheLookupLevel = TileCache.RAM;
     else
       cacheLookupLevel = TileCache.DISK;

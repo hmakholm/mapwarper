@@ -180,6 +180,7 @@ public final class TurnedProjection extends Projection {
     @Override public int columns() { return outer.rows(); }
     @Override public int rows() { return outer.columns(); }
     @Override public boolean isUrgent() { return outer.isUrgent(); }
+    @Override public boolean eagerDownload() { return outer.eagerDownload(); }
     @Override public void isNowGrownUp() { outer.isNowGrownUp(); }
     @Override public void pokeSchedulerAsync() { outer.pokeSchedulerAsync(); }
 
@@ -209,6 +210,7 @@ public final class TurnedProjection extends Projection {
     @Override public int columns() { return outer.columns(); }
     @Override public int rows() { return outer.rows(); }
     @Override public boolean isUrgent() { return outer.isUrgent(); }
+    @Override public boolean eagerDownload() { return outer.eagerDownload(); }
     @Override public void isNowGrownUp() { outer.isNowGrownUp(); }
     @Override public void pokeSchedulerAsync() { outer.pokeSchedulerAsync(); }
 
@@ -237,6 +239,7 @@ public final class TurnedProjection extends Projection {
     @Override public int columns() { return outer.rows(); }
     @Override public int rows() { return outer.columns(); }
     @Override public boolean isUrgent() { return outer.isUrgent(); }
+    @Override public boolean eagerDownload() { return outer.eagerDownload(); }
     @Override public void isNowGrownUp() { outer.isNowGrownUp(); }
     @Override public void pokeSchedulerAsync() { outer.pokeSchedulerAsync(); }
 

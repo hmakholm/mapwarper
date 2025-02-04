@@ -42,6 +42,9 @@ abstract class CommonRenderer implements RenderWorker {
     dirtyColumns = new BitSet(ncols);
     dirtyColumns.set(0, ncols);
 
+    this.cacheLookupLevel =
+        target.eagerDownload() ? TileCache.DOWNLOAD : TileCache.DISK;
+
     markAllForRendering();
   }
 

@@ -20,7 +20,6 @@ import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
-import net.makholm.henning.mapwarper.tiles.TileCache;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 import net.makholm.henning.mapwarper.util.AbortRendering;
 import net.makholm.henning.mapwarper.util.NiceError;
@@ -103,7 +102,6 @@ class WarpCommand extends Mapwarper.Command {
     System.err.println("Warping "+width+"x"+height+" ...");
     var bitmap = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
-    TileCache.alwaysDownloadImmediately = true;
     boolean[] done = { false };
 
     int renderFlags =
@@ -125,6 +123,7 @@ class WarpCommand extends Mapwarper.Command {
       @Override public int columns() { return width; }
       @Override public int rows() { return height; }
       @Override public boolean isUrgent() { return true; }
+      @Override public boolean eagerDownload() { return true; }
       @Override public void checkCanceled() { }
 
       @Override
