@@ -291,9 +291,17 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   private MouseAction ongoingToolDrag;
   private java.awt.Point ongoingMapDrag;
 
-  private void cancelDrag() {
-    ongoingMapDrag = null;
-    dragStartingEvent = null;
+  public boolean cancelDrag() {
+    if( ongoingMapDrag != null ||
+        ongoingToolDrag != null ||
+        dragStartingEvent != null ) {
+      ongoingMapDrag = null;
+      ongoingToolDrag = null;
+      dragStartingEvent = null;
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /**

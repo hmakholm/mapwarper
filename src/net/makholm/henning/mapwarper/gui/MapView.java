@@ -344,7 +344,9 @@ public class MapView {
   }
 
   void escapePressed() {
-    if( lensRect != null ) {
+    if( swing.cancelDrag() ) {
+      // That's all
+    } else if( lensRect != null ) {
       cancelLens();
     } else if( editingChain != null ) {
       setEditingChain(null);
