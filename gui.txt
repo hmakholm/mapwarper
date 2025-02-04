@@ -194,9 +194,7 @@
    Handlinger:
      - TRÆK for at definere et rektangel. Max-zoomniveauet i et nyt
        lup-område initialiseres til tilesettets standardzoom
->      (Eller +1 hvis vi allerede viser netop dette tileset i standardzoom?)
->    - Stretch goal? TRÆK rektanglet eller dets kanter for at ændre
->      position og størrelse.
+     - TRÆK rektanglet eller dets kanter for at ændre position og størrelse.
      - KLIK i området for at forhøje zoomniveauet i det (mindre
        pixellering), dog kun indtil 1:1 i UI-pixels.  Lup-området
        croppes om nødvendigt til vinduets kanter.
