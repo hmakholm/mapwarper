@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
+import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
 import net.makholm.henning.mapwarper.rgb.RGB;
@@ -9,6 +10,7 @@ final class MarginedWarpRenderer extends BaseWarpRenderer {
 
   private final WarpMargins margins;
   private final SegmentChain.Smoothed curves;
+  private final boolean blankOutsideMargins;
 
   protected MarginedWarpRenderer(WarpedProjection warp, WarpMargins margins,
       LayerSpec spec, double xpixsize, double ypixsize, RenderTarget target,
@@ -17,6 +19,7 @@ final class MarginedWarpRenderer extends BaseWarpRenderer {
         supersample, fallbackChain);
     this.margins = margins;
     this.curves = warp.curves;
+    this.blankOutsideMargins = Toggles.BLANK_OUTSIDE_MARGINS.setIn(spec.flags());
   }
 
   @Override
@@ -28,6 +31,20 @@ final class MarginedWarpRenderer extends BaseWarpRenderer {
         (margins.leftMargin(worker, xmid) - ybase) / yscale - 0.5;
     double rightMargin =
         (margins.rightMargin(worker, xmid) - ybase) / yscale - 0.5;
+
+    if( blankOutsideMargins ) {
+      if( rightMargin < ymax ) {
+        int start = (int)Math.max(ymin, rightMargin);
+        whiteout(col, start, ymax);
+        if( start == ymin ) return true;
+        ymax = start-1;
+      }
+      if( leftMargin > ymin ) {
+        int end = (int)Math.min(ymax, Math.ceil(leftMargin));
+        whiteout(col, ymin, end);
+        ymin = end+1;
+      }
+    }
 
     // Handle curvature singularities
     double radius = 1/worker.curvatureAt(xmid);
@@ -88,6 +105,11 @@ final class MarginedWarpRenderer extends BaseWarpRenderer {
   private void blackout(int col, int ymin, int ymax) {
     for( int row = ymin; row <= ymax; row++ )
       target.givePixel(col, row, RGB.SINGULARITY);
+  }
+
+  private void whiteout(int col, int ymin, int ymax) {
+    for( int row = ymin; row <= ymax; row++ )
+      target.givePixel(col, row, 0xFFCCCCCC);
   }
 
 }

@@ -50,7 +50,7 @@ class MapPainter {
     this.spec = new FrozenLayerSpec(initialSpec);
     this.projection = spec.projection;
     this.factory = projection.makeRenderFactory(spec);
-    clipRender = Toggles.LENS_MAP.setIn(spec.flags())
+    clipRender = Toggles.OVERLAY_MAP.setIn(spec.flags())
         ? owner.logic.lensRect : null;
 
     createBuffers();

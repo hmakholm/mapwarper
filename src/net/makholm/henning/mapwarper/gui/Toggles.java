@@ -11,9 +11,9 @@ public enum Toggles {
   MAIN_TRACK(false, true, "showTrack", "Show main track"),
   EXT_BOUNDS(false, false, "showBounds", "Show indirect bounds"),
   SHOW_LABELS(false, true, "showLabels", "Show track labels"),
+  OVERLAY_MAP(true, false, ":overlayMapBit", null),
   LENS_MAP(true, false, ":lensMapFlagBit", null),
-  NO_MAIN_TILES_OUTSIDE_MARGINS(true, false, ":clearMarginsFlagBit", null);
-  ;
+  BLANK_OUTSIDE_MARGINS(true, false, ":clearMarginsFlagBit", null);
 
   public final String codename;
   public final String niceName;

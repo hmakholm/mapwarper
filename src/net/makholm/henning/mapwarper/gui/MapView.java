@@ -14,6 +14,7 @@ import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.FilePane;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
+import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
 import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
@@ -27,6 +28,7 @@ import net.makholm.henning.mapwarper.gui.swing.PokeReceiver;
 import net.makholm.henning.mapwarper.gui.swing.SwingMapView;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
+import net.makholm.henning.mapwarper.tiles.NomapTiles;
 import net.makholm.henning.mapwarper.tiles.OpenStreetMap;
 import net.makholm.henning.mapwarper.tiles.OpenTopoMap;
 import net.makholm.henning.mapwarper.tiles.TileContext;
@@ -202,17 +204,10 @@ public class MapView {
     }
   }
 
-  boolean setLens(BoxOverlay box) {
-    if( box.box.xmin() >= visibleArea.left &&
-        box.box.xmax() <= visibleArea.right &&
-        box.box.ymin() >= visibleArea.top &&
-        box.box.ymax() <= visibleArea.bottom ) {
-      lensRect = box;
-      lensZoom = lensTiles.guiTargetZoom();
-      return true;
-    } else {
-      return false;
-    }
+  void setLens(BoxOverlay box) {
+    lensRect = box;
+    lensZoom = Math.min(naturalLensZoom(),
+        dynamicLensSpec.mainTiles().guiTargetZoom());
   }
 
   void cancelLens() {
@@ -220,6 +215,15 @@ public class MapView {
       swing.repaintFor(lensRect);
       lensRect = null;
     }
+  }
+
+  int naturalLensZoom() {
+    return FallbackChain.naturalZoom(
+        projection.scaleAcross(), dynamicLensSpec.mainTiles());
+  }
+
+  boolean isExportLens() {
+    return lensTiles instanceof NomapTiles;
   }
 
   private final DoubleSupplier globalWindowDiagonal = () -> {
@@ -249,7 +253,9 @@ public class MapView {
 
   public final LayerSpec dynamicLensSpec = new LayerSpec() {
     @Override public Projection projection() { return projection; }
-    @Override public Tileset mainTiles() { return lensTiles; }
+    @Override public Tileset mainTiles() {
+      return isExportLens() ? mainTiles : lensTiles;
+    }
     @Override public int targetZoom() { return lensZoom; }
     @Override public Tileset fallbackTiles() { return lensTiles; }
     @Override public DoubleSupplier windowDiagonal() { return globalWindowDiagonal; }
@@ -257,7 +263,12 @@ public class MapView {
     @Override public int flags() {
       int flags = toggleState;
       flags |= Toggles.SUPERSAMPLE.bit();
-      flags |= Toggles.LENS_MAP.bit();
+      flags |= Toggles.OVERLAY_MAP.bit();
+      if( isExportLens() ) {
+        flags |= Toggles.BLANK_OUTSIDE_MARGINS.bit();
+      } else {
+        flags |= Toggles.LENS_MAP.bit();
+      }
       return flags & Toggles.MAP_MASK;
     }
   };

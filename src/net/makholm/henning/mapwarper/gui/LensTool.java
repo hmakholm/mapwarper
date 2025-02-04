@@ -2,7 +2,6 @@ package net.makholm.henning.mapwarper.gui;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
-import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
@@ -30,7 +29,8 @@ public class LensTool extends Tool {
   }
 
   public Runnable lensPlusCommand() {
-    if( (mapView().lensRect == null || mapView().lensZoom >= naturalZoom())
+    if( (mapView().lensRect == null ||
+        mapView().lensZoom >= mapView().naturalLensZoom())
         && !zoomMattersAnyway() )
       return null;
     else if( mapView().lensZoom >= 20 )
@@ -38,7 +38,7 @@ public class LensTool extends Tool {
     else
       return () -> {
         var lensRect = mapView().lensRect;
-        if( lensRect != null ) {
+        if( lensRect != null && !mapView().isExportLens() ) {
           AxisRect visible = new AxisRect(mapView().visibleArea);
           AxisRect intersection = lensRect.box.intersect(visible);
           if( intersection == null ) {
@@ -48,7 +48,7 @@ public class LensTool extends Tool {
           }
         }
         mapView().lensZoom++;
-        System.err.println("zoom now "+mapView().lensZoom);
+        System.err.println("Lens zoom now "+mapView().lensZoom);
         owner.swing.invalidateToolResponse();
       };
   }
@@ -77,25 +77,10 @@ public class LensTool extends Tool {
         }
         @Override
         public void execute(ExecuteWhy why) {
-          var visible = mapView().visibleArea;
-          if( chosen.xmin() >= visible.left &&
-              chosen.xmax() <= visible.right &&
-              chosen.ymin() >= visible.top &&
-              chosen.ymax() <= visible.bottom ) {
-            mapView().lensRect = overlay;
-            mapView().lensZoom = Math.min(naturalZoom(),
-                mapView().lensTiles.guiTargetZoom());
-          } else {
-            SwingUtils.beep();
-          }
+          mapView().setLens(overlay);
         }
       };
     };
-  }
-
-  public int naturalZoom() {
-    return FallbackChain.naturalZoom(
-        mapView().projection.scaleAcross(), mapView().lensTiles);
   }
 
   public static BoxOverlay createBox(AxisRect lensBox) {

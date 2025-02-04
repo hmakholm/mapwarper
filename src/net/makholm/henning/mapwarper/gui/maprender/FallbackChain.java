@@ -1,7 +1,6 @@
 package net.makholm.henning.mapwarper.gui.maprender;
 
 import net.makholm.henning.mapwarper.georaster.Coords;
-import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 import net.makholm.henning.mapwarper.util.MathUtil;
 
@@ -12,8 +11,6 @@ public class FallbackChain {
   public static final int DOWNLOAD_BIT = 0x40;
   public static final int BITS_PER_ATTEMPT = 7;
   public static final int MAX_ATTEMPTS     = 9;
-
-  private final int flags;
 
   private final int targetZoom;
 
@@ -31,8 +28,6 @@ public class FallbackChain {
   private int numAttempts;
 
   public FallbackChain(LayerSpec spec, double pixsizex, double pixsizey) {
-    this.flags = spec.flags();
-
     pixsizex = Math.abs(pixsizex);
     pixsizey = Math.abs(pixsizey);
     var mainTiles = spec.mainTiles();
@@ -106,9 +101,6 @@ public class FallbackChain {
   }
 
   public void attemptFallbacks(int mainSizesToInclude) {
-    if( Toggles.NO_MAIN_TILES_OUTSIDE_MARGINS.setIn(flags) ) {
-      accumulatedBits = 0;
-    }
     int fallbackZoom;
     if( fallbackEqualsMain ) {
       fallbackZoom = mainZoomToUse-1;

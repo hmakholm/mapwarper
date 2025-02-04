@@ -103,7 +103,7 @@ class WarpCommand extends Mapwarper.Command {
 
     int renderFlags =
         Toggles.SUPERSAMPLE.bit() |
-        Toggles.NO_MAIN_TILES_OUTSIDE_MARGINS.bit();
+        Toggles.BLANK_OUTSIDE_MARGINS.bit();
 
     LayerSpec ls = new LayerSpec() {
       @Override public DoubleSupplier windowDiagonal() { return () -> 1; }
