@@ -179,19 +179,26 @@ public final class WarpedProjection extends BaseProjection {
     }
   }
 
-  public AxisRect getMargins(double scaleAcross, double scaleAlong) {
+  public AxisRect shrinkToMargins(AxisRect r, double scaleAlong) {
+    double xmin = Math.max(r.xmin(), 0);
+    double xmax = Math.min(r.xmax(), totalLength);
+    if( xmin >= xmax )
+      return r;
     double minLeft = Double.POSITIVE_INFINITY;
     double maxRight = Double.NEGATIVE_INFINITY;
     WarpMargins m = WarpMargins.get(this);
     MinimalWarpWorker w = new MinimalWarpWorker(this);
-    for( double t = scaleAlong/2; t < totalLength; t += scaleAlong ) {
+    for( double t = xmin+scaleAlong/2; t < xmax; t += scaleAlong ) {
       minLeft = Math.min(minLeft, m.leftMargin(w, t));
       maxRight = Math.max(maxRight, m.rightMargin(w, t));
     }
-    return new AxisRect(
-        Point.at(0, minLeft/scaleAcross),
-        Point.at(totalLength/scaleAlong, maxRight/scaleAcross));
+    double ymin = Math.max(r.ymin(), minLeft);
+    double ymax = Math.min(r.ymax(), maxRight);
+    if( ymin >= ymax )
+      return r;
+    return new AxisRect(Point.at(xmin, ymin), Point.at(xmax, ymax));
   }
+
 
   @Override
   protected long longHashImpl() {

@@ -9,6 +9,8 @@ import java.util.function.DoubleSupplier;
 
 import javax.imageio.ImageIO;
 
+import net.makholm.henning.mapwarper.geometry.AxisRect;
+import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.gui.Toggles;
@@ -88,7 +90,10 @@ class WarpCommand extends Mapwarper.Command {
     }
 
     var proj = wp.withScaleAndSqueeze(scaleAcross,  wantWarpFactor);
-    var rect = wp.getMargins(proj.scaleAcross(), proj.scaleAlong());
+    var inf = Double.POSITIVE_INFINITY;
+    var rect = new AxisRect(Point.at(-inf, -inf), Point.at(inf, inf));
+    rect = wp.shrinkToMargins(rect, proj.scaleAlong());
+    rect = proj.projected2local(rect);
 
     int ymin = (int)Math.round(rect.ymin());
     int ymax = (int)Math.round(rect.ymax());

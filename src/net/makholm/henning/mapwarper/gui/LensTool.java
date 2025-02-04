@@ -6,6 +6,7 @@ import java.util.function.Function;
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
+import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
 
@@ -82,6 +83,7 @@ public class LensTool extends Tool {
     var dragAction = dragAction0 != null ? dragAction0 : startDrag(pos0);
     return (pos1, modifiers1) -> {
       AxisRect chosen = dragAction.makeRect.apply(pos1);
+      chosen = shrinkForExport(chosen);
       var overlay = createBox(chosen);
       return new ToolResponse() {
         @Override
@@ -98,6 +100,18 @@ public class LensTool extends Tool {
         }
       };
     };
+  }
+
+  private AxisRect shrinkForExport(AxisRect chosen) {
+    var proj = mapView().projection;
+    if( mapView().isExportLens() &&
+        proj.base() instanceof WarpedProjection warp ) {
+      var boxp = proj.local2projected(chosen);
+      var boxp2 = warp.shrinkToMargins(boxp, proj.scaleAlong());
+      if( boxp2 != boxp )
+        return proj.projected2local(boxp2);
+    }
+    return chosen;
   }
 
   private record DragAction(Cursor cursor, Function<Point, AxisRect> makeRect) {}

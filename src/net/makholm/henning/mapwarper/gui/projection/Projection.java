@@ -16,6 +16,16 @@ public abstract class Projection extends LongHashed {
   public abstract Point local2projected(Point p);
   public abstract Point projected2local(Point p);
 
+  public AxisRect local2projected(AxisRect r) {
+    return new AxisRect(local2projected(r.nwCorner()),
+        local2projected(r.seCorner()));
+  }
+
+  public AxisRect projected2local(AxisRect r) {
+    return new AxisRect(projected2local(r.nwCorner()),
+        projected2local(r.seCorner()));
+  }
+
   /**
    * The resulting worker must either be thread-safe or freshly created.
    */
