@@ -21,6 +21,7 @@ import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
+import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
@@ -35,7 +36,7 @@ import net.makholm.henning.mapwarper.util.FrozenArray;
 import net.makholm.henning.mapwarper.util.LongHashed;
 import net.makholm.henning.mapwarper.util.TreeList;
 
-final class TrackPainter extends LongHashed {
+public final class TrackPainter extends LongHashed {
 
   private final Projection projection;
   private final ProjectionWorker translator;
@@ -54,9 +55,7 @@ final class TrackPainter extends LongHashed {
           10.0f,
           new float[] { 10.0f }, 0);
 
-  TrackPainter(SwingMapView owner, VisibleTrackData trackdata) {
-    var logic = owner.logic;
-
+  public TrackPainter(MapView logic, VisibleTrackData trackdata) {
     projection = logic.projection;
     translator = logic.translator();
     this.trackdata = trackdata;
@@ -83,7 +82,7 @@ final class TrackPainter extends LongHashed {
 
   private Graphics2D g;
 
-  void paint(Graphics2D g, AxisRect paintBounds) {
+  public void paint(Graphics2D g, AxisRect paintBounds) {
     this.g = g;
 
     if( trackdata.hasFlag(Toggles.SHOW_LABELS) ) {

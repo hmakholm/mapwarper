@@ -233,7 +233,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
   private void refreshVectorLayer() {
     var visibleTrackData = toolResponse.previewTrackData();
-    var newTrackPainter = new TrackPainter(this,
+    var newTrackPainter = new TrackPainter(logic,
         visibleTrackData != null ? visibleTrackData : baseTrackData);
     if( !newTrackPainter.equals(currentTrackPainter) ) {
       currentTrackPainter = newTrackPainter;

@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.gui;
 
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -12,12 +13,18 @@ import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.gui.maprender.FrozenLayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
 import net.makholm.henning.mapwarper.gui.swing.Command;
+import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
+import net.makholm.henning.mapwarper.gui.swing.TrackPainter;
 import net.makholm.henning.mapwarper.util.AbortRendering;
 
 class Exporter extends Command {
 
-  public Exporter(Commands owner) {
-    super(owner, "export", "Export current view (or lens) ...");
+  private final boolean withTracks;
+
+  public Exporter(Commands owner,
+      String codename, String nicename, boolean withTracks) {
+    super(owner, codename, nicename);
+    this.withTracks = withTracks;
   }
 
   @Override
@@ -52,6 +59,12 @@ class Exporter extends Command {
 
     var factory = mapView().projection.makeRenderFactory(spec);
 
+    TrackPainter tracks;
+    if( !withTracks )
+      tracks = null;
+    else
+      tracks = new TrackPainter(mapView(), mapView().currentVisible);
+
     var fc = owner.files.locatedFileChooser();
     fc.setFileFilter(new FileNameExtensionFilter("PNG file", "png"));
     fc.setDialogTitle("Export "+width+" × "+height+" pixels");
@@ -79,9 +92,12 @@ class Exporter extends Command {
             @Override public boolean eagerDownload() { return true; }
             @Override public void checkCanceled() { }
 
+            boolean darken = Toggles.DARKEN_MAP.setIn(spec.flags) && withTracks;
+            int darkenMask = darken ? 0x003F3F3F : 0;
+
             @Override
             public void givePixel(int x, int y, int rgb) {
-              bitmap.setRGB(x0+x, y, rgb);
+              bitmap.setRGB(x0+x, y, rgb - (darkenMask & (rgb >> 2)));
             }
 
             @Override
@@ -106,6 +122,12 @@ class Exporter extends Command {
 
           x0 += w0;
           System.err.println("Rendered "+x0+" of "+width+" columns.");
+        }
+
+        if( tracks != null ) {
+          Graphics2D g = SwingUtils.startPaint(bitmap.getGraphics());
+          g.translate(-xmin, -ymin);
+          tracks.paint(g, rect);
         }
 
         System.err.println("Writing to "+outfile+" ...");

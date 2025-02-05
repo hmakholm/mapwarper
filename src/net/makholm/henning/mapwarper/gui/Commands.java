@@ -193,7 +193,10 @@ public class Commands {
     return tilesetCommands.computeIfAbsent(name, TilesetCommands::new);
   }
 
-  private final Command export = new Exporter(this);
+  private final Command export =
+      new Exporter(this, "export", "Export PNG ...", false);
+  private final Command exportWithTracks =
+      new Exporter(this, "export-with", "Export PNG with tracks ...", true);
 
   private final Cmd newFile = simple("new", "New",
       self -> self.files.newCommand());
@@ -297,6 +300,7 @@ public class Commands {
     files.add(revert);
     files.addSeparator();
     files.add(export);
+    files.add(exportWithTracks);
     files.addSeparator();
     files.add(quit);
 
