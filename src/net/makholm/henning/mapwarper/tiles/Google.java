@@ -23,7 +23,7 @@ class Google extends HttpTileset {
     // they bump when they update the photo collection. It appears to
     // change in lockstep from time to time; I haven't figured if it's
     // on a schedule or just whenever.
-    return "https://khms0.google.com/kh/v=994?x="
+    return "https://khms0.google.com/kh/v=1000?x="
     + tile.tilex + "&y=" + tile.tiley + "&z=" + tile.zoom;
   }
 
