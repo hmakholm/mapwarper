@@ -69,6 +69,10 @@ Myself, I let Eclipse compile the Java code, populating a `bin/`
 directory; then the `mapwarper` script will launch the program in a
 JVM appropriately.
 
+With a 4K display you need to add a `-Dsun.java2d.uiScale=2` argument
+to the `java` command line, at least on Linux. (I haven't found a
+robust way to autodeted the need for this yet).
+
 To get started, navigate to a `*.vect` file in the `cases/`
 subdirectory, single click on it to load, and then press `W` followed
 by `U` to switch to warped view and locate the tracks.
