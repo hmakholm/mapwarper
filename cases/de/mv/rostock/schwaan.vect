@@ -1,5 +1,4 @@
 coords web-mercator 2^30
-usebounds bound/warnemUnde.vect
 usebounds bound/hbf.vect
 node 573011378::344347750 16
   straight
