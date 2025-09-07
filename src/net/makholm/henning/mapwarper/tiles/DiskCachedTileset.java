@@ -119,8 +119,11 @@ public abstract class DiskCachedTileset extends Tileset {
       produceTileInFile(tile, file);
     } catch( IOException e ) {
       tryDeleteFile(file);
+      String msg = e.getMessage();
+      if( msg == null || msg.isEmpty() )
+        msg = e.getClass().getName();
       throw NiceError.of("Failed to download %s: %s",
-          tilename(tile), e.getMessage());
+          tilename(tile), msg);
     }
     try {
       return readFromFile(file);
