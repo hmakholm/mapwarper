@@ -243,7 +243,8 @@ public class Commands {
     keymap.accept("C-Z", mapView.undoList.undo.getCommand(this, 1));
 
     // Without Ctrl, but possibly shifted, in QUERTY order
-    keymap.accept("F2", simple("GC", "Force GC", self -> HeapDebugCommand.run(mapView.tiles)));
+    keymap.accept("S-F2", simple("GC", "Force GC", self -> HeapDebugCommand.run(mapView.tiles)));
+    keymap.accept("F2", Toggles.TILEGRID.command(this));
     keymap.accept("F3", new NearestNodeDebugTool(this));
     keymap.accept("F4", new TilecacheDebugTool(this));
     keymap.accept("F5", Toggles.SUPERSAMPLE.command(this));
@@ -342,6 +343,7 @@ public class Commands {
     view.add(Toggles.SHOW_LABELS.command(this));
     view.add(Toggles.DARKEN_MAP.command(this));
     view.add(Toggles.SUPERSAMPLE.command(this));
+    view.add(Toggles.TILEGRID.command(this));
     view.add(repaint);
     view.add(refresh);
 

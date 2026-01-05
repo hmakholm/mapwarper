@@ -149,7 +149,7 @@ public class GuiMain extends JFrame {
     } else if( re.match("C-([A-Z])") ) {
       key = "control "+re.group(1);
       keystroke = KeyStroke.getKeyStroke(key);
-    } else if( re.match("S-([A-Z])") ) {
+    } else if( re.match("S-([A-Z]|F[0-9]+)") ) {
       key = "shift "+re.group(1);
       keystroke = KeyStroke.getKeyStroke(key);
     } else if( re.match("[A-Z][a-z]+|F[0-9]+") ) {

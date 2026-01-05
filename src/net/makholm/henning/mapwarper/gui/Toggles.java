@@ -4,6 +4,7 @@ import net.makholm.henning.mapwarper.gui.swing.ToggleCommand;
 
 public enum Toggles {
 
+  TILEGRID(true, false, "tilegrid", "Tile checkerboard pattern"),
   SUPERSAMPLE(true, false, "supersample", "Supersample warped maps"),
   DARKEN_MAP(true, false, "darkenMap", "Darken base map"),
   CURVATURE(false, true, "showCurvature", "Show track curvature"),

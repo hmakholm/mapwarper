@@ -9,6 +9,7 @@ import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.georaster.Tile;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
+import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.rgb.RGB;
 import net.makholm.henning.mapwarper.tiles.TileCache;
 import net.makholm.henning.mapwarper.tiles.TileSpec;
@@ -21,6 +22,7 @@ abstract class CommonRenderer implements RenderWorker {
   protected final double xscale;
   protected final double yscale;
   protected final RenderTarget target;
+  protected final int tilegridMask;
 
   private final Tileset mainTiles;
   private final Tileset fallbackTiles;
@@ -37,6 +39,8 @@ abstract class CommonRenderer implements RenderWorker {
     this.target = target;
     mainTiles = spec.mainTiles();
     fallbackTiles = spec.fallbackTiles();
+    tilegridMask = Toggles.TILEGRID.setIn(spec.flags()) ?
+        (Coords.EARTH_SIZE >> 18) : 0;
 
     ncols = target.columns();
     dirtyColumns = new BitSet(ncols);
@@ -152,8 +156,15 @@ abstract class CommonRenderer implements RenderWorker {
         localCache[lci] = bitmap;
         localCacheIndex[lci] = shortcode;
       }
-      if( bitmap != null )
-        return bitmap.pixelAt(coords);
+      if( bitmap != null ) {
+        int rgb = bitmap.pixelAt(coords);
+        if( tilegridMask != 0 ) {
+          rgb -= (rgb >> 2) & 0x3F3F3F;
+          if( ((coords ^ (coords >> 32)) & tilegridMask) != 0 )
+            rgb += 0x3F3F3F;
+        }
+        return rgb;
+      }
     }
   }
 
