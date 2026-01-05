@@ -1,0 +1,8 @@
+coords web-mercator 2^30
+usebounds bound.vect
+node 543859791::369000694
+  straight
+node 543901989::369247380
+node 543900108::369282745
+  straight
+node 543896753::369293523
