@@ -265,7 +265,6 @@ public class Commands {
     keymap.accept("Q", quickwarp);
     keymap.accept("W", tilesetCommands("google").warp);
     keymap.accept("S-W", tilesetCommands("bing").lens);
-    keymap.accept("E", tilesetCommands("google").ortho);
     keymap.accept("S-E", tilesetCommands("google").lens);
     keymap.accept("R", tilesetCommands("osm").ortho);
     keymap.accept("S-R", tilesetCommands("osm").lens);

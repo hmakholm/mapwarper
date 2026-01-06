@@ -43,7 +43,6 @@
 
      Q: quick warp
      W: google warp
-     E: google ortho
      R: osm ortho
 
      Skift-W: bing lup
@@ -226,9 +225,7 @@
        nærmeste størrelse i dette interval i retning af standardzoomet
        til nærmeste toerpotens.
      * Var den hidtidige projektion også ortho, sker der hermed ingen
-       ændring af projektionen overhovedet, og der er nok en optimeret
-       implementationen for dette tilfælde. Fx kan det ekisterende
-       kortlag genbruges mens nye tiles fremskaffes.
+       ændring af projektionen overhovedet.
      * Menuvalget er i højre sidebars kontekstmenu, så der kan
        konfigureres forskellige shortcuts til forskellige grundkort.
      * Dette er også aktionen ved KLIK i højre sidebar når
