@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
+import net.makholm.henning.mapwarper.util.BackgroundThread;
 import net.makholm.henning.mapwarper.util.MathUtil;
 
 public class TileDownloader {
@@ -40,7 +41,7 @@ public class TileDownloader {
     return dt.subscribe(dt.watchers, spec, whenDone);
   }
 
-  private class DownloadThread extends Thread {
+  private class DownloadThread extends BackgroundThread {
     final TileCache cache ;
 
     final Map<TileSpec, Set<Consumer<TileBitmap>>> queue =
@@ -51,7 +52,6 @@ public class TileDownloader {
     DownloadThread(Tileset tileset) {
       super("Tile downloader "+tileset.name);
       this.cache = tileset.context.ramCache;
-      setDaemon(true);
       start();
     }
 
@@ -75,7 +75,7 @@ public class TileDownloader {
     }
 
     @Override
-    public void run() {
+    protected void runInner() {
       for(;;) {
         TileSpec toDownload = null;
         synchronized(this) {

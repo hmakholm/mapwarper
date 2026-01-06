@@ -22,6 +22,7 @@ import net.makholm.henning.mapwarper.gui.swing.GuiMain;
 import net.makholm.henning.mapwarper.gui.swing.PokeReceiver;
 import net.makholm.henning.mapwarper.gui.swing.SwingFilePane;
 import net.makholm.henning.mapwarper.track.FileContent;
+import net.makholm.henning.mapwarper.util.BackgroundThread;
 import net.makholm.henning.mapwarper.util.LongHashed;
 import net.makholm.henning.mapwarper.util.NiceError;
 import net.makholm.henning.mapwarper.util.PokePublisher;
@@ -414,6 +415,17 @@ public class FilePane {
       else
         return;
     }
+  }
+
+  public boolean perhapsDeferredShutdown() {
+    if( BackgroundThread.shouldAbort() &&
+        !cache.anyUnsavedChanges() &&
+        !unnamedFileNeedsSaving() ) {
+      BackgroundThread.printStackTrace();
+      window.quitCommand();
+      return true;
+    }
+    return false;
   }
 
   // -------------------------------------------------------------------------

@@ -43,6 +43,12 @@ public class FSCache {
     }
   }
 
+  public boolean anyUnsavedChanges() {
+    synchronized(modifiedFiles) {
+      return !modifiedFiles.isEmpty();
+    }
+  }
+
   public void cleanCache(Path focusDir) {
     synchronized(this) {
       knownDirs.clear();

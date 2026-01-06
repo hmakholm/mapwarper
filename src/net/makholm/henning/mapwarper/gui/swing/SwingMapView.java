@@ -128,6 +128,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     refreshPositionAndProjection();
     refreshMapAndLensLayers();
     refreshVectorLayer();
+    logic.files.perhapsDeferredShutdown();
   }
 
   public void invalidateToolResponse() {

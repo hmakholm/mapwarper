@@ -7,6 +7,7 @@ import java.util.Set;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.swing.MapPainter.RenderBuffer;
 import net.makholm.henning.mapwarper.gui.swing.MapPainter.RenderInstance;
+import net.makholm.henning.mapwarper.util.BackgroundThread;
 
 class RenderQueue {
 
@@ -73,14 +74,13 @@ class RenderQueue {
     new RenderThread("Map rendering").start();
   }
 
-  private class RenderThread extends Thread {
+  private class RenderThread extends BackgroundThread {
     RenderThread(String name) {
       super(name);
-      setDaemon(true);
     }
 
     @Override
-    public void run() {
+    protected void runInner() {
       RenderInstance work = null;
       for(;;) {
         work = findWork(work);
