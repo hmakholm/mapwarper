@@ -1,6 +1,6 @@
 coords web-mercator 2^30
 usebounds bound.vect
-node 576357172::352382799
+node 576232418::352544753
   straight
 node 576371252::352364510
   connect
