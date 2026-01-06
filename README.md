@@ -71,7 +71,7 @@ JVM appropriately.
 
 With a 4K display you need to add a `-Dsun.java2d.uiScale=2` argument
 to the `java` command line, at least on Linux. (I haven't found a
-robust way to autodeted the need for this yet).
+robust way to autodetect the need for this yet).
 
 To get started, navigate to a `*.vect` file in the `cases/`
 subdirectory, single click on it to load, and then press `W` followed
@@ -86,7 +86,7 @@ If you can read Danish, my original design notes in `gui.txt` may give
 you an idea how the UI is supposed to work. Otherwise you're on your
 own.  (In any case, I don't have a written-down explanation in _any_
 language about the underlying model of how a chain of vector segments
-defined a warped map projection ...)
+defines a warped map projection ...)
 
 ## Example data
 
