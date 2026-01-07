@@ -1,6 +1,9 @@
 comment Et overblik med minimal forvrængning, to rette linjer til Friedrichsfeld
 coords web-mercator 2^30
 usebounds bound/hbf.vect
+node 562074465::366562992
+  straight
+node 562080257::366559286
 node 562088087::366553774 16
   straight
 node 562096107::366547902 16
