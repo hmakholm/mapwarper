@@ -8,6 +8,7 @@ import java.util.Deque;
 import net.makholm.henning.mapwarper.georaster.Tile;
 import net.makholm.henning.mapwarper.tiles.DiskCachedTileset;
 import net.makholm.henning.mapwarper.tiles.Tileset;
+import net.makholm.henning.mapwarper.tiles.TryDownloadLater;
 import net.makholm.henning.mapwarper.util.NiceError;
 
 public class DownloadtileCommand extends Mapwarper.Command {
@@ -28,7 +29,7 @@ public class DownloadtileCommand extends Mapwarper.Command {
       System.err.println(tileset.tilename(tile)+" --> "+outname);
       try {
         tileset.produceTileInFile(tile, outname);
-      } catch (IOException e) {
+      } catch (IOException | TryDownloadLater e) {
         e.printStackTrace();
       }
     } else {

@@ -14,6 +14,7 @@ import net.makholm.henning.mapwarper.rgb.RGB;
 import net.makholm.henning.mapwarper.tiles.TileCache;
 import net.makholm.henning.mapwarper.tiles.TileSpec;
 import net.makholm.henning.mapwarper.tiles.Tileset;
+import net.makholm.henning.mapwarper.tiles.TryDownloadLater;
 import net.makholm.henning.mapwarper.util.AbortRendering;
 
 abstract class CommonRenderer implements RenderWorker {
@@ -140,8 +141,12 @@ abstract class CommonRenderer implements RenderWorker {
         if( nt.checkedCache ) {
           bitmap = nt.midcache;
         } else {
-          bitmap = nt.midcache =
-              nt.tileset.context.ramCache.getTile(nt, cacheLookupLevel);
+          try {
+            bitmap = nt.tileset.context.ramCache.getTile(nt, cacheLookupLevel);
+          } catch( TryDownloadLater e ) {
+            bitmap = null;
+          }
+          nt.midcache = bitmap;
           nt.checkedCache = true;
         }
         if( bitmap == null ) {

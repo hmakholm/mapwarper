@@ -76,6 +76,7 @@ public class TileDownloader {
 
     @Override
     protected void runInner() {
+      int backoffSecs = 0;
       for(;;) {
         TileSpec toDownload = null;
         synchronized(this) {
@@ -83,7 +84,8 @@ public class TileDownloader {
             try {
               wait();
             } catch (InterruptedException e) {
-              e.printStackTrace();
+              scheduleAbort(e, null);
+              return;
             }
           }
           int bestSize = -1;
@@ -111,9 +113,29 @@ public class TileDownloader {
         // thread actually downloading.
         // (There's still a race where this can happen, unfortunately,
         // but hopefully it's rare).
-        TileBitmap got = cache.getTile(toDownload, TileCache.DISK);
-        if( got == null )
-          got = cache.getTile(toDownload, TileCache.DOWNLOAD);
+        TileBitmap got;
+        try {
+          got = cache.getTile(toDownload, TileCache.DISK);
+          if( got == null ) {
+            got = cache.getTile(toDownload, TileCache.DOWNLOAD);
+            if( got != null )
+              backoffSecs = backoffSecs / 2;
+          }
+        } catch( TryDownloadLater e ) {
+          backoffSecs = Math.max(1, backoffSecs * 2);
+          backoffSecs = Math.min(3600, backoffSecs);
+          System.err.println("Waiting "+backoffSecs+
+              " seconds after intermittent failure for "+toDownload);
+          e.getCause().printStackTrace();
+          // SwingUtils.beep();
+          try {
+            Thread.sleep(1000 * backoffSecs);
+            continue;
+          } catch( InterruptedException ee ) {
+            scheduleAbort(ee, null);
+            return;
+          }
+        }
         synchronized(this) {
           var finalGot = got;
           var subscribers = queue.remove(toDownload);

@@ -35,7 +35,7 @@ public abstract class Tileset {
    * tiles, but the caller must guard against calls to produce the
    * <em>same</em> tile happening in parallel.
    */
-  public abstract TileBitmap loadTile(Tile tile, boolean allowDownload);
+  public abstract TileBitmap loadTile(Tile tile, boolean allowDownload) throws TryDownloadLater;
 
   public abstract List<String> getCopyrightBlurb();
 

@@ -46,7 +46,7 @@ public abstract class DiskCachedTileset extends Tileset {
    * <em>same</em> tile happening in parallel.
    */
   public abstract void produceTileInFile(Tile tile, Path dest)
-      throws IOException;
+      throws IOException, TryDownloadLater;
 
   private final Path cacheRoot;
   public final String extension;
@@ -100,7 +100,8 @@ public abstract class DiskCachedTileset extends Tileset {
     return javaImage;
   }
 
-  private BufferedImage produceTileInRam(Tile tile, boolean allowDownload) {
+  private BufferedImage produceTileInRam(Tile tile, boolean allowDownload)
+      throws TryDownloadLater {
     Path file = fileForTile(tile);
     if( Files.isRegularFile(file) ) {
       context.diskCacheHits.incrementAndGet();
@@ -119,11 +120,15 @@ public abstract class DiskCachedTileset extends Tileset {
       produceTileInFile(tile, file);
     } catch( IOException e ) {
       tryDeleteFile(file);
+      e.printStackTrace();
       String msg = e.getMessage();
       if( msg == null || msg.isEmpty() )
         msg = e.getClass().getName();
       throw NiceError.of("Failed to download %s: %s",
           tilename(tile), msg);
+    } catch( TryDownloadLater e ) {
+      tryDeleteFile(file);
+      throw e;
     }
     try {
       return readFromFile(file);
@@ -135,7 +140,7 @@ public abstract class DiskCachedTileset extends Tileset {
   }
 
   @Override
-  public TileBitmap loadTile(Tile tile, boolean allowDownload) {
+  public TileBitmap loadTile(Tile tile, boolean allowDownload) throws TryDownloadLater {
     var rawBitmap = produceTileInRam(tile, allowDownload);
     if( rawBitmap == null ) return null;
     if( rawBitmap.getWidth() != tilesize || rawBitmap.getHeight() != tilesize )

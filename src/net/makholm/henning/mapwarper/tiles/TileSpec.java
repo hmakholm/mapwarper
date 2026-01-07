@@ -32,4 +32,9 @@ public class TileSpec extends LongHashed {
         other.shortcode == shortcode;
   }
 
+  @Override
+  public final String toString() {
+    return tileset.name + ":" + tile();
+  }
+
 }

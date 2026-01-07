@@ -34,7 +34,7 @@ public final class TileCache {
     }
   }
 
-  public TileBitmap getTile(TileSpec spec, byte howFarToLook) {
+  public TileBitmap getTile(TileSpec spec, byte howFarToLook) throws TryDownloadLater {
     Entry e;
     TileBitmap result;
     synchronized( TileCache.this ) {

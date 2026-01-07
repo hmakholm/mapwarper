@@ -22,6 +22,7 @@ import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.tiles.TileCache;
 import net.makholm.henning.mapwarper.tiles.TileSpec;
 import net.makholm.henning.mapwarper.tiles.Tileset;
+import net.makholm.henning.mapwarper.tiles.TryDownloadLater;
 import net.makholm.henning.mapwarper.util.SingleMemo;
 
 public class TilecacheDebugTool extends Tool {
@@ -147,11 +148,15 @@ public class TilecacheDebugTool extends Tool {
         for( int x = x00; x<x00+100; x++ )
           for( int y = y00; y<y00+100; y++ ) {
             Tile t = Tile.at(zoom, x, y);
-            if( cache.getTile(new TileSpec(tiles, t.shortcode), TileCache.RAM)
-                != null ) {
-              result.put(t, ramCached);
-            } else if( tiles.isDiskCached(t) ) {
-              result.put(t, diskCached);
+            try {
+              if( cache.getTile(new TileSpec(tiles, t.shortcode), TileCache.RAM)
+                  != null ) {
+                result.put(t, ramCached);
+              } else if( tiles.isDiskCached(t) ) {
+                result.put(t, diskCached);
+              }
+            } catch( TryDownloadLater e ) {
+              // Ignore it
             }
           }
         return result;

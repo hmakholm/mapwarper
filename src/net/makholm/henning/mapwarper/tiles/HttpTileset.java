@@ -25,7 +25,7 @@ public abstract class HttpTileset extends DiskCachedTileset {
 
   @Override
   public final void produceTileInFile(Tile tile, Path dest)
-      throws IOException {
+      throws IOException, TryDownloadLater {
     System.err.println(" (download "+name+":"+tile+")");
     String url = tileUrl(tile);
     var uri = URI.create(url);
@@ -61,6 +61,12 @@ public abstract class HttpTileset extends DiskCachedTileset {
       throw new RuntimeException("This shouldn't happen", e);
     } catch( IOException e ) {
       Files.deleteIfExists(dest);
+      String msg = e.getMessage();
+      if( msg != null ) {
+        if( msg.indexOf("Connection reset") >= 0 ) {
+          throw new TryDownloadLater(e);
+        }
+      }
       throw e;
     }
   }
