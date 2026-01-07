@@ -3,12 +3,6 @@ coords web-mercator 2^30
 usebounds bound/buchloe.vect
 usebounds bound/hbf.vect
 usebounds bound/heimeranplatz.vect
-bounds
-node 571035995::372571833 72
-node 571024007::372568478 16
-node 571004557::372565567 16
-node 570989639::372563248 16
-  break
 node 570989846::372563187 16
   weak
 node 570998133::372563659 1
@@ -104,3 +98,8 @@ node 571291388::372675059
 node 571295135::372677297
   straight
 node 571356971::372721815
+  break
+bounds
+node 571037195::372572204
+node 571022750::372568128
+node 570989729::372563223

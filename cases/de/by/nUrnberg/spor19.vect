@@ -2,8 +2,7 @@ coords web-mercator 2^30
 usebounds bound/treuchtlingen.vect
 usebounds bound/hbf.vect
 usebounds bound/links-pegnitz.vect
-node 569866524::366733393
-node 569867249::366733090
+node 569866492::366733445
   straight
 node 569873923::366729964
 node 569875029::366729549
