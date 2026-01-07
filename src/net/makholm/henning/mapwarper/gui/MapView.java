@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 
@@ -331,7 +332,8 @@ public class MapView {
       else
         vf = files.activeFile();
       try {
-        var newWarp = new WarpedProjection(vf, files.cache);
+        var newWarp = new WarpedProjection(vf, files.cache,
+            editingChain, wp.track);
         var proj = projection.scaleAndSqueezeSimilarly(newWarp);
         setProjection(proj);
       } catch( CannotWarp e ) {
@@ -402,9 +404,44 @@ public class MapView {
     setProjection(OrthoProjection.ORTHO.withScaleAcross(1 << logPixsize));
   }
 
+  private WarpedProjection makeWarpedProjection() throws CannotWarp {
+    var file = files.activeFile();
+    if( editingChain != null && editingChain.isTrack() )
+      return new WarpedProjection(file, files.cache, editingChain);
+
+    SegmentChain currentWarped = null;
+    Path currentSource = null;
+    if( projection.base() instanceof WarpedProjection wp ) {
+      currentWarped = wp.track;
+      currentSource = wp.sourcename0;
+    }
+
+    if( file.content().numTrackChains > 0 )
+      return new WarpedProjection(file, files.cache, currentWarped);
+
+    // If we're showing just one other track file, warp along that
+    Iterator<Path> it = files.showtracks().iterator();
+    if( it.hasNext() ) {
+      Path shown = it.next();
+      if( !it.hasNext() ) {
+        return new WarpedProjection(files.cache.getFile(shown),
+            files.cache, currentWarped);
+      }
+    }
+
+    // As the last fallback, attempt to refresh the current warp
+    if( currentSource != null ) {
+      return new WarpedProjection(files.cache.getFile(currentSource),
+          files.cache, currentWarped);
+    }
+
+    // Throw the right error by making a last doomed attempt
+    return new WarpedProjection(file, files.cache);
+  }
+
   boolean canWarp() {
     try {
-      new WarpedProjection(files.activeFile(), files.cache);
+      makeWarpedProjection();
       return true;
     } catch( WarpedProjection.CannotWarp e ) {
       return false;
@@ -417,7 +454,7 @@ public class MapView {
       if( squeeze <= 1 ) squeeze = 5;
       double scale = Math.min(projection.scaleAcross(),
           Coords.zoom2pixsize(targetTiles.guiTargetZoom()));
-      var baseWarp = new WarpedProjection(files.activeFile(), files.cache);
+      var baseWarp = makeWarpedProjection();
       setMainTiles(targetTiles);
       setProjection(baseWarp.withScaleAndSqueeze(scale, squeeze));
     } catch( WarpedProjection.CannotWarp e ) {

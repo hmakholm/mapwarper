@@ -27,7 +27,7 @@ import net.makholm.henning.mapwarper.track.TrackNode;
 public final class WarpedProjection extends BaseProjection {
 
   public final Path sourcename0;
-  final SegmentChain track;
+  public final SegmentChain track;
   final Set<FileContent> usedFiles = new LinkedHashSet<>();
 
   final SegmentChain.Smoothed curves;
@@ -47,24 +47,16 @@ public final class WarpedProjection extends BaseProjection {
   /** These are all straight in warped coords <em>by construction</em>. */
   final LinkedHashSet<Bezier> easyCurves;
 
-  public WarpedProjection(VectFile source, FSCache cache)
-      throws CannotWarp {
+  public WarpedProjection(VectFile source, FSCache cache,
+      SegmentChain... preferredChains) throws CannotWarp {
     this.sourcename0 = source.path;
-    var mainContent = source.content();
-    this.track = mainContent.uniqueChain(ChainClass.TRACK);
-    if( track == null ) {
-      if( mainContent.numTrackChains == 0 )
-        throw new CannotWarp(source.shortname()+
-            " contains no track to warp along.");
-      else
-        throw new CannotWarp(source.shortname() +
-            " contains "+mainContent.numTrackChains+" separate tracks.");
-    }
+    this.track = findTrack(source, preferredChains);
     if( track.numSegments == 0 )
       throw new CannotWarp(source.shortname() +
           " has just a single point; nothing to warp along.");
     curves = track.smoothed.get();
 
+    var mainContent = source.content();
     usedFiles.add(mainContent);
     for( var p : mainContent.usebounds() )
       usedFiles.add(cache.getFile(p).content());
@@ -99,8 +91,28 @@ public final class WarpedProjection extends BaseProjection {
     pseudolast = Bezier.line(n9, n9.plus(curves.last().dir4()));
   }
 
+  private static SegmentChain findTrack(VectFile source,
+      SegmentChain[] fallbacks) throws CannotWarp {
+    var mainContent = source.content();
+    for( var fallback : fallbacks ) {
+      if( fallback != null && fallback.isTrack() &&
+          mainContent.contains(fallback) )
+        return fallback;
+    }
+    switch( mainContent.numTrackChains ) {
+    case 1:
+      return mainContent.uniqueChain(ChainClass.TRACK);
+    case 0:
+      throw new CannotWarp(source.shortname()+
+          " contains no track to warp along.");
+    default:
+      throw new CannotWarp(source.shortname() +
+          " contains "+mainContent.numTrackChains+" separate tracks.");
+    }
+  }
+
   @SuppressWarnings("serial")
-  public final class CannotWarp extends Exception {
+  public static final class CannotWarp extends Exception {
     private CannotWarp(String why) {
       super(why);
     }
