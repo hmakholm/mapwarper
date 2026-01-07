@@ -186,8 +186,7 @@ class BoundEditTool extends BoundSnappingTool {
     var pwn4 = new PointWithNormal(n4, n34.reverse().normalize());
     var dist4 = pwn4.intersectInfiniteLineWithNormal(n12);
 
-    if( dist1 < 0 || dist4 < 0 ||
-        dist1 + dist4 > n23.length() * 100 )
+    if( dist1 < 0 || dist4 < 0 )
       return null;
 
     TrackNode nmid = global2node(pwn1.pointOnNormal(dist1));
