@@ -472,7 +472,12 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
   @Override
   public void mouseWheelMoved(MouseWheelEvent e) {
-    ongoingMapDrag = null;
+    if( ongoingMapDrag != null ||
+        0 != (e.getModifiersEx() & MouseEvent.BUTTON2_DOWN_MASK) ) {
+      // Ignore accidental wheel movements while the middle button
+      // is pressed.
+      return;
+    }
     if( e.getWheelRotation() < 0 )
       logic.window.commands.zoomIn.invoke();
     else if( e.getWheelRotation() > 0 )
