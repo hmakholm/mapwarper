@@ -236,7 +236,6 @@ public class Commands {
     keymap.accept("C-O", open);
     keymap.accept("C-R", revert);
     keymap.accept("C-S", saveAll);
-    keymap.accept("C-Q", quit);
     keymap.accept("C-V", paste);
     keymap.accept("C-X", cut);
     keymap.accept("C-Y", mapView.undoList.redo.getCommand(this, 1));
