@@ -213,7 +213,7 @@ class EditTool extends Tool {
     }
   }
 
-  protected ProposedAction actionFromOtherPoint(ChainRef<?> which,
+  final protected ProposedAction actionFromOtherPoint(ChainRef<?> which,
       Point p1, int mod1, Point p2, int mod2) {
     if( which.index() == 0 ) {
       ProposedAction join = joinChainsAction(editingChain(), which.chain());
@@ -263,7 +263,7 @@ class EditTool extends Tool {
     var theChain = which.chain();
     return new ProposedAction("Select active chain",
         new TrackHighlight(theChain, 0xEEEE99), local2node(p2),
-        null, theChain);
+        activeFileContent().chainsCopy(), theChain);
   }
 
   protected ProposedAction actionWithNoEditingChain(
