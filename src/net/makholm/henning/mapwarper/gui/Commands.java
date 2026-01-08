@@ -108,6 +108,9 @@ public class Commands {
   private final Cmd lensMinus = check("lensMinus", "Decrease lens resolution",
       self -> self.lens.lensMinusCommand());
 
+  private final Cmd downloadTile = simple("getTile", "Force-fetch map tile",
+      self -> self.mapView.singleTileDownloadCommand());
+
   private final Cmd repaint = simple("repaint", "Repaint from scratch",
       self -> self.swing.repaintFromScratch());
 
@@ -286,6 +289,7 @@ public class Commands {
     keymap.accept("A", magicTool);
     keymap.accept("S", straightTool);
     keymap.accept("D", slewTool);
+    keymap.accept("G", downloadTile);
     keymap.accept("L", lens);
 
     keymap.accept("Z", zoomTool);
@@ -369,6 +373,9 @@ public class Commands {
     tools.add(zoomTool);
     tools.add(move);
     tools.add(explore);
+
+    var byPointer = menu.addSubmenu("Actions at pointer");
+    byPointer.add(downloadTile);
   }
 
   public void defineTilesetMenu(Tileset tiles, IMenu menu) {

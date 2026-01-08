@@ -6,12 +6,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.georaster.Coords;
+import net.makholm.henning.mapwarper.georaster.Tile;
+import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.FilePane;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
@@ -33,6 +36,7 @@ import net.makholm.henning.mapwarper.tiles.NomapTiles;
 import net.makholm.henning.mapwarper.tiles.OpenStreetMap;
 import net.makholm.henning.mapwarper.tiles.OpenTopoMap;
 import net.makholm.henning.mapwarper.tiles.TileContext;
+import net.makholm.henning.mapwarper.tiles.TileSpec;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.track.FileContent;
@@ -476,6 +480,21 @@ public class MapView {
     cancelLens();
     lensTiles = targetTiles;
     window.commands.lens.invoke();
+  }
+
+  private Runnable cancelLastGetTile = () -> {};
+  private static final Consumer<TileBitmap> dummyDownloadConsumer =
+      new Consumer<TileBitmap>() {
+    @Override public void accept(TileBitmap ignore) {}
+  };
+
+  void singleTileDownloadCommand() {
+    cancelLens();
+    cancelLastGetTile.run();
+    long coords = Coords.point2pixcoord(mouseGlobal);
+    long shortcode = Tile.codedContaining(coords, mainTiles.guiTargetZoom());
+    cancelLastGetTile = mainTiles.context.downloader.request(
+        new TileSpec(mainTiles, shortcode), dummyDownloadConsumer);
   }
 
   Runnable squeezeCommand() {
