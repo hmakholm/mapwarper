@@ -136,9 +136,10 @@ public class FallbackChain {
     return accumulatedBits;
   }
 
-  public void neverDownload() {
+  public static long neverDownload(long chain) {
     for( long bit = DOWNLOAD_BIT; bit != 0; bit <<= BITS_PER_ATTEMPT )
-      accumulatedBits &= ~bit;
+      chain &= ~bit;
+    return chain;
   }
 
   public long getChain() {

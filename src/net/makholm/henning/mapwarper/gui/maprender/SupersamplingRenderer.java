@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.gui.maprender;
 
+import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.gui.Toggles;
@@ -55,8 +56,9 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
 
     float[] colMultipliers = supersample.multipliers[col%8];
     int numSamples = supersample.numSamples;
-    long supersamplingChain = supersample.supersamplingChain;
+    long downloadlessChain = supersample.downloadlessChain;
 
+    PointWithNormal midBase = null;
     PointWithNormal leftBase = locateColumn(xmid - xscale/2, ybase);
     PointWithNormal rightBase = locateColumn(xmid + xscale/2, ybase);
     double bx = leftBase.x, by = leftBase.y;
@@ -79,14 +81,19 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
         double product = lefting*downing;
         double sx = nwX + lefting*acrossX + downing*dx + product*dmx;
         double sy = nwY + lefting*acrossY + downing*dy + product*dmy;
-        int rgb = getPixel(sx, sy, supersamplingChain);
+        int rgb = getPixel(sx, sy, downloadlessChain);
         if( RGB.anyTransparency(rgb) ) {
           // Either missing or (partially) transparent.
           // We can't supersample transparency, so in both cases
           // fall back to no supersampling.
-          double cx = nwX + acrossX/2 + dx/2 + dmx/4;
-          double cy = nwY + acrossY/2 + dy/2 + dmy/4;
-          rgb = getPixel(cx, cy, fallbackChain);
+          // This is also the place where we request _download_ of the
+          // supersampling layers -- since that happens at the official
+          // mid-pixel coordinates so we don't risk downloading something
+          // outside the margins.
+          if( midBase == null )
+            midBase = locateColumn(xmid, ybase+yscale/2);
+          Point p = midBase.pointOnNormal(row * yscale);
+          rgb = getPixel(p, supersample.supersamplingChain | fallbackChain);
           if( rgb == RGB.OUTSIDE_BITMAP )
             hadAllPixels = false;
           else
@@ -108,13 +115,14 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
   }
 
   public static class SupersamplingRecipe {
-    final long supersamplingChain;
+    final long supersamplingChain, downloadlessChain;
     final int numSamples;
     final float[][] multipliers;
     final int oversampleScaler;
 
     SupersamplingRecipe(int numSamples, long supersamlingChain) {
       this.supersamplingChain = supersamlingChain;
+      this.downloadlessChain = FallbackChain.neverDownload(supersamplingChain);
       this.numSamples = numSamples;
 
       // Create sample points as a 2-Hammersley set scaled up to 8×8 pixel
