@@ -13,7 +13,7 @@ public class OpenTopoMap extends PngTileServer {
 
   private OpenTopoMap(TileContext ctx) {
     super(ctx, "topo", "OpenTopoMap",
-        "https://c.tile.opentopomap.org/*.png", WEBURL);
+        "https://a.tile.top-o-map.de/*.png", WEBURL);
   }
 
   @Override
