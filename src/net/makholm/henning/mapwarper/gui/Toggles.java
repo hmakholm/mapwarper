@@ -12,6 +12,7 @@ public enum Toggles {
   MAIN_TRACK(false, true, "showTrack", "Show main track"),
   EXT_BOUNDS(false, false, "showBounds", "Show indirect bounds"),
   SHOW_LABELS(false, true, "showLabels", "Show track labels"),
+  DOWNLOAD(true, false, "downloadMap", "Eagerly download tiles"),
   OVERLAY_MAP(true, false, ":overlayMapBit", null),
   LENS_MAP(true, false, ":lensMapFlagBit", null),
   BLANK_OUTSIDE_MARGINS(true, false, ":clearMarginsFlagBit", null);

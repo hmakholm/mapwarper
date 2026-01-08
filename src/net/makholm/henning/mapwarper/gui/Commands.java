@@ -154,25 +154,31 @@ public class Commands {
   }
 
   private class TilesetCommands {
-    final Command just, ortho, warp, lens;
+    final Command just, ortho, weakOrtho, warp, lens;
     TilesetCommands(String name) {
       Tileset tiles = mapView.tiles.tilesets.get(name);
       if( tiles != null ) {
         if( tiles.isOverlayMap() )
-          just = ortho = warp = null;
+          just = ortho = weakOrtho = warp = null;
         else {
           just = new TilesetCommand("just", "Use in current projection",
               mv -> mv.mainTiles != tiles,
               MapView::setMainTiles, tiles);
           ortho = new TilesetCommand("ortho", "Use in standard projection",
-              mv -> true, MapView::orthoCommand, tiles);
+              mv -> true, (mv,t) -> mv.orthoCommand(t, true), tiles);
+          if( tiles != mapView.fallbackTiles )
+            weakOrtho = new TilesetCommand("weakOrtho",
+                "Already downloaded tiles in standard projection",
+                mv -> true, (mv,t) -> mv.orthoCommand(t, false), tiles);
+          else
+            weakOrtho = null;
           warp = new TilesetCommand("warp", "Use in fresh warped projection",
               MapView::canWarp, MapView::warpCommand, tiles);
         }
         lens = new TilesetCommand("lens", "Use with lens tool",
             mv -> true, MapView::lensCommand, tiles);
       } else {
-        just = ortho = warp = lens =
+        just = ortho = weakOrtho = warp = lens =
             simple("nosuchtiles."+name, "NOSUCHTILES",
                 self -> self.window.showErrorBox(
                     "This key would use the unknown tileset '%s'.", name));
@@ -181,6 +187,7 @@ public class Commands {
     final void defineMenu(IMenu menu) {
       if( just != null ) menu.add(just);
       if( just != null ) menu.add(ortho);
+      if( weakOrtho != null ) menu.add(weakOrtho);
       if( just != null ) menu.add(warp);
       menu.add(lens);
     }
@@ -246,6 +253,7 @@ public class Commands {
     keymap.accept("F2", Toggles.TILEGRID.command(this));
     keymap.accept("F3", new NearestNodeDebugTool(this));
     keymap.accept("F4", new TilecacheDebugTool(this));
+    keymap.accept("S-F5", Toggles.DOWNLOAD.command(this));
     keymap.accept("F5", Toggles.SUPERSAMPLE.command(this));
     keymap.accept("F6", Toggles.DARKEN_MAP.command(this));
     keymap.accept("F7", Toggles.SHOW_LABELS.command(this));
@@ -264,6 +272,7 @@ public class Commands {
     keymap.accept("Q", quickwarp);
     keymap.accept("W", tilesetCommands("google").warp);
     keymap.accept("S-W", tilesetCommands("bing").lens);
+    keymap.accept("E", tilesetCommands("google").weakOrtho);
     keymap.accept("S-E", tilesetCommands("google").lens);
     keymap.accept("R", tilesetCommands("osm").ortho);
     keymap.accept("S-R", tilesetCommands("osm").lens);
@@ -341,6 +350,7 @@ public class Commands {
     view.add(Toggles.SHOW_LABELS.command(this));
     view.add(Toggles.DARKEN_MAP.command(this));
     view.add(Toggles.SUPERSAMPLE.command(this));
+    view.add(Toggles.DOWNLOAD.command(this));
     view.add(Toggles.TILEGRID.command(this));
     view.add(repaint);
     view.add(refresh);

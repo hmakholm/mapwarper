@@ -371,6 +371,7 @@ public class MapView {
   // -------------------------------------------------------------------------
 
   int toggleState =
+      Toggles.DOWNLOAD.bit() |
       Toggles.SUPERSAMPLE.bit() |
       Toggles.SHOW_LABELS.bit() |
       Toggles.EXT_BOUNDS.bit() |
@@ -388,11 +389,12 @@ public class MapView {
     } else if( targetTiles.isOverlayMap() ) {
       SwingUtils.beep();
     } else
-      orthoCommand(targetTiles);
+      orthoCommand(targetTiles, true);
   }
 
-  void orthoCommand(Tileset targetTiles) {
+  void orthoCommand(Tileset targetTiles, boolean downloading) {
     int logPixsize = Coords.zoom2logPixsize(targetTiles.guiTargetZoom());
+    int naturalLogPixsize = logPixsize;
     double log2along = MathUtil.log2(projection.scaleAlong());
     double log2across = MathUtil.log2(projection.scaleAlong());
     // the "along" direction is the one that can have a larger pixsize
@@ -401,6 +403,14 @@ public class MapView {
     else if( logPixsize < log2across )
       logPixsize = (int) Math.floor(log2across);
     setMainTiles(targetTiles);
+    if( downloading ) {
+      toggleState |= Toggles.DOWNLOAD.bit();
+    } else {
+      toggleState &= ~Toggles.DOWNLOAD.bit();
+      toggleState |= Toggles.DARKEN_MAP.bit();
+      logPixsize = Math.min(logPixsize,
+          naturalLogPixsize + OrthoProjection.WEAK_SHRINK);
+    }
     setProjection(OrthoProjection.ORTHO.withScaleAcross(1 << logPixsize));
   }
 

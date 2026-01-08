@@ -16,6 +16,8 @@ import net.makholm.henning.mapwarper.gui.maprender.SimpleRenderer;
 
 public final class OrthoProjection extends BaseProjection {
 
+  public static final int WEAK_SHRINK = 3;
+
   public static final OrthoProjection ORTHO = new OrthoProjection();
 
   private OrthoProjection() { }
@@ -46,10 +48,12 @@ public final class OrthoProjection extends BaseProjection {
     FallbackChain fallback = new FallbackChain(spec, xpixsize, ypixsize);
     if( Toggles.LENS_MAP.setIn(spec.flags()) ) {
       chain = fallback.lensChain();
-    } else {
-      fallback.attemptMain(true);
+    } else if( Toggles.DOWNLOAD.setIn(spec.flags())) {
+      fallback.attemptMain();
       fallback.attemptFallbacks(2);
       chain = fallback.getChain();
+    } else {
+      chain = fallback.weakChain(WEAK_SHRINK);
     }
     return target
         -> new SimpleRenderer(spec, xpixsize, ypixsize, target, chain) {

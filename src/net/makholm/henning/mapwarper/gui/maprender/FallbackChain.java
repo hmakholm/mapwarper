@@ -43,7 +43,8 @@ public class FallbackChain {
       fallbackTooCloseZoom = 2;
     } else {
       fallbackEqualsMain = fallbackTiles == mainTiles;
-      fallbackNaturalZoom = naturalZoom(pixsizey, fallbackTiles);
+      fallbackNaturalZoom = Math.min(fallbackTiles.guiTargetZoom(),
+          naturalZoom(pixsizey, fallbackTiles));
 
       // fallbackMinDownload is when we have zoomed so far out that the
       // tile size is larger than the window.
@@ -72,8 +73,8 @@ public class FallbackChain {
     numAttempts++;
   }
 
-  public void attemptMain(boolean download) {
-    addAttempt(mainZoomToUse, false, download);
+  public void attemptMain() {
+    addAttempt(mainZoomToUse, false, true);
   }
 
   public long supersampleMain(boolean downloadWhenSupersampling) {
@@ -131,8 +132,18 @@ public class FallbackChain {
     }
   }
 
+  public long weakChain(int maxRelativeShrink) {
+    if( mainZoomToUse >= targetZoom - maxRelativeShrink )
+      addAttempt(targetZoom, false, false);
+    else
+      addAttempt(mainZoomToUse, false, false);
+    addAttempt(fallbackNaturalZoom, true, true);
+    attemptFallbacks(0);
+    return accumulatedBits;
+  }
+
   public long lensChain() {
-    attemptMain(true);
+    attemptMain();
     return accumulatedBits;
   }
 
