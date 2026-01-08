@@ -88,7 +88,7 @@ public class VectParser {
 
     } else if( re.match("usebounds "+VectFile.cVectfile) ) {
       if( readingFromPath != null ) {
-        Path path = readingFromPath.resolveSibling(re.group(1));
+        Path path = readingFromPath.resolveSibling(re.group(1)).normalize();
         usebounds.add(path);
       }
 
