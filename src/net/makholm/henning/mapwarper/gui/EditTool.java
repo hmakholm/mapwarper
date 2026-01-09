@@ -54,6 +54,11 @@ class EditTool extends Tool {
     ensureAppropriateEditingChain();
   }
 
+  @Override
+  protected boolean canEscapeBackTo(Tool other) {
+    return other instanceof EditTool;
+  }
+
   record ProposedAction(String undoDesc,
       TrackHighlight highlight, Point newGlobal,
       Set<SegmentChain> fileContent, SegmentChain editingChain) {}

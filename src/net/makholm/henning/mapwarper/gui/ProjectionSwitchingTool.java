@@ -21,11 +21,6 @@ public abstract class ProjectionSwitchingTool extends Tool {
   }
 
   @Override
-  public void escapeAction() {
-    mapView().selectEditingTool();
-  }
-
-  @Override
   public ToolResponse mouseResponse(Point pos, int modifiers) {
     if( shiftHeld(modifiers) ) {
       return why -> owner.swing.commitToTempProjection();

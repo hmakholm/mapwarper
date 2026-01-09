@@ -22,11 +22,6 @@ final class ExploreTool extends Tool {
   }
 
   @Override
-  public void escapeAction() {
-    mapView().selectTool(owner.move);
-  }
-
-  @Override
   public ToolResponse mouseResponse(Point pos, int modifiers) {
     if( shiftHeld(modifiers) ) return NO_RESPONSE;
     return myResponse;

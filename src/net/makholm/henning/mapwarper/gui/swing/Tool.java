@@ -26,7 +26,8 @@ public abstract class Tool extends Command implements MouseAction {
   public Cursor toolCursor;
 
   public void escapeAction() {
-    SwingUtils.beep();
+    if( canEscapeBackTo(previousTool) )
+      switchToPreviousTool();
   }
 
   protected Tool(Commands owner, String codename, String niceName) {
@@ -92,9 +93,25 @@ public abstract class Tool extends Command implements MouseAction {
         name);
   }
 
+  private Tool previousTool;
+
   @Override
   public void invoke() {
-    owner.mapView.selectTool(this);
+    if( mapView().currentTool != this ) {
+      previousTool = mapView().currentTool;
+      mapView().selectTool(this);
+    }
+  }
+
+  protected final void switchToPreviousTool() {
+    if( previousTool != null ) {
+      mapView().selectTool(previousTool);
+      previousTool = null;
+    }
+  }
+
+  protected boolean canEscapeBackTo(Tool other) {
+    return true;
   }
 
   public void activeFileChanged() { }
@@ -102,7 +119,7 @@ public abstract class Tool extends Command implements MouseAction {
   @Override
   public JMenuItem makeMenuItem() {
     var result = new JRadioButtonMenuItem(getAction());
-    result.setSelected(this == owner.mapView.currentTool);
+    result.setSelected(this == mapView().currentTool);
     return result;
   }
 
