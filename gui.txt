@@ -218,6 +218,12 @@
    først og fremmest skal sikre at tekst på grundkortet er læselig),
    dog højst det enkelte kortlags max-zoom.
 
+   Ortho-projektion kan vises i en særlig tilstand hvor det valgte
+   kort ikke bliver _downloadet_ automatisk, men kun tiles der
+   allerede er cachet (i tilesettets _standardzoom_) bliver vist
+   og resten udfyldes med OpenStreetMap. Den er nyttig til at
+   konsturere margenlinjer der skal minimere tile-forbruget.
+
    Kommando: skift til ortho-projektion.
      * Skalaen bliver grundkortets standardzoom hvis dette ligger
        mellem den nuværende x-skala og y-skala. Ellers rundes den
@@ -227,6 +233,10 @@
        ændring af projektionen overhovedet.
      * Menuvalget er i højre sidebars kontekstmenu, så der kan
        konfigureres forskellige shortcuts til forskellige grundkort.
+     * Der er to versioner af kommandoen for hvert grundkorte alt
+       efter om den særlige "download ikke" funktionalitet skal
+       bruges". Det er et designvalg per grundkort hvilket af dem
+       der har en tastaturbinding.
      * Dette er også aktionen ved KLIK i højre sidebar når
        "lup"-værtøjet ikke er aktivt.
 
@@ -250,6 +260,11 @@
        er alligevel mest til grov navigation).
     3. Ellers bestil download af det korrekte zoomniveau og vis i
        mellemtiden data fra udfyldningstiles uden oversampling.
+
+   Også denne projektion can vælges i en download-ikke variant, men
+   der er ikke forskellige kommandoer til varianterne -- den nye
+   visning overtager bare flaget fra sidste gang der blev valgt
+   en ortho-projektion!
 
    Kommando: skift til warp-projektion
      * Altid baseret på nuværende spor. Men efter man er skiftet, kan

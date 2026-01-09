@@ -180,6 +180,8 @@ public final class WarpedProjection extends BaseProjection {
           supersamplingRecipe, 0);
     } else {
       supersamplingChain = fallback.supersampleMain(true);
+      if( !Toggles.DOWNLOAD.setIn(spec.flags()) )
+        supersamplingChain = FallbackChain.neverDownload(supersamplingChain);
       fallback.attemptFallbacks(0);
       fallbackChain = fallback.getChain();
       var supersamplingRecipe = SupersamplingRenderer.prepareSupersampler(spec,
@@ -189,6 +191,11 @@ public final class WarpedProjection extends BaseProjection {
           xscale, yscale, target,
           supersamplingRecipe, fallbackChain);
     }
+  }
+
+  @Override
+  public boolean usesDownloadFlag() {
+    return true;
   }
 
   public AxisRect shrinkToMargins(AxisRect r, double scaleAlong) {

@@ -65,6 +65,11 @@ public final class OrthoProjection extends BaseProjection {
   }
 
   @Override
+  public boolean usesDownloadFlag() {
+    return true;
+  }
+
+  @Override
   public Projection makeQuickwarp(Point local, boolean circle) {
     return this;
   }
