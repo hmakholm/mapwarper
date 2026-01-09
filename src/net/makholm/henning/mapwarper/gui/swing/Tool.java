@@ -26,8 +26,7 @@ public abstract class Tool extends Command implements MouseAction {
   public Cursor toolCursor;
 
   public void escapeAction() {
-    if( canEscapeBackTo(previousTool) )
-      switchToPreviousTool();
+    switchToPreviousTool();
   }
 
   protected Tool(Commands owner, String codename, String niceName) {
@@ -115,8 +114,7 @@ public abstract class Tool extends Command implements MouseAction {
   public boolean specialKeypressAction() {
     if( mapView().currentTool == this &&
         !arrivedBySwitchingBack &&
-        mayCancelWhenReselecting &&
-        previousTool != null ) {
+        mayCancelWhenReselecting ) {
       switchToPreviousTool();
       return true;
     } else {
@@ -129,7 +127,7 @@ public abstract class Tool extends Command implements MouseAction {
   }
 
   protected final void switchToPreviousTool() {
-    if( previousTool != null ) {
+    if( previousTool != null && canEscapeBackTo(previousTool) ) {
       previousTool.arrivedBySwitchingBack = true;
       mapView().selectTool(previousTool);
       previousTool = null;
