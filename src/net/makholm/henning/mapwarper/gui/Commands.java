@@ -299,7 +299,7 @@ public class Commands {
     keymap.accept("A", magicTool);
     keymap.accept("S", straightTool);
     keymap.accept("D", slewTool);
-    keymap.accept("C-G", Toggles.TILEGRID.command(this));
+    keymap.accept("M-G", Toggles.TILEGRID.command(this));
     keymap.accept("S-G", Toggles.DOWNLOAD.command(this));
     keymap.accept("G", downloadTile);
     keymap.accept("L", lens);

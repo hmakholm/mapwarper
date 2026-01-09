@@ -155,6 +155,7 @@ public class GuiMain extends JFrame {
     } else if( re.match("M-([A-Z]|F[0-9]+)") ) {
       key = "alt "+re.group(1);
       keystroke = KeyStroke.getKeyStroke(key);
+      command.hasAltBinding = true;
     } else if( re.match("[A-Z][a-z]+|F[0-9]+") ) {
       keystroke = KeyStroke.getKeyStroke(re.full.toUpperCase(Locale.ROOT));
     } else {

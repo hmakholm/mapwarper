@@ -22,6 +22,7 @@ public abstract class Command {
   public final String codename;
   public final String niceName;
 
+  boolean hasAltBinding;
   Action action;
 
   public Command(Commands owner, String codename, String niceName) {
@@ -61,6 +62,12 @@ public abstract class Command {
       @Override
       public void actionPerformed(ActionEvent e) {
         boolean invokedFromMenu = niceName.equals(e.getActionCommand());
+        if( !invokedFromMenu &&
+            (e.getModifiers() & ActionEvent.ALT_MASK) != 0 &&
+            !hasAltBinding ) {
+          System.err.println("[ignoing spurious "+codename+"]");
+          return;
+        }
         owner.swing.whenInvokingCommand(invokedFromMenu);
         debugTraceInvoke();
         invoke();
