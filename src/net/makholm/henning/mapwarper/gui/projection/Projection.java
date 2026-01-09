@@ -69,6 +69,21 @@ public abstract class Projection extends LongHashed {
 
   public abstract Projection scaleAndSqueezeSimilarly(BaseProjection base);
 
+  /**
+   * {@link TurnedProjection} overrides this to make the squeeze go in the
+   * expected direction.
+   */
+  public Projection makeSqueezeable() {
+    if( base().isOrtho() )
+      return scaleAndSqueezeSimilarly(QuickWarp.RIGHT);
+    else
+      return this;
+  }
+
+  public Projection perhapsOrthoEquivalent() {
+    return null;
+  }
+
   // -------------------------------------------------------------------------
 
   /**

@@ -500,19 +500,20 @@ public class MapView {
     };
   }
 
-  Runnable squeezeCommand() {
-    if( projection.base().isOrtho() )
-      return null;
-    else return () -> {
-      setProjection(projection.withSqueeze(projection.getSqueeze()+1));
-    };
+  void squeezeCommand() {
+    double newSqueeze = projection.getSqueeze()+1;
+    setProjection(projection.makeSqueezeable().withSqueeze(newSqueeze));
   }
 
   Runnable stretchCommand() {
-    if( projection.getSqueeze() < 2 )
+    double oldSqueeze = projection.getSqueeze();
+    double newSqueeze = Math.max(1, oldSqueeze-1);
+    if( newSqueeze == oldSqueeze )
       return null;
     else return () -> {
-      setProjection(projection.withSqueeze(projection.getSqueeze()-1));
+      Projection p = projection.withSqueeze(newSqueeze);
+      Projection q = p.perhapsOrthoEquivalent();
+      setProjection(q != null ? q : p);
     };
   };
 

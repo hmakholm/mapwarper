@@ -99,7 +99,7 @@ public class Commands {
   private final Cmd rotate = simple("rotate", "Rotate 90°",
       self -> self.mapView.rotateCommand());
 
-  private final Cmd squeeze = check("squeeze", "Increase squeeze factor",
+  private final Cmd squeeze = simple("squeeze", "Increase squeeze factor",
       self -> self.mapView.squeezeCommand());
 
   private final Cmd stretch = check("stretch", "Decrease squeeze factor",

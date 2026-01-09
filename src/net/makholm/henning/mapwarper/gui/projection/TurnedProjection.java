@@ -76,6 +76,22 @@ public final class TurnedProjection extends Projection {
     return new TurnedProjection(base.scaleAndSqueezeSimilarly(realBase), quadrants);
   }
 
+  @Override
+  public Projection makeSqueezeable() {
+    if( base().isOrtho() && quadrants % 2 == 1 ) {
+      Projection p = scaleAndSqueezeSimilarly(QuickWarp.DOWN);
+      return turnCounterclockwise(p, 3);
+    } else {
+      return super.makeSqueezeable();
+    }
+  }
+
+  @Override
+  public Projection perhapsOrthoEquivalent() {
+    Projection newBase = base.perhapsOrthoEquivalent();
+    return newBase == null ? null : turnCounterclockwise(newBase, quadrants);
+  }
+
   private Point local2next(Point local) {
     switch( quadrants ) {
     case 1: return Point.at(-local.y, local.x);

@@ -15,6 +15,11 @@ import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer;
 
 public class QuickWarp extends BaseProjection {
 
+  public static final QuickWarp RIGHT =
+      new QuickWarp(Point.ORIGIN, UnitVector.RIGHT);
+  public static final QuickWarp DOWN =
+      new QuickWarp(Point.ORIGIN, UnitVector.DOWN);
+
   public final Point origin;
   public final UnitVector direction;
   private final UnitVector normal;
@@ -36,6 +41,16 @@ public class QuickWarp extends BaseProjection {
   @Override
   public boolean isQuickwarp() {
     return true;
+  }
+
+  @Override
+  public Projection perhapsOrthoEquivalent() {
+    if( direction.equals(UnitVector.RIGHT) )
+      return OrthoProjection.ORTHO;
+    else if( direction.equals(UnitVector.DOWN) )
+      return TurnedProjection.turnCounterclockwise(OrthoProjection.ORTHO);
+    else
+      return null;
   }
 
   @Override
