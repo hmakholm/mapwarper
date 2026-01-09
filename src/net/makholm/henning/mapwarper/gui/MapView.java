@@ -374,7 +374,7 @@ public class MapView {
 
   // -------------------------------------------------------------------------
 
-  int toggleState =
+  public int toggleState =
       Toggles.DOWNLOAD.bit() |
       Toggles.SUPERSAMPLE.bit() |
       Toggles.SHOW_LABELS.bit() |

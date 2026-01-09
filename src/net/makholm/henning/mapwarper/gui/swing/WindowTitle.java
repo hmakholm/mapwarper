@@ -7,6 +7,7 @@ import javax.swing.JFrame;
 
 import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.gui.MapView;
+import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.projection.BaseProjection;
@@ -26,14 +27,18 @@ public class WindowTitle {
     frame.setTitle("Mapwarper v3");
   }
 
+  private static final int RELEVANT_FLAGS = Toggles.DOWNLOAD.bit();
+
   private Tool tool;
   private VectFile file;
   private Projection projection;
   private Tileset tiles;
+  private int flagBits;
   private Tileset lensTiles;
   private int lensZoom;
 
   void refresh() {
+    int flags0 = logic.toggleState & RELEVANT_FLAGS;
     Tileset lensTiles0 = null;
     int lensZoom0 = 0;
     if( logic.lensRect != null ) {
@@ -44,6 +49,7 @@ public class WindowTitle {
         file != logic.files.activeFile() ||
         projection != logic.projection ||
         tiles != logic.mainTiles ||
+        flagBits != flags0 ||
         lensTiles != lensTiles0 ||
         lensZoom != lensZoom0 ) {
 
@@ -51,6 +57,7 @@ public class WindowTitle {
       file = logic.files.activeFile();
       projection = logic.projection;
       tiles = logic.mainTiles;
+      flagBits = flags0;
       lensTiles = lensTiles0;
       lensZoom = lensZoom0;
 
@@ -90,7 +97,10 @@ public class WindowTitle {
         int natlogsize = Coords.BITS - natzoom - tiles.logTilesize();
         zoom = Math.min(zoom, Coords.logPixsize2zoom(natlogsize));
       }
-      sb.append(tiles.name).append(zoom);
+      sb.append(tiles.name);
+      if( baseproj.isOrtho() && !Toggles.DOWNLOAD.setIn(flagBits) )
+        sb.append('?');
+      sb.append(zoom);
       double factor = pixsize / Coords.zoom2pixsize(zoom);
       if( factor == 1 ) {
         // nothing
