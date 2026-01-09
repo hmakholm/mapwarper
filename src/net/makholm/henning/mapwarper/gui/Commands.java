@@ -120,6 +120,9 @@ public class Commands {
   private final Cmd reverse = check("reverse", "Reverse track",
       self -> self.mapView.reverseCommand());
 
+  private final Cmd newChain = simple("newchain", "New track/bound chain",
+      self -> self.mapView.setEditingChain(null));
+
   private Command toggleFilePane = new ToggleCommand(this,
       "toggleFilePane", "Show file pane") {
     @Override public boolean getCurrentState() {
@@ -266,6 +269,7 @@ public class Commands {
     keymap.accept("F11", Toggles.MAIN_TRACK.command(this));
     keymap.accept("F12", explore);
 
+    keymap.accept("`", newChain);
     keymap.accept("1", zoom100);
     keymap.accept("2", rotate);
     keymap.accept("-", zoomOut);
@@ -329,6 +333,7 @@ public class Commands {
     edit.add(magicTool);
     edit.add(boundTool);
     edit.addSeparator();
+    edit.add(newChain);
     edit.add(reverse);
 
     var view = menu.addSubmenu("View");

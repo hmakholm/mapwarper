@@ -25,6 +25,10 @@ public abstract class Tool extends Command implements MouseAction {
    */
   public Cursor toolCursor;
 
+  public void escapeAction() {
+    SwingUtils.beep();
+  }
+
   protected Tool(Commands owner, String codename, String niceName) {
     super(owner, codename, niceName);
     toolCursor = Cursor.getDefaultCursor();
@@ -90,7 +94,7 @@ public abstract class Tool extends Command implements MouseAction {
 
   @Override
   public void invoke() {
-    owner.mapView.currentTool = this;
+    owner.mapView.selectTool(this);
   }
 
   public void activeFileChanged() { }

@@ -78,6 +78,7 @@
      [, ]: ændr opløsning for luppen
      <, >: squeeze/stretch warp
 
+     `: Ny segmentkæde
      1: 100% zoom
 
      F1: 
@@ -341,8 +342,8 @@
      tilstanden; så behøver vi ikke finde på konsistent afvigende
      farver for alle segmenttyperne.
 
-   ESC gør den aktive kæde inaktiv. Hvis den kun havde et punkt,
-   forsvinder det helt.
+   Kommando: Ny segmentkæde. Gør den aktive kæde inaktiv. Hvis den kun
+     havde et punkt, forsvinder det helt.
 
    Værktøj: Rediger segmenter.
      * Der er et af disse for hver segmenttype.

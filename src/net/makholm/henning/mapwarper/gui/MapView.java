@@ -354,21 +354,19 @@ public class MapView {
       // That's all
     } else if( lensRect != null ) {
       cancelLens();
-    } else if( editingChain != null ) {
-      setEditingChain(null);
-      return;
-    } else if( currentTool instanceof ExploreTool ) {
-      currentTool = window.commands.move;
-      return;
     } else {
-      SwingUtils.beep();
+      currentTool.escapeAction();
     }
+  }
+
+  public void selectTool(Tool tool) {
+    currentTool = tool;
   }
 
   void selectEditingTool() {
     if( editingChain != null ) {
-      currentTool = editingChain.isTrack() ?
-          window.commands.trackTool : window.commands.boundTool;
+      selectTool(editingChain.isTrack() ?
+          window.commands.trackTool : window.commands.boundTool);
     }
   }
 
@@ -552,7 +550,7 @@ public class MapView {
     if( chain != null &&
         currentTool instanceof EditTool et &&
         chain.chainClass != et.chainClass )
-      currentTool = currentTool.owner.move;
+      selectTool(currentTool.owner.move);
   }
 
   // -------------------------------------------------------------------------
