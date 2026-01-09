@@ -60,6 +60,8 @@ public abstract class Command {
     return new AbstractAction(niceName) {
       @Override
       public void actionPerformed(ActionEvent e) {
+        boolean invokedFromMenu = niceName.equals(e.getActionCommand());
+        owner.swing.whenInvokingCommand(invokedFromMenu);
         debugTraceInvoke();
         invoke();
         owner.swing.refreshScene();

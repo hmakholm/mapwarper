@@ -221,6 +221,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     positionOffsetX = logic.positionX - viewportRect.x;
     positionOffsetY = logic.positionY - viewportRect.y;
     refreshLogicalMousePosition();
+    popupMousePosition = null;
   }
 
   public void refreshMapAndLensLayers() {
@@ -271,6 +272,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     viewportRect.x = x;
     viewportRect.y = y;
     refreshLogicalMousePosition();
+    popupMousePosition = null;
     someBuffersMayBeInvisible = true;
   }
 
@@ -311,6 +313,13 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
    */
   private Point windowMousePosition = Point.at(0);
 
+  /**
+   * The point where the popup menu was shown, in the same coordinate
+   * system as windowMousePosition. Nulled out when we're fairly sure
+   * there's no popup menu shown.
+   */
+  private Point popupMousePosition = null;
+
   public void mousePositionAdjusted() {
     var newPosition = logic.mouseLocal.minus(offsetAsVector());
     windowMousePosition = newPosition;
@@ -330,6 +339,14 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     logic.mouseGlobal = logic.translator().local2global(logic.mouseLocal);
     renderQueue.offerMousePosition(logic.mouseLocal);
     logic.tiles.downloader.offerMousePosition(logic.mouseGlobal);
+  }
+
+  void whenInvokingCommand(boolean fromMenu) {
+    if( fromMenu && popupMousePosition != null ) {
+      windowMousePosition = popupMousePosition;
+      refreshLogicalMousePosition();
+    }
+    popupMousePosition = null;
   }
 
   /**
@@ -375,9 +392,11 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
   @Override
   public void mousePressed(MouseEvent e) {
+    popupMousePosition = null;
     cancelDrag();
     readMousePosition(e);
     if( e.getButton() == 3 ) {
+      popupMousePosition = windowMousePosition;
       PopupMenu popup = new PopupMenu();
       logic.window.commands.defineMenu(popup);
       popup.show(this, e.getX(), e.getY());
