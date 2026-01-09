@@ -64,6 +64,9 @@ public class Commands {
   private final Tool explore = new ExploreTool(this);
   public final Tool move = new MoveTool(this);
 
+  private final Tool nearestNodeTool = new NearestNodeDebugTool(this);
+  private final Tool tilecacheDebugTool = new TilecacheDebugTool(this);
+
   private final Tool weakTrackTool =
       new TrackEditTool(this, SegKind.WEAK, "weak track");
   final Tool trackTool =
@@ -108,7 +111,7 @@ public class Commands {
   private final Cmd lensMinus = check("lensMinus", "Decrease lens resolution",
       self -> self.lens.lensMinusCommand());
 
-  private final Cmd downloadTile = simple("getTile", "Force-fetch map tile",
+  private final Cmd downloadTile = check("getTile", "Force-fetch map tile",
       self -> self.mapView.singleTileDownloadCommand());
 
   private final Cmd repaint = simple("repaint", "Repaint from scratch",
@@ -211,6 +214,9 @@ public class Commands {
   private final Command exportWithTracks =
       new Exporter(this, "export-with", "Export PNG with tracks ...", true);
 
+  private final Cmd forceGC = simple("GC", "Force GC",
+      self -> HeapDebugCommand.run(self.mapView.tiles));
+
   private final Cmd newFile = simple("new", "New",
       self -> self.files.newCommand());
 
@@ -242,6 +248,8 @@ public class Commands {
         self -> self.mapView.escapePressed()));
 
     // Letters with Ctrl, in alphabetical order
+    // Except ones that are part of command clusters with other
+    // modifiers on the same letter
     keymap.accept("C-C", copy);
     keymap.accept("C-I", reverse);
     keymap.accept("C-L", repaint);
@@ -255,11 +263,9 @@ public class Commands {
     keymap.accept("C-Z", mapView.undoList.undo.getCommand(this, 1));
 
     // Without Ctrl, but possibly shifted, in QUERTY order
-    keymap.accept("S-F2", simple("GC", "Force GC", self -> HeapDebugCommand.run(mapView.tiles)));
-    keymap.accept("F2", Toggles.TILEGRID.command(this));
-    keymap.accept("F3", new NearestNodeDebugTool(this));
-    keymap.accept("F4", new TilecacheDebugTool(this));
-    keymap.accept("S-F5", Toggles.DOWNLOAD.command(this));
+    keymap.accept("S-F2", forceGC);
+    keymap.accept("S-F3", nearestNodeTool);
+    keymap.accept("S-F4", tilecacheDebugTool);
     keymap.accept("F5", Toggles.SUPERSAMPLE.command(this));
     keymap.accept("F6", Toggles.DARKEN_MAP.command(this));
     keymap.accept("F7", Toggles.SHOW_LABELS.command(this));
@@ -293,6 +299,8 @@ public class Commands {
     keymap.accept("A", magicTool);
     keymap.accept("S", straightTool);
     keymap.accept("D", slewTool);
+    keymap.accept("C-G", Toggles.TILEGRID.command(this));
+    keymap.accept("S-G", Toggles.DOWNLOAD.command(this));
     keymap.accept("G", downloadTile);
     keymap.accept("L", lens);
 
@@ -359,8 +367,6 @@ public class Commands {
     view.add(Toggles.SHOW_LABELS.command(this));
     view.add(Toggles.DARKEN_MAP.command(this));
     view.add(Toggles.SUPERSAMPLE.command(this));
-    view.add(Toggles.DOWNLOAD.command(this));
-    view.add(Toggles.TILEGRID.command(this));
     view.add(repaint);
     view.add(refresh);
 
@@ -379,8 +385,15 @@ public class Commands {
     tools.add(move);
     tools.add(explore);
 
-    var byPointer = menu.addSubmenu("Actions at pointer");
-    byPointer.add(downloadTile);
+    var tiles = menu.addSubmenu("Map tiles");
+    tiles.add(Toggles.TILEGRID.command(this));
+    tiles.add(Toggles.DOWNLOAD.command(this));
+    tiles.add(downloadTile);
+
+    var debug = menu.addSubmenu("Debug");
+    debug.add(forceGC);
+    debug.add(nearestNodeTool);
+    debug.add(tilecacheDebugTool);
   }
 
   public void defineTilesetMenu(Tileset tiles, IMenu menu) {

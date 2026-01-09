@@ -17,7 +17,7 @@ import net.makholm.henning.mapwarper.util.XyTree;
 public class NearestNodeDebugTool extends Tool {
 
   protected NearestNodeDebugTool(Commands owner) {
-    super(owner, "nearestNode", "Debug: show nearest node");
+    super(owner, "nearestNode", "Show nearest node");
   }
 
   @Override

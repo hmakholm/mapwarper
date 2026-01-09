@@ -80,15 +80,16 @@
 
      `: Ny segmentkæde
      1: 100% zoom
+     2: Roter 90°
 
      F1: 
      F2:
      F3:
      F4:
 
-     F5:
-     F6:
-     F7: gør grundkort mørkere
+     F5: supersample til/fra
+     F6: gør grundkort mørkere
+     F7: annoteringer for fremmede spor
      F8: krumning til/fra
 
      F9: andre marginer til/fra

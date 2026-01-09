@@ -486,13 +486,18 @@ public class MapView {
     @Override public void accept(TileBitmap ignore) {}
   };
 
-  void singleTileDownloadCommand() {
-    cancelLens();
-    cancelLastGetTile.run();
-    long coords = Coords.point2pixcoord(mouseGlobal);
-    long shortcode = Tile.codedContaining(coords, mainTiles.guiTargetZoom());
-    cancelLastGetTile = mainTiles.context.downloader.request(
-        new TileSpec(mainTiles, shortcode), dummyDownloadConsumer);
+  Runnable singleTileDownloadCommand() {
+    if( projection.base().usesDownloadFlag() &&
+        Toggles.DOWNLOAD.setIn(toggleState) ) {
+      return null;
+    } else return () -> {
+      cancelLens();
+      long coords = Coords.point2pixcoord(mouseGlobal);
+      long shortcode = Tile.codedContaining(coords, mainTiles.guiTargetZoom());
+      cancelLastGetTile.run();
+      cancelLastGetTile = mainTiles.context.downloader.request(
+          new TileSpec(mainTiles, shortcode), dummyDownloadConsumer);
+    };
   }
 
   Runnable squeezeCommand() {
