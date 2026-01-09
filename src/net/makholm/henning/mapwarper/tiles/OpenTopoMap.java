@@ -17,6 +17,11 @@ public class OpenTopoMap extends PngTileServer {
   }
 
   @Override
+  public int guiTargetZoom() {
+    return 15;
+  }
+
+  @Override
   public List<String> getCopyrightBlurb() {
     return List.of(OpenStreetMap.COPYRIGHT_BLURB,
         "Map rendering: © OpenTopoMap.org (CC-BY-SA)");

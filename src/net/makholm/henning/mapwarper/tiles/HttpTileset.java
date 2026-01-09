@@ -40,7 +40,9 @@ public abstract class HttpTileset extends DiskCachedTileset {
       } else {
         System.err.println("Got "+rspInfo.statusCode()+" when fetching "+url);
         System.err.println(rspInfo.headers());
-        return HttpResponse.BodySubscribers.ofFile(Paths.get("httpErrorBody"));
+        Path bodyFile = Paths.get("httpErrorBody");
+        tryDeleteFile(bodyFile);
+        return HttpResponse.BodySubscribers.ofFile(bodyFile);
       }
     };
     try {

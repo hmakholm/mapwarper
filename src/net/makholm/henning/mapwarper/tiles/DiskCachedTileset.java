@@ -149,7 +149,7 @@ public abstract class DiskCachedTileset extends Tileset {
     return TileBitmap.of(rawBitmap, tile);
   }
 
-  private static void tryDeleteFile(Path file) {
+  protected static void tryDeleteFile(Path file) {
     try {
       Files.deleteIfExists(file);
     } catch( IOException e ) {
