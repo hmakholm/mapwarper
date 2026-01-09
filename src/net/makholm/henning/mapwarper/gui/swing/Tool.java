@@ -93,6 +93,10 @@ public abstract class Tool extends Command implements MouseAction {
         name);
   }
 
+  public void sanitizeEditingStateWhenSelected() {
+    // Nothing by default
+  }
+
   private Tool previousTool;
   private boolean arrivedBySwitchingBack;
   private boolean mayCancelWhenReselecting;

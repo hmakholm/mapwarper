@@ -43,15 +43,9 @@ class EditTool extends Tool {
   }
 
   @Override
-  public void invoke() {
-    super.invoke();
-    ensureAppropriateEditingChain();
-  }
-
-  @Override
   public final void activeFileChanged() {
     super.activeFileChanged();
-    ensureAppropriateEditingChain();
+    sanitizeEditingStateWhenSelected();
   }
 
   @Override
@@ -351,7 +345,8 @@ class EditTool extends Tool {
         null, editingChain());
   }
 
-  private void ensureAppropriateEditingChain() {
+  @Override
+  public void sanitizeEditingStateWhenSelected() {
     var logic = mapView();
 
     // cancel current chain if it has the wrong class
