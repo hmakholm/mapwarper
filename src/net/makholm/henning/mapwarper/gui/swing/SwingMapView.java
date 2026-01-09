@@ -499,10 +499,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
   @Override
   public void mouseWheelMoved(MouseWheelEvent e) {
-    if( ongoingMapDrag != null ||
-        0 != (e.getModifiersEx() & MouseEvent.BUTTON2_DOWN_MASK) ) {
-      // Ignore accidental wheel movements while the middle button
-      // is pressed.
+    if( ongoingMapDrag != null || ongoingToolDrag != null ) {
+      // Ignore accidental wheel movements
       return;
     }
     if( e.getWheelRotation() < 0 )
