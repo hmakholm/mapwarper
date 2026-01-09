@@ -248,8 +248,6 @@ public class Commands {
         self -> self.mapView.escapePressed()));
 
     // Letters with Ctrl, in alphabetical order
-    // Except ones that are part of command clusters with other
-    // modifiers on the same letter
     keymap.accept("C-C", copy);
     keymap.accept("C-I", reverse);
     keymap.accept("C-L", repaint);
@@ -284,7 +282,7 @@ public class Commands {
     keymap.accept("Tab", toggleFilePane);
     keymap.accept("Q", quickwarp.quickLinear());
     keymap.accept("M-Q", quickwarp.quickCircle());
-    keymap.accept("C-Q", quickwarp);
+    keymap.accept("S-Q", quickwarp);
     keymap.accept("W", tilesetCommands("google").warp);
     keymap.accept("S-W", tilesetCommands("bing").lens);
     keymap.accept("E", tilesetCommands("google").weakOrtho);
