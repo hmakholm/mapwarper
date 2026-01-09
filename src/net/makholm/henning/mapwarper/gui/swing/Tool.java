@@ -106,4 +106,33 @@ public abstract class Tool extends Command implements MouseAction {
     return result;
   }
 
+  // -------------------------------------------------------------------------
+
+  private final Map<Integer, Command> quickCommands = new LinkedHashMap<>();
+
+  private Command makeQuickCommand(int modifier, String niceName) {
+    return quickCommands.computeIfAbsent(modifier, m0 ->
+    new Command(owner, codename + "%" + modifier, niceName) {
+      private ToolResponse tr() {
+        return owner.swing.quickToolResponse(Tool.this, modifier);
+      }
+      @Override
+      public boolean makesSenseNow() {
+        return tr() != NO_RESPONSE;
+      }
+      @Override
+      public void invoke() {
+        tr().execute(ExecuteWhy.QUICKTOOL);
+      }
+    });
+  }
+
+  protected final Command bareQuickCommand(String niceName) {
+    return makeQuickCommand(0, niceName);
+  }
+
+  protected final Command altQuickCommand(String niceName) {
+    return makeQuickCommand(InputEvent.ALT_DOWN_MASK, niceName);
+  }
+
 }

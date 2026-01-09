@@ -42,6 +42,8 @@
      B: Tegn grænse
 
      Q: quick warp
+     Alt-Q: cirkulært quickwarp
+     Skift-Q: quickwarp som værktøj
      W: google warp
      R: osm ortho
 
@@ -311,7 +313,7 @@
    Lup-værktøjet kan bruges til at fremtvinge download af tiles der
    ikke allerede findes.
 
-   Værktøj: skift til quick warp
+   Værktøj: quick warp
      * Der er kun et af disse -- det bevarer det allerede valgte
        grundkort og y-skala.
    Handlinger:
@@ -324,6 +326,9 @@
        fra man trykker Skift ned.
      - Alt-KLIK fra en warpet projektion: skift til et anonymt warp
        langs en _cirkel_ der oskulerer sporet der hvor man klikker.
+
+   Kommando: Skift til ekstrapoleret quickwarp fra musens position,
+     men uden at skifte værktøj.
 
    Redigering af spor og grænser
    -----------------------------

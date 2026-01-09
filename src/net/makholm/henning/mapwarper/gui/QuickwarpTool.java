@@ -8,6 +8,7 @@ import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
 import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.QuickWarp;
+import net.makholm.henning.mapwarper.gui.swing.Command;
 
 public class QuickwarpTool extends ProjectionSwitchingTool {
 
@@ -15,16 +16,24 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
     super(owner, "quickwarp", "Quick-warp");
   }
 
+  public Command quickLinear() {
+    return bareQuickCommand("Linear warp extrapolation");
+  }
+
+  public Command quickCircle() {
+    return altQuickCommand("Circular warp extrapolation");
+  }
+
   @Override
   protected ToolResponse clickResponse(Point pos, int modifiers) {
     Projection orig = mapView().projection;
+    if( orig.base().createAffine() != null )
+      return NO_RESPONSE;
     Projection proj= orig.makeQuickwarp(pos, altHeld(modifiers));
     if( proj.equals(orig) )
       return NO_RESPONSE;
     return why -> {
       mapView().setProjection(proj);
-      if( why != ExecuteWhy.SHIFT_PRESSED )
-        owner.mapView.selectEditingTool();
     };
   }
 
@@ -69,8 +78,6 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
         if( proj.getSqueeze() < 5 )
           proj = proj.withSqueeze(5);
         owner.mapView.setProjection(proj, midLocal);
-        if( why != ExecuteWhy.SHIFT_PRESSED )
-          owner.mapView.selectEditingTool();
       }
     };
   }

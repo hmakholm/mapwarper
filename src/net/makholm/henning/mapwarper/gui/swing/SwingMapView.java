@@ -166,6 +166,13 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     }
   }
 
+  ToolResponse quickToolResponse(Tool tool, int modifiers) {
+    if( mousePosForTool == OUTSIDE_WINDOW )
+      return Tool.NO_RESPONSE;
+    else
+      return tool.mouseResponse(mousePosForTool, modifiers);
+  }
+
   private void refreshPositionAndProjection() {
     boolean shouldRepaintAll = true;
     if( currentMapPainter != null &&
@@ -345,6 +352,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     if( fromMenu && popupMousePosition != null ) {
       windowMousePosition = popupMousePosition;
       refreshLogicalMousePosition();
+      mousePosForTool = logic.mouseLocal;
     }
     popupMousePosition = null;
   }

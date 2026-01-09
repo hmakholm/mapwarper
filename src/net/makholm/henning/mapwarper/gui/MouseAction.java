@@ -25,7 +25,7 @@ public interface MouseAction {
     return null;
   }
 
-  public enum ExecuteWhy { CLICK, DRAG, SHIFT_PRESSED };
+  public enum ExecuteWhy { CLICK, DRAG, SHIFT_PRESSED, QUICKTOOL };
 
   public interface ToolResponse {
     default public VisibleTrackData previewTrackData() { return null; }

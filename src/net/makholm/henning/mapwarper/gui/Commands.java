@@ -60,7 +60,7 @@ public class Commands {
 
   private final ZoomTool zoomTool = new ZoomTool(this);
   public final LensTool lens = new LensTool(this);
-  private final Tool quickwarp = new QuickwarpTool(this);
+  private final QuickwarpTool quickwarp = new QuickwarpTool(this);
   private final Tool explore = new ExploreTool(this);
   public final Tool move = new MoveTool(this);
 
@@ -282,7 +282,9 @@ public class Commands {
     keymap.accept("+", zoomIn);
 
     keymap.accept("Tab", toggleFilePane);
-    keymap.accept("Q", quickwarp);
+    keymap.accept("Q", quickwarp.quickLinear());
+    keymap.accept("M-Q", quickwarp.quickCircle());
+    keymap.accept("C-Q", quickwarp);
     keymap.accept("W", tilesetCommands("google").warp);
     keymap.accept("S-W", tilesetCommands("bing").lens);
     keymap.accept("E", tilesetCommands("google").weakOrtho);
@@ -355,6 +357,8 @@ public class Commands {
     zoom.add(unzoom);
     zoom.add(squeeze);
     zoom.add(stretch);
+    zoom.add(quickwarp.quickLinear());
+    zoom.add(quickwarp.quickCircle());
     zoom.addSeparator();
     zoom.add(rotate);
     zoom.add(teleport);
