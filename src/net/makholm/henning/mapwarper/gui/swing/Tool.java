@@ -94,17 +94,39 @@ public abstract class Tool extends Command implements MouseAction {
   }
 
   private Tool previousTool;
+  private boolean arrivedBySwitchingBack;
+  private boolean mayCancelWhenReselecting;
 
   @Override
   public void invoke() {
     if( mapView().currentTool != this ) {
       previousTool = mapView().currentTool;
+      arrivedBySwitchingBack = false;
+      mayCancelWhenReselecting = false;
       mapView().selectTool(this);
     }
   }
 
+  @Override
+  public boolean specialKeypressAction() {
+    if( mapView().currentTool == this &&
+        !arrivedBySwitchingBack &&
+        mayCancelWhenReselecting &&
+        previousTool != null ) {
+      switchToPreviousTool();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  public void enableSameKeyCancel() {
+    mayCancelWhenReselecting = true;
+  }
+
   protected final void switchToPreviousTool() {
     if( previousTool != null ) {
+      previousTool.arrivedBySwitchingBack = true;
       mapView().selectTool(previousTool);
       previousTool = null;
     }

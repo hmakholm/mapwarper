@@ -450,9 +450,9 @@ class EditTool extends Tool {
         System.err.println("  Executing edit: "+undoDesc);
         owner.files.activeFile().rewriteContent(
             mapView().undoList, undoDesc, c->newContent);
-        mapView().selectEditingTool();
       }
       mapView().setEditingChain(action.editingChain);
+      enableSameKeyCancel();
     }
   }
 
