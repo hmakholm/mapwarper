@@ -393,7 +393,7 @@ public class MapView {
     } else if( targetTiles.isOverlayMap() ) {
       SwingUtils.beep();
     } else
-      orthoCommand(targetTiles, true);
+      setMainTiles(targetTiles);
   }
 
   void orthoCommand(Tileset targetTiles, boolean downloading) {
