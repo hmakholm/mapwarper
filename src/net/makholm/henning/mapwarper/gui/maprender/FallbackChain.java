@@ -6,13 +6,32 @@ import net.makholm.henning.mapwarper.util.MathUtil;
 
 public class FallbackChain {
 
-  public static final int ZOOM_MASK    = 0x1F;
-  public static final int FALLBACK_BIT = 0x20;
-  public static final int DOWNLOAD_BIT = 0x40;
+  public static final int DOWNLOAD_BIT = 0x01;
+  public static final int FALLBACK_BIT = 0x02;
+  public static final int ZOOM_SHIFT   = 2;
   public static final int BITS_PER_ATTEMPT = 7;
   public static final int MAX_ATTEMPTS     = 9;
 
   public static final int ATTEMPT_MASK = (1 << BITS_PER_ATTEMPT)-1;
+
+  /**
+   * Combine the lowest bits in each word of {@code shiftedShortcode},
+   * with low-order bits from the zoom level as well at the fallback
+   * bit to create a set index for the local cache in CommonRenderer.
+   */
+  public static int cacheSetOf64(int maskedAttempt, long shiftedShortcode) {
+    // It's assumed that we won't have a fallback chain where the zoom
+    // levels differ by more than 8!
+    // The positions of the output bits are chosen just to simplify
+    // the bit fiddling.
+    return maskedAttempt & 0x1E // fallback bit and 3 bits of zoom
+        | (int)shiftedShortcode & 1 // low-order X bit
+        | (int)(shiftedShortcode >> (32-5)) & 0x20; // low-order Y-bit
+
+
+  }
+
+  // -------------------------------------------------------------------------
 
   private final int targetZoom;
 
@@ -68,7 +87,7 @@ public class FallbackChain {
   }
 
   public void addAttempt(int zoom, boolean fallback, boolean download) {
-    long val = zoom & ZOOM_MASK;
+    long val = (zoom << ZOOM_SHIFT) & ATTEMPT_MASK;
     if( fallback ) val |= FALLBACK_BIT;
     if( download ) val |= DOWNLOAD_BIT;
     accumulatedBits |= val << (numAttempts * BITS_PER_ATTEMPT);
@@ -165,7 +184,7 @@ public class FallbackChain {
     for(;;) {
       boolean download = (v & DOWNLOAD_BIT) != 0;
       boolean fallback = (v & FALLBACK_BIT) != 0;
-      int zoom = (int)v & ZOOM_MASK;
+      int zoom = ((int)(v & ATTEMPT_MASK) >> ZOOM_SHIFT);
 
       if( !download ) sb.append('(');
       if( zoom == 0 )
@@ -176,8 +195,8 @@ public class FallbackChain {
       if( !download ) sb.append(')');
 
       v >>>= BITS_PER_ATTEMPT;
-    if( v == 0 ) return sb.toString();
-    sb.append(' ');
+      if( v == 0 ) return sb.toString();
+      sb.append(' ');
     }
   }
 

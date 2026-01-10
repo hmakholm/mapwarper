@@ -1,5 +1,7 @@
 package net.makholm.henning.mapwarper.gui.maprender;
 
+import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.*;
+
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.LinkedHashMap;
@@ -121,25 +123,23 @@ abstract class CommonRenderer implements RenderWorker {
 
   protected final int getPixel(long coords, long fallbackSpec) {
     for(int attempt = 0;; attempt++) {
-      long aspec = (fallbackSpec >> attempt * FallbackChain.BITS_PER_ATTEMPT)
-          & FallbackChain.ATTEMPT_MASK;
+      int aspec =
+          (int)(fallbackSpec >> attempt * BITS_PER_ATTEMPT) & ATTEMPT_MASK;
 
       if( aspec == 0 ) return RGB.OUTSIDE_BITMAP;
-      int zoom = (int)aspec & FallbackChain.ZOOM_MASK;
+      int zoom = (int)(aspec >> ZOOM_SHIFT);
       if( zoom == 0 ) continue;
 
       TileBitmap bitmap;
       long shortcode = Tile.codedContaining(coords, zoom);
-      long shifted = shortcode >> (Coords.BITS - zoom);
-      int lci = (attempt << 2) + ((int)shifted & 1) + ((int)(shifted >> 31) & 2);
+      int lci = cacheSetOf64(aspec, coords >> (Coords.BITS - zoom));
       long lciTag = localCacheIndex[lci];
       if( lciTag == (shortcode | aspec) ||
-          lciTag == (shortcode | aspec | FallbackChain.DOWNLOAD_BIT) ) {
+          lciTag == (shortcode | aspec | DOWNLOAD_BIT) ) {
         bitmap = localCache[lci];
       } else {
         NeededTile nt = new NeededTile(
-            (aspec & FallbackChain.FALLBACK_BIT) != 0
-            ? fallbackTiles : mainTiles,
+            (aspec & FALLBACK_BIT) != 0 ? fallbackTiles : mainTiles,
                 shortcode);
         nt = tileDict.computeIfAbsent(nt, x->x);
         if( nt.checkedCache ) {
@@ -156,7 +156,7 @@ abstract class CommonRenderer implements RenderWorker {
         if( bitmap == null ) {
           if( currentColumn > nt.xmax ) nt.xmax = currentColumn;
           if( currentColumn < nt.xmin ) nt.xmin = currentColumn;
-          if( (aspec & FallbackChain.DOWNLOAD_BIT) != 0 &&
+          if( (aspec & DOWNLOAD_BIT) != 0 &&
               cacheLookupLevel == TileCache.DISK )
             nt.requestDownload();
           else
@@ -186,7 +186,7 @@ abstract class CommonRenderer implements RenderWorker {
 
   // -------------------------------------------------------------------------
 
-  private static final int LCACHESIZE = FallbackChain.MAX_ATTEMPTS * 4;
+  private static final int LCACHESIZE = 64;
 
   private final TileBitmap[] localCache = new TileBitmap[LCACHESIZE];
   /**
