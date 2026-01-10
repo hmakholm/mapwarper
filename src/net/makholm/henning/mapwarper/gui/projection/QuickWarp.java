@@ -1,5 +1,8 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
+import static net.makholm.henning.mapwarper.gui.projection.TurnedProjection.turnCounterclockwise;
+import static net.makholm.henning.mapwarper.gui.projection.OrthoProjection.ORTHO;
+
 import java.awt.geom.AffineTransform;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
@@ -15,14 +18,13 @@ import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer;
 
 public class QuickWarp extends BaseProjection {
 
-  public static final QuickWarp RIGHT =
-      new QuickWarp(Point.ORIGIN, UnitVector.RIGHT);
-  public static final QuickWarp DOWN =
-      new QuickWarp(Point.ORIGIN, UnitVector.DOWN);
-
   public final Point origin;
   public final UnitVector direction;
   private final UnitVector normal;
+
+  public QuickWarp(UnitVector direction) {
+    this(Point.ORIGIN, direction);
+  }
 
   public QuickWarp(Point origin, UnitVector direction) {
     this.origin = origin;
@@ -45,10 +47,10 @@ public class QuickWarp extends BaseProjection {
 
   @Override
   public Projection perhapsOrthoEquivalent() {
-    if( direction.equals(UnitVector.RIGHT) )
-      return OrthoProjection.ORTHO;
-    else if( direction.equals(UnitVector.DOWN) )
-      return TurnedProjection.turnCounterclockwise(OrthoProjection.ORTHO);
+    if( direction.y == 0 )
+      return turnCounterclockwise(ORTHO, direction.x > 0 ? 0 : 2);
+    else if( direction.x == 0 )
+      return turnCounterclockwise(ORTHO, direction.y > 0 ? 1 : 3);
     else
       return null;
   }

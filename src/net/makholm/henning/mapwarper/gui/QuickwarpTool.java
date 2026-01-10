@@ -1,11 +1,9 @@
 package net.makholm.henning.mapwarper.gui;
 
-import net.makholm.henning.mapwarper.geometry.LineSeg;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.gui.overlays.ArrowOverlay;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
-import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.QuickWarp;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection.CannotWarp;
@@ -50,18 +48,13 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
   public ToolResponse dragResponse(Point start, Point end) {
     Projection orig = mapView().projection;
 
-    Projection turner;
-    LineSeg turnedDelta;
-    if( orig.getSqueeze() < 1.1 ) {
-      turner = OrthoProjection.ORTHO.withScaleAcross(orig.scaleAcross());
-      turnedDelta = start.to(end);
-    } else {
-      turner = orig;
-      Point turnedStart = mapView().projection.local2projected(start);
-      Point turnedEnd = mapView().projection.local2projected(end);
-      turnedDelta = turnedStart.to(turnedEnd);
+    Point projStart = start;
+    Point projEnd = end;
+    if( orig.scaleAndSqueezeSimilarly(orig.base()).equals(orig) ) {
+      projStart = orig.local2projected(projStart);
+      projEnd = orig.local2projected(projEnd);
     }
-    if( turnedDelta.x < 0 && Math.abs(turnedDelta.y) < -turnedDelta.x ) {
+    if( projStart.x > projEnd.x ) {
       Point tmp = start;
       start = end;
       end = tmp;
@@ -83,7 +76,7 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
         Point b = translator.local2global(arrow.b);
         UnitVector dir = a.to(b).normalize();
         var quickwarp = new QuickWarp(a, dir);
-        var proj = turner.scaleAndSqueezeSimilarly(quickwarp);
+        var proj = orig.scaleAndSqueezeSimilarly(quickwarp);
         if( proj.getSqueeze() < 5 )
           proj = proj.withSqueeze(5);
         owner.mapView.setProjection(proj, midLocal);

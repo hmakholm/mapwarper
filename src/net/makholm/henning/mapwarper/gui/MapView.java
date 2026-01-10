@@ -467,8 +467,10 @@ public class MapView {
     if( squeeze <= 1 ) squeeze = 5;
     double scale = Math.min(projection.scaleAcross(),
         Coords.zoom2pixsize(tiles.guiTargetZoom()));
+    Projection orienter = projection.withScaleAndSqueeze(scale, squeeze);
+
     var baseWarp = makeWarpedProjection();
-    return baseWarp.withScaleAndSqueeze(scale, squeeze);
+    return orienter.scaleAndSqueezeSimilarly(baseWarp);
   }
 
   void warpCommand(Tileset targetTiles) {

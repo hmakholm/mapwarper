@@ -75,7 +75,7 @@ public abstract class Projection extends LongHashed {
    */
   public Projection makeSqueezeable() {
     if( base().isOrtho() )
-      return scaleAndSqueezeSimilarly(QuickWarp.RIGHT);
+      return scaleAndSqueezeSimilarly(new QuickWarp(UnitVector.RIGHT));
     else
       return this;
   }

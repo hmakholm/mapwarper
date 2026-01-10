@@ -7,6 +7,7 @@ import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.TransformHelper;
+import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
@@ -73,17 +74,22 @@ public final class TurnedProjection extends Projection {
 
   @Override
   public Projection scaleAndSqueezeSimilarly(BaseProjection realBase) {
-    return new TurnedProjection(base.scaleAndSqueezeSimilarly(realBase), quadrants);
+    Projection turnedBase = base.scaleAndSqueezeSimilarly(realBase);
+    if( base.base().isOrtho() ) {
+      // It doesn't make sense to preserve the turning in this case
+      return turnedBase;
+    } else {
+      return new TurnedProjection(turnedBase, quadrants);
+    }
   }
 
   @Override
   public Projection makeSqueezeable() {
-    if( base().isOrtho() && quadrants % 2 == 1 ) {
-      Projection p = scaleAndSqueezeSimilarly(QuickWarp.DOWN);
-      return turnCounterclockwise(p, 3);
-    } else {
-      return super.makeSqueezeable();
-    }
+    if( base().isOrtho() ) {
+      var dir0 = UnitVector.along(local2next.getScaleX(),local2next.getShearY());
+      return base.scaleAndSqueezeSimilarly(new QuickWarp(dir0));
+    } else
+      return this;
   }
 
   @Override
