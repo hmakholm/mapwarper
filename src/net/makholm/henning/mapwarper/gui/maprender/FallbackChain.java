@@ -174,6 +174,16 @@ public class FallbackChain {
     return chain;
   }
 
+  public void downloadTheFirstFallback() {
+    for( int i = 0; i < numAttempts; i++ ) {
+      int shift = i * BITS_PER_ATTEMPT;
+      if( ((accumulatedBits >> shift) & FALLBACK_BIT) != 0 ) {
+        accumulatedBits |= DOWNLOAD_BIT << shift;
+        return;
+      }
+    }
+  }
+
   public long getChain() {
     return accumulatedBits;
   }

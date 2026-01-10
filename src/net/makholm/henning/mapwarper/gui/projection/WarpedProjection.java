@@ -179,12 +179,15 @@ public final class WarpedProjection extends BaseProjection {
           xscale, yscale, target, recipe);
     } else {
       supersamplingChain = fallback.supersampleMain(true);
-      if( !Toggles.DOWNLOAD.setIn(spec.flags()) )
-        supersamplingChain = FallbackChain.neverDownload(supersamplingChain);
       fallback.attemptFallbacks(0);
       fallbackChain = fallback.getChain();
       long marginChain =
           FallbackChain.neverDownload(supersamplingChain) | fallbackChain;
+      if( !Toggles.DOWNLOAD.setIn(spec.flags()) ) {
+        supersamplingChain = FallbackChain.neverDownload(supersamplingChain);
+        fallback.downloadTheFirstFallback();
+        fallbackChain = fallback.getChain();
+      }
       var recipe = SupersamplingRenderer.prepareSupersampler(spec,
           xscale, yscale, supersamplingChain, fallbackChain);
       var margins = WarpMargins.get(this);
