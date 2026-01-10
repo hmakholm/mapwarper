@@ -1,6 +1,7 @@
 package net.makholm.henning.mapwarper.gui;
 
 import net.makholm.henning.mapwarper.geometry.Point;
+import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.TrackNode;
@@ -31,7 +32,27 @@ class BoundSnappingTool extends EditTool {
     if( found != null )
       return found.chain().nodes.get(found.index());
 
-    return super.local2node(local);
+    TrackNode created = super.local2node(local);
+
+    if( Toggles.TILEGRID.setIn(mapView().toggleState) ) {
+      // When editing with tiles shown, we probably want to align to the
+      // tile corners, so snap to those!
+      int snapx = gridsnap(Coords.x(created.pos));
+      int snapy = gridsnap(Coords.y(created.pos));
+      TrackNode corner = new TrackNode(snapx, snapy);
+      Point localCorner = translator().global2localWithHint(corner, local);
+      if( localCorner.dist(local) < SNAP_DISTANCE ) {
+        return corner;
+      }
+    }
+
+    return created;
+  }
+
+  private static final int TILESIZE = (Coords.EARTH_SIZE >> 18);
+
+  private int gridsnap(int coord) {
+    return (coord + TILESIZE/2) & -TILESIZE;
   }
 
 }
