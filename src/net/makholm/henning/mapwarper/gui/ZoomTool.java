@@ -18,7 +18,10 @@ public class ZoomTool extends ProjectionSwitchingTool {
   protected ToolResponse clickResponse(Point pos, int modifiers) {
     return qhy -> {
       Runnable got = prepareZoom(ctrlHeld(modifiers) ? 4 : 0.25);
-      if( got != null ) got.run();
+      if( got != null ) {
+        got.run();
+        enableSameKeyCancel();
+      }
     };
   }
 
@@ -52,6 +55,7 @@ public class ZoomTool extends ProjectionSwitchingTool {
         mapView().setProjectionOnly(projection().withScaleAcross(newScale));
         mapView().positionX = (long)(newLocalCenter.x - visible.width()/2);
         mapView().positionY = (long)(newLocalCenter.y - visible.height()/2);
+        enableSameKeyCancel();
       }
     };
   }

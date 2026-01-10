@@ -41,6 +41,7 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
       return NO_RESPONSE;
     return why -> {
       mapView().setProjection(proj);
+      enableSameKeyCancel();
     };
   }
 
@@ -80,6 +81,7 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
         if( proj.getSqueeze() < 5 )
           proj = proj.withSqueeze(5);
         owner.mapView.setProjection(proj, midLocal);
+        enableSameKeyCancel();
       }
     };
   }
