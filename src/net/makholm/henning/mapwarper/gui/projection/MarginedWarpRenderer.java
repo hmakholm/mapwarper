@@ -23,14 +23,6 @@ final class MarginedWarpRenderer extends BaseWarpRenderer {
     this.blankOutsideMargins = Toggles.BLANK_OUTSIDE_MARGINS.setIn(spec.flags());
   }
 
-  /**
-   * Avoid triggering downloads in right next to the defined margins --
-   * to guard against overdownloading due to floating-point rounding.
-   * This size is in global coordinates, corresponding to one z18-pixel,
-   * or about half a meter in Copenhagen.
-   */
-  private static final double GUARD_ZONE = 16;
-
   @Override
   protected boolean renderColumn(int col, double xmid,
       int ymin, int ymax, double ybase) {
@@ -40,8 +32,6 @@ final class MarginedWarpRenderer extends BaseWarpRenderer {
         (margins.leftMargin(worker, xmid) - ybase) / yscale - 0.5;
     double rightMargin =
         (margins.rightMargin(worker, xmid) - ybase) / yscale - 0.5;
-    double leftInnerMargin = leftMargin + GUARD_ZONE / yscale;
-    double rightInnerMargin = rightMargin - GUARD_ZONE / yscale;
 
     if( blankOutsideMargins ) {
       if( rightMargin < ymax ) {
@@ -99,19 +89,7 @@ final class MarginedWarpRenderer extends BaseWarpRenderer {
       if( end == ymax ) return hadAllPixels; else ymin = end+1;
     }
 
-    if( rightInnerMargin < ymax ) {
-      int start = (int)Math.max(ymin, rightInnerMargin);
-      hadAllPixels &= renderSupersampled(col, xmid, start, ymax, ybase, false);
-      if( start == ymin ) return hadAllPixels; else ymax = start-1;
-    }
-    if( leftInnerMargin > ymin ) {
-      int end = (int)Math.min(ymax, Math.ceil(leftInnerMargin));
-      hadAllPixels &= renderSupersampled(col, xmid, ymin, end, ybase, false);
-      if( end == ymax ) return hadAllPixels; else ymin = end+1;
-    }
-
-    hadAllPixels &= renderSupersampled(col, xmid, ymin, ymax, ybase, true);
-    return hadAllPixels;
+    return hadAllPixels & super.renderColumn(col, xmid, ymin, ymax, ybase);
   }
 
   private void blackout(int col, int ymin, int ymax) {

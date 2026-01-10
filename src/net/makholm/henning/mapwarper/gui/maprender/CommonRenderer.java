@@ -157,10 +157,13 @@ abstract class CommonRenderer implements RenderWorker {
           if( currentColumn > nt.xmax ) nt.xmax = currentColumn;
           if( currentColumn < nt.xmin ) nt.xmin = currentColumn;
           if( (aspec & DOWNLOAD_BIT) != 0 &&
-              cacheLookupLevel == TileCache.DISK )
+              cacheLookupLevel == TileCache.DISK &&
+              !onTileEdge(coords, nt) ) {
             nt.requestDownload();
-          else
+          } else {
+            aspec &= ~DOWNLOAD_BIT;
             nt.watchForDownload();
+          }
         }
         localCache[lci] = bitmap;
         localCacheIndex[lci] = shortcode | aspec;
@@ -175,6 +178,19 @@ abstract class CommonRenderer implements RenderWorker {
         return rgb;
       }
     }
+  }
+
+  /**
+   * We don't trigger download if the only pixels we need from a tile
+   * are right on its edge.
+   */
+  private static boolean onTileEdge(long coords, TileSpec ts) {
+    int tilesize = Integer.lowestOneBit((int)ts.shortcode) << 1;
+    int pixsize = tilesize >> ts.tileset.logTilesize();
+    int xmasked = Coords.x(coords) & (tilesize-1);
+    int ymasked = Coords.y(coords) & (tilesize-1);
+    return xmasked < pixsize || xmasked >= tilesize-pixsize ||
+        ymasked < pixsize || ymasked >= tilesize-pixsize;
   }
 
   @Override

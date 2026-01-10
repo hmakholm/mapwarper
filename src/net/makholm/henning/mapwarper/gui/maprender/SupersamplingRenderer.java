@@ -51,17 +51,11 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
   @Override
   protected boolean renderColumn(int col, double xmid,
       int ymin, int ymax, double ybase) {
-    return renderSupersampled(col, xmid, ymin, ymax, ybase, true);
-  }
-
-  protected final boolean renderSupersampled(int col, double xmid,
-      int ymin, int ymax, double ybase, boolean allowDownload) {
-    long downloadlessChain = FallbackChain.neverDownload(supersample.source);
-    long source = allowDownload ? supersample.source : downloadlessChain;
-
     if( supersample.numSamples == 1 || renderPassesCompleted < 2 )
       return renderWithoutSupersampling(
-          col, xmid, ymin, ymax, ybase, source | supersample.fallback, 0);
+          col, xmid, ymin, ymax, ybase, supersample.source | supersample.fallback, 0);
+
+    long downloadlessChain = FallbackChain.neverDownload(supersample.source);
 
     float[] colMultipliers = supersample.multipliers[col%8];
     int numSamples = supersample.numSamples;
@@ -101,7 +95,7 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
           if( midBase == null )
             midBase = locateColumn(xmid, ybase+yscale/2);
           Point p = midBase.pointOnNormal(row * yscale);
-          rgb = getPixel(p, source | supersample.fallback);
+          rgb = getPixel(p, supersample.source | supersample.fallback);
           if( rgb == RGB.OUTSIDE_BITMAP )
             hadAllPixels = false;
           else
