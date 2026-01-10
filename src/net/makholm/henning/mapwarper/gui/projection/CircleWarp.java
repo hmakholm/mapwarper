@@ -163,11 +163,10 @@ public class CircleWarp extends BaseProjection {
       fallbackChain = fallback.getChain();
     }
 
-    var supersamplingRecipe = SupersamplingRenderer.prepareSupersampler(spec,
-        xscale, yscale, supersamplingChain);
+    var recipe = SupersamplingRenderer.prepareSupersampler(spec,
+        xscale, yscale, supersamplingChain, fallbackChain);
     return target
-        -> new SupersamplingRenderer(spec, xscale, yscale, target,
-            supersamplingRecipe, fallbackChain) {
+        -> new SupersamplingRenderer(spec, xscale, yscale, target, recipe) {
           @Override
           protected PointWithNormal locateColumn(double x, double y) {
             return local2global(x, y);

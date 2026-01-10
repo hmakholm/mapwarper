@@ -1,7 +1,7 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
-import static net.makholm.henning.mapwarper.gui.projection.TurnedProjection.turnCounterclockwise;
 import static net.makholm.henning.mapwarper.gui.projection.OrthoProjection.ORTHO;
+import static net.makholm.henning.mapwarper.gui.projection.TurnedProjection.turnCounterclockwise;
 
 import java.awt.geom.AffineTransform;
 
@@ -85,11 +85,10 @@ public class QuickWarp extends BaseProjection {
       fallbackChain = fallback.getChain();
     }
 
-    var supersamplingRecipe = SupersamplingRenderer.prepareSupersampler(spec,
-        xscale, yscale, supersamplingChain);
+    var recipe = SupersamplingRenderer.prepareSupersampler(spec,
+        xscale, yscale, supersamplingChain, fallbackChain);
     return target
-        -> new SupersamplingRenderer(spec, xscale, yscale, target,
-            supersamplingRecipe, fallbackChain) {
+        -> new SupersamplingRenderer(spec, xscale, yscale, target, recipe) {
           @Override
           protected PointWithNormal locateColumn(double x, double y) {
             return new PointWithNormal(

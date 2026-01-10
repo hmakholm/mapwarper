@@ -12,6 +12,8 @@ public class FallbackChain {
   public static final int BITS_PER_ATTEMPT = 7;
   public static final int MAX_ATTEMPTS     = 9;
 
+  public static final int ATTEMPT_MASK = (1 << BITS_PER_ATTEMPT)-1;
+
   private final int targetZoom;
 
   private final int mainNaturalZoom;

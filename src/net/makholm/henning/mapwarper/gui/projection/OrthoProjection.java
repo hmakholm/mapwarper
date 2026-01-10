@@ -9,10 +9,10 @@ import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.gui.Toggles;
+import net.makholm.henning.mapwarper.gui.maprender.BasicRenderer;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
-import net.makholm.henning.mapwarper.gui.maprender.SimpleRenderer;
 
 public final class OrthoProjection extends BaseProjection {
 
@@ -56,7 +56,7 @@ public final class OrthoProjection extends BaseProjection {
       chain = fallback.weakChain(WEAK_SHRINK);
     }
     return target
-        -> new SimpleRenderer(spec, xpixsize, ypixsize, target, chain) {
+        -> new BasicRenderer(spec, xpixsize, ypixsize, target, chain) {
           @Override
           protected PointWithNormal locateColumn(double x, double y) {
             return new PointWithNormal(Point.at(x,y), commonNormal);

@@ -11,12 +11,19 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
 
   final SupersamplingRecipe supersample;
 
+  /**
+   * @param source
+   * The only source chain used for supersampling. Downloads of these
+   * may be selectively suppressed.
+   * @param fallback
+   * These are tried when the supersampling fails; the download bits here
+   * are generally respected.
+   */
   public static SupersamplingRecipe prepareSupersampler(
       LayerSpec spec, double xscale, double yscale,
-      long supersamplingChain) {
-    if( supersamplingChain == 0 ||
-        !Toggles.SUPERSAMPLE.setIn(spec.flags()))
-      return null;
+      long source, long fallback) {
+    if( source == 0 || !Toggles.SUPERSAMPLE.setIn(spec.flags()))
+      return new SupersamplingRecipe(source, fallback);
 
     // If the target pixels are very large compared to UI pixels, we
     // don't urgently _need_ to supersample, and here would be the place
@@ -30,33 +37,34 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
 
     int idealSamples = (int)(1.61 * tilePixelsPerDisplayPixel + 5);
     return new SupersamplingRecipe(Math.min(idealSamples, 40),
-        supersamplingChain);
+        source, fallback);
   }
 
   protected SupersamplingRenderer(LayerSpec spec,
       double xpixsize, double ypixsize, RenderTarget target,
-      SupersamplingRecipe supersample, long fallbackChain) {
-    super(spec, xpixsize, ypixsize, target, fallbackChain);
+      SupersamplingRecipe supersample) {
+    super(spec, xpixsize, ypixsize, target);
     this.supersample = supersample;
     this.renderPassesWanted = 3;
-  }
-
-  protected long combinedChain() {
-    if( supersample == null )
-      return fallbackChain;
-    else
-      return fallbackChain | supersample.supersamplingChain;
   }
 
   @Override
   protected boolean renderColumn(int col, double xmid,
       int ymin, int ymax, double ybase) {
-    if( supersample == null || renderPassesCompleted < 2 )
-      return super.renderColumn(col, xmid, ymin, ymax, ybase);
+    return renderSupersampled(col, xmid, ymin, ymax, ybase, true);
+  }
+
+  protected final boolean renderSupersampled(int col, double xmid,
+      int ymin, int ymax, double ybase, boolean allowDownload) {
+    long downloadlessChain = FallbackChain.neverDownload(supersample.source);
+    long source = allowDownload ? supersample.source : downloadlessChain;
+
+    if( supersample.numSamples == 1 || renderPassesCompleted < 2 )
+      return renderWithoutSupersampling(
+          col, xmid, ymin, ymax, ybase, source | supersample.fallback, 0);
 
     float[] colMultipliers = supersample.multipliers[col%8];
     int numSamples = supersample.numSamples;
-    long downloadlessChain = supersample.downloadlessChain;
 
     PointWithNormal midBase = null;
     PointWithNormal leftBase = locateColumn(xmid - xscale/2, ybase);
@@ -93,7 +101,7 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
           if( midBase == null )
             midBase = locateColumn(xmid, ybase+yscale/2);
           Point p = midBase.pointOnNormal(row * yscale);
-          rgb = getPixel(p, supersample.supersamplingChain | fallbackChain);
+          rgb = getPixel(p, source | supersample.fallback);
           if( rgb == RGB.OUTSIDE_BITMAP )
             hadAllPixels = false;
           else
@@ -115,15 +123,23 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
   }
 
   public static class SupersamplingRecipe {
-    final long supersamplingChain, downloadlessChain;
+    final long source, fallback;
     final int numSamples;
     final float[][] multipliers;
     final int oversampleScaler;
 
-    SupersamplingRecipe(int numSamples, long supersamlingChain) {
-      this.supersamplingChain = supersamlingChain;
-      this.downloadlessChain = FallbackChain.neverDownload(supersamplingChain);
+    SupersamplingRecipe(long source, long fallback) {
+      this.numSamples = 1;
+      this.source = source;
+      this.fallback = fallback;
+      this.multipliers = null;
+      this.oversampleScaler = 0;
+    }
+
+    SupersamplingRecipe(int numSamples, long source, long fallback) {
       this.numSamples = numSamples;
+      this.source = source;
+      this.fallback = fallback;
 
       // Create sample points as a 2-Hammersley set scaled up to 8×8 pixel
       // boxes. This ought to be less sensitive to sharp edges almost parallel

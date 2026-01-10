@@ -121,7 +121,9 @@ abstract class CommonRenderer implements RenderWorker {
 
   protected final int getPixel(long coords, long fallbackSpec) {
     for(int attempt = 0;; attempt++) {
-      long aspec = (fallbackSpec >> attempt * FallbackChain.BITS_PER_ATTEMPT);
+      long aspec = (fallbackSpec >> attempt * FallbackChain.BITS_PER_ATTEMPT)
+          & FallbackChain.ATTEMPT_MASK;
+
       if( aspec == 0 ) return RGB.OUTSIDE_BITMAP;
       int zoom = (int)aspec & FallbackChain.ZOOM_MASK;
       if( zoom == 0 ) continue;
@@ -130,7 +132,9 @@ abstract class CommonRenderer implements RenderWorker {
       long shortcode = Tile.codedContaining(coords, zoom);
       long shifted = shortcode >> (Coords.BITS - zoom);
       int lci = (attempt << 2) + ((int)shifted & 1) + ((int)(shifted >> 31) & 2);
-      if( localCacheIndex[lci] == shortcode ) {
+      long lciTag = localCacheIndex[lci];
+      if( lciTag == (shortcode | aspec) ||
+          lciTag == (shortcode | aspec | FallbackChain.DOWNLOAD_BIT) ) {
         bitmap = localCache[lci];
       } else {
         NeededTile nt = new NeededTile(
@@ -159,7 +163,7 @@ abstract class CommonRenderer implements RenderWorker {
             nt.watchForDownload();
         }
         localCache[lci] = bitmap;
-        localCacheIndex[lci] = shortcode;
+        localCacheIndex[lci] = shortcode | aspec;
       }
       if( bitmap != null ) {
         int rgb = bitmap.pixelAt(coords);
@@ -185,6 +189,13 @@ abstract class CommonRenderer implements RenderWorker {
   private static final int LCACHESIZE = FallbackChain.MAX_ATTEMPTS * 4;
 
   private final TileBitmap[] localCache = new TileBitmap[LCACHESIZE];
+  /**
+   * In order to allow different fallback chains in different parts of
+   * the download target, the values here are tile shortcodes ORed with
+   * the attempt specification bits! An attempt specification is only 7
+   * bits, which means it is shorter than than the distance between any
+   * shortcodes, so this does not lose information.
+   */
   private final long[] localCacheIndex = new long[LCACHESIZE];
 
   private final Map<NeededTile, NeededTile> tileDict = new LinkedHashMap<>();
