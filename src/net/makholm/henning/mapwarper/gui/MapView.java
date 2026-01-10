@@ -461,15 +461,21 @@ public class MapView {
     }
   }
 
+  Projection makeScaledWarpedProjection(Tileset tiles) throws CannotWarp {
+    if( tiles == null ) tiles = mainTiles;
+    double squeeze = Math.rint(projection.getSqueeze());
+    if( squeeze <= 1 ) squeeze = 5;
+    double scale = Math.min(projection.scaleAcross(),
+        Coords.zoom2pixsize(tiles.guiTargetZoom()));
+    var baseWarp = makeWarpedProjection();
+    return baseWarp.withScaleAndSqueeze(scale, squeeze);
+  }
+
   void warpCommand(Tileset targetTiles) {
     try {
-      double squeeze = Math.rint(projection.getSqueeze());
-      if( squeeze <= 1 ) squeeze = 5;
-      double scale = Math.min(projection.scaleAcross(),
-          Coords.zoom2pixsize(targetTiles.guiTargetZoom()));
-      var baseWarp = makeWarpedProjection();
+      Projection warped = makeScaledWarpedProjection(targetTiles);
       setMainTiles(targetTiles);
-      setProjection(baseWarp.withScaleAndSqueeze(scale, squeeze));
+      setProjection(warped);
     } catch( WarpedProjection.CannotWarp e ) {
       window.showErrorBox("Cannot create warped projection: %s", e.getMessage());
     }

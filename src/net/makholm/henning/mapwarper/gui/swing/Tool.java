@@ -68,6 +68,10 @@ public abstract class Tool extends Command implements MouseAction {
     return (flags & InputEvent.ALT_DOWN_MASK) != 0;
   }
 
+  public static boolean isQuickCommand(int flags) {
+    return (flags & QUICK_COM_MASK) != 0;
+  }
+
   public static final MouseAction DRAG_THE_MAP = (p,m) -> why -> {
     throw BadError.of("DRAG_THE_MAP is recognized by ==; this is never called.");
   };
@@ -149,13 +153,16 @@ public abstract class Tool extends Command implements MouseAction {
 
   // -------------------------------------------------------------------------
 
+  private static final int QUICK_COM_MASK = 1 << 31;
+
   private final Map<Integer, Command> quickCommands = new LinkedHashMap<>();
 
   private Command makeQuickCommand(int modifier, String niceName) {
     return quickCommands.computeIfAbsent(modifier, m0 ->
     new Command(owner, codename + "%" + modifier, niceName) {
       private ToolResponse tr() {
-        return owner.swing.quickToolResponse(Tool.this, modifier);
+        return owner.swing.quickToolResponse(Tool.this,
+            modifier | QUICK_COM_MASK);
       }
       @Override
       public boolean makesSenseNow() {

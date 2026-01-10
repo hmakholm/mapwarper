@@ -8,6 +8,7 @@ import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
 import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.QuickWarp;
+import net.makholm.henning.mapwarper.gui.projection.WarpedProjection.CannotWarp;
 import net.makholm.henning.mapwarper.gui.swing.Command;
 
 public class QuickwarpTool extends ProjectionSwitchingTool {
@@ -27,8 +28,16 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
   @Override
   protected ToolResponse clickResponse(Point pos, int modifiers) {
     Projection orig = mapView().projection;
-    if( orig.base().createAffine() != null )
-      return NO_RESPONSE;
+    if( orig.base().createAffine() != null ) {
+      if( !isQuickCommand(modifiers) ) return NO_RESPONSE;
+      try {
+        Point global = translator().local2global(pos);
+        orig = mapView().makeScaledWarpedProjection(null);
+        pos = orig.createWorker().global2local(global);
+      } catch( CannotWarp e ) {
+        return NO_RESPONSE;
+      }
+    }
     Projection proj= orig.makeQuickwarp(pos, altHeld(modifiers));
     if( proj.equals(orig) )
       return NO_RESPONSE;
