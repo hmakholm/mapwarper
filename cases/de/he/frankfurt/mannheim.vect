@@ -3,7 +3,7 @@ coords web-mercator 2^30
 usebounds bound/niederrad.vect
 usebounds bound/hbf.vect
 usebounds bound/riedbahn.vect
-node 562528402::364003141 1
+node 562521753::364018092
   straight
 node 562592564::363858845 1
 node 562594319::363855223 1
