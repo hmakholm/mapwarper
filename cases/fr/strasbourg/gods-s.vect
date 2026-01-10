@@ -1,7 +1,6 @@
 coords web-mercator 2^30
 usebounds bound.vect
-node 559900579::370358214
-  weak
+node 559900098::370352727
 node 559900833::370369679
   straight
 node 559900788::370371586
