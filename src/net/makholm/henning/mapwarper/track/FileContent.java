@@ -81,6 +81,10 @@ public final class FileContent extends LongHashed {
     return new LinkedHashSet<>(chains);
   }
 
+  public boolean chainsEquals(Set<SegmentChain> other) {
+    return chains.equals(other);
+  }
+
   public boolean contains(SegmentChain chain) {
     return chains.contains(chain);
   }

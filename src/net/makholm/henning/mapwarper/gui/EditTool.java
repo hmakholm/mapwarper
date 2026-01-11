@@ -68,6 +68,9 @@ class EditTool extends Tool {
 
   @Override
   public MouseAction drag(Point p1, int mod1) {
+    var clickAction = decideAction(p1, mod1, p1, mod1);
+    if( switchChainIfThatIsTheOnlyEffect(clickAction) )
+      mapView().collectVisibleTrackData();
     return (p2, mod2) -> {
       var action = decideAction(p1, mod1, p2, mod2);
       if( action == null )
@@ -430,6 +433,8 @@ class EditTool extends Tool {
         SwingUtils.beep();
         return;
       }
+      if( switchChainIfThatIsTheOnlyEffect(action) )
+        return;
       if( action.fileContent != null ||
           !activeFileContent().contains(action.editingChain) ) {
         Set<SegmentChain> chains = action.fileContent;
@@ -449,6 +454,15 @@ class EditTool extends Tool {
       mapView().setEditingChain(action.editingChain);
       enableSameKeyCancel();
     }
+  }
+
+  private boolean switchChainIfThatIsTheOnlyEffect(ProposedAction action) {
+    if( action != null &&
+        activeFileContent().chainsEquals(action.fileContent) ) {
+      mapView().setEditingChain(action.editingChain);
+      return true;
+    }
+    return false;
   }
 
   private CircleOverlay circleCursor(Point local, Point global) {
