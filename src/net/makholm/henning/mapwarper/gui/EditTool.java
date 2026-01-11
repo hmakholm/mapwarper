@@ -63,7 +63,7 @@ class EditTool extends Tool {
     if( action == null )
       action = noopAction(local);
     boolean preview = shiftHeld(modifiers) || mouseHeld(modifiers);
-    return new EditToolResponse(action, preview, true, modifiers);
+    return new EditToolResponse(action, preview, true);
   }
 
   @Override
@@ -73,7 +73,7 @@ class EditTool extends Tool {
       if( action == null )
         action = noopAction(p2);
       var enable = new AxisRect(mapView().visibleArea).contains(p2);
-      return new EditToolResponse(action, true, enable, mod1);
+      return new EditToolResponse(action, true, enable);
     };
   }
 
@@ -392,7 +392,7 @@ class EditTool extends Tool {
     final VectorOverlay cursor;
 
     EditToolResponse(ProposedAction action,
-        boolean preview, boolean enable, int mod1) {
+        boolean preview, boolean enable) {
       this.enableExecute = enable;
       this.action = action;
       if( preview ) {
@@ -404,7 +404,7 @@ class EditTool extends Tool {
         }
         tracks.setEditingChain(action.editingChain);
         tracks.freeze();
-        cursor = circleCursor(mapView().mouseLocal, action.newGlobal, mod1);
+        cursor = circleCursor(mapView().mouseLocal, action.newGlobal);
       } else if( action.highlight != null ) {
         tracks = mapView().currentVisible.clone();
         tracks.setHighlight(action.highlight());
@@ -412,7 +412,7 @@ class EditTool extends Tool {
         cursor = null;
       } else {
         tracks = null;
-        cursor = circleCursor(mapView().mouseLocal, action.newGlobal, mod1);
+        cursor = circleCursor(mapView().mouseLocal, action.newGlobal);
       }
     }
 
@@ -451,8 +451,8 @@ class EditTool extends Tool {
     }
   }
 
-  private CircleOverlay circleCursor(Point local, Point global, int mod1) {
-    int rgb = ctrlHeld(mod1) ? DELETE_HIGHLIGHT : kind.rgb;
+  private CircleOverlay circleCursor(Point local, Point global) {
+    int rgb = kind.rgb;
     if( global instanceof TrackNode node ) {
       int circleDiameter = diameterAt(node);
       if( circleDiameter > 15) {
