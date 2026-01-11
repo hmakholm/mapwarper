@@ -62,7 +62,8 @@ class EditTool extends Tool {
     var action = decideAction(local, modifiers, local, modifiers);
     if( action == null )
       action = noopAction(local);
-    boolean preview = shiftHeld(modifiers) || mouseHeld(modifiers);
+    boolean preview =
+        shiftHeld(modifiers) || altHeld(modifiers) || mouseHeld(modifiers);
     return new EditToolResponse(action, preview, true);
   }
 
@@ -400,6 +401,7 @@ class EditTool extends Tool {
       this.action = action;
       if( preview ) {
         tracks = mapView().currentVisible.clone();
+        tracks.setHighlight(action.highlight());
         if( action.fileContent != null ) {
           tracks.setCurrentChains(action.fileContent);
         } else {

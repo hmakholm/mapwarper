@@ -410,8 +410,8 @@
        ikke skærer de segmenter der allerede rører kunden (eller, i
        tilfælde af en endeknude, forlængensen af sidste segment),
        sker der ingenting.
-     - Alt-KLIK på ydersiden af et segment: Fjern segmentet og forlæng
-       dets nabosegmenter til deres skæringspunkt.
+     - Alt-KLIK på et segment: Fjern segmentet og forlæng dets
+       nabosegmenter til deres skæringspunkt.
    Særhandlinger for alle typer _spor_:
      - Alt-TRÆK i en knude: Knuden flyttes, men kun langs det
        udglattede spors tangent i punktet.

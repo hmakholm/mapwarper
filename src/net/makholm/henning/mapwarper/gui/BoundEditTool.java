@@ -81,16 +81,7 @@ class BoundEditTool extends BoundSnappingTool {
         if( got != null ) return got;
       }
     }
-
-    ChainRef<?> closestSeg = FindClosest.curve(
-        chain.curveTree.get(), ChainRef::data,
-        Double.POSITIVE_INFINITY,
-        gdragged.a,
-        mapView().projection.scaleAcross());
-    if( closestSeg != null )
-      return extrapolateSegmentAway(chain, closestSeg.index(), gdragged.b);
-    else
-      return null;
+    return null;
   }
 
   private ProposedAction extendFirst(SegmentChain chain,
@@ -167,8 +158,12 @@ class BoundEditTool extends BoundSnappingTool {
       return new LineSeg(chain.nodes.get(index), chain.nodes.get(index+1));
   }
 
-  private ProposedAction extrapolateSegmentAway(SegmentChain chain,
-      int index, Point mouseGlobal) {
+  @Override
+  protected ProposedAction actionFromEditingSegment(int index,
+      Point p1, int mod1, Point p2, int mod2) {
+    if( !altHeld(mod2) )
+      return super.actionFromEditingSegment(index, p1, mod1, p2, mod2);
+    var chain = editingChain();
     if( index <= 0 || index >= chain.numSegments-1 )
       return null;
     TrackNode n1 = chain.nodes.get(index-1);
@@ -176,31 +171,45 @@ class BoundEditTool extends BoundSnappingTool {
     TrackNode n3 = chain.nodes.get(index+1);
     TrackNode n4 = chain.nodes.get(index+2);
     LineSeg n12 = n1.to(n2), n23 = n2.to(n3), n34 = n3.to(n4);
-    boolean rightOfN23 = n23.isPointToTheRight(mouseGlobal);
-    if( rightOfN23 == n12.isPointToTheRight(mouseGlobal) ||
-        rightOfN23 == n34.isPointToTheRight(mouseGlobal) )
-      return null;
 
     var pwn1 = new PointWithNormal(n1, n12.normalize());
     var dist1 = pwn1.intersectInfiniteLineWithNormal(n34);
     var pwn4 = new PointWithNormal(n4, n34.reverse().normalize());
     var dist4 = pwn4.intersectInfiniteLineWithNormal(n12);
 
-    if( dist1 < 0 || dist4 < 0 )
+    var maxdist = n12.length() + n23.length() + n34.length();
+    if( dist1 < -4 || dist1 > maxdist || dist4 < -4 || dist4 > maxdist )
       return null;
 
-    TrackNode nmid = global2node(pwn1.pointOnNormal(dist1));
+    List<TrackNode> mnodes;
+    List<SegKind> mkinds;
+    if( dist1 <= 4 || dist4 <= 4 ) {
+      // The intersection point practically equals n1, so the first of the
+      // three segments disappears
+      mnodes = List.of();
+      mkinds = List.of(chain.kinds.get(index-1));
+    } else if( dist4 <= 4 ) {
+      mnodes = List.of();
+      mkinds = List.of(chain.kinds.get(index+1));
+      // we should replace the three segments with a _single_ one
+      mnodes = List.of();
+      mkinds = List.of(chain.kinds.get(index));
+    } else {
+      mnodes = List.of(global2node(pwn1.pointOnNormal(dist1)));
+      mkinds = List.of(chain.kinds.get(index-1), chain.kinds.get(index+1));
+    }
     var nodes = TreeList.concat(
         chain.nodes.subList(0, index),
-        List.of(nmid),
+        mnodes,
         chain.nodes.subList(index+2, chain.numNodes));
     var kinds = TreeList.concat(
-        chain.kinds.subList(0, index),
-        chain.kinds.subList(index+1, chain.numSegments));
+        chain.kinds.subList(0, index-1),
+        mkinds,
+        chain.kinds.subList(index+2, chain.numSegments));
     var newChain = new SegmentChain(nodes, kinds, chainClass);
 
-    var highlight = new TrackHighlight(newChain, index-1, index+1, kind.rgb);
-    return new ProposedAction("Contract bound node", highlight, null,
+    var highlight = new TrackHighlight(chain, index, index+1, kind.rgb);
+    return new ProposedAction("Contract bound segment", highlight, null,
         null, newChain);
   }
 
