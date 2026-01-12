@@ -1,7 +1,6 @@
 package net.makholm.henning.mapwarper.gui.swing;
 
 import java.util.Locale;
-import java.util.Objects;
 
 import javax.swing.JFrame;
 
@@ -12,7 +11,6 @@ import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.projection.BaseProjection;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
-import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 
 public class WindowTitle {
@@ -68,22 +66,9 @@ public class WindowTitle {
       sb.append(" \u2013 ");
 
       BaseProjection baseproj = projection.base();
-      if( baseproj.isOrtho() ) {
-        // This is the default, nothing to show
-      } else if( baseproj.isQuickwarp() ) {
-        sb.append("quickwarp ");
-      } else if( baseproj instanceof WarpedProjection wp ) {
-        sb.append("warped");
-        if( !Objects.equals(wp.sourcename0, file.path) ) {
-          sb.append('(');
-          sb.append(wp.sourcename0 == null ? "anonymous" :
-            wp.sourcename0.getFileName().toString());
-          sb.append(')');
-        }
-        sb.append(' ');
-      } else {
-        sb.append(baseproj.getClass().getSimpleName()).append(' ');
-      }
+      String desc = baseproj.describe(file.path);
+      if( !desc.isEmpty() )
+        sb.append(desc).append(' ');
 
       double squeeze = projection.getSqueeze();
       if( squeeze != 1 || !projection.base().isOrtho() ) {

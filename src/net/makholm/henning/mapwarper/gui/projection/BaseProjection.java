@@ -1,6 +1,8 @@
 
 package net.makholm.henning.mapwarper.gui.projection;
 
+import java.nio.file.Path;
+
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
@@ -11,10 +13,6 @@ import net.makholm.henning.mapwarper.util.MathUtil;
 public abstract class BaseProjection extends Projection {
 
   public boolean isOrtho() {
-    return false;
-  }
-
-  public boolean isQuickwarp() {
     return false;
   }
 
@@ -68,5 +66,12 @@ public abstract class BaseProjection extends Projection {
 
   protected abstract RenderFactory makeRenderFactory(LayerSpec spec,
       double xpixsize, double ypixsize);
+
+  abstract public String describe(Path currentFile);
+
+  @Override
+  public String toString() {
+    return describe(null);
+  }
 
 }

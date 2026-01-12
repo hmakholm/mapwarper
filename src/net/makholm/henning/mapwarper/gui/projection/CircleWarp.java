@@ -1,6 +1,7 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
 import java.awt.geom.AffineTransform;
+import java.nio.file.Path;
 import java.util.List;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
@@ -35,11 +36,6 @@ public class CircleWarp extends BaseProjection {
     this.radius = radiusVector.length();
     this.degxscale = (180/Math.PI) / radius;
     this.bearing0 = radiusVector.bearing();
-  }
-
-  @Override
-  public boolean isQuickwarp() {
-    return true;
   }
 
   @Override
@@ -212,6 +208,11 @@ public class CircleWarp extends BaseProjection {
     hash = hashStep(hash);
     hash ^= Double.doubleToRawLongBits(focus.y);
     return hash;
+  }
+
+  @Override
+  public String describe(Path currentFile) {
+    return "circlewarp";
   }
 
 }

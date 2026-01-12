@@ -242,4 +242,14 @@ public final class WarpedProjection extends BaseProjection {
         o.usedFiles.equals(usedFiles);
   }
 
+  @Override
+  public String describe(Path currentFile) {
+    if( Objects.equals(currentFile, sourcename0) )
+      return "warped";
+    else if( sourcename0 == null )
+      return "warped(anonymous)";
+    else
+      return "warped("+sourcename0.getFileName()+")";
+  }
+
 }

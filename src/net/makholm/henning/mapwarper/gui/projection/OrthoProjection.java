@@ -1,6 +1,7 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
 import java.awt.geom.AffineTransform;
+import java.nio.file.Path;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
@@ -83,6 +84,11 @@ public final class OrthoProjection extends BaseProjection {
   @Override
   protected long longHashImpl() {
     return 202412150848L;
+  }
+
+  @Override
+  public String describe(Path currentFile) {
+    return "";
   }
 
   @Override

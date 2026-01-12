@@ -4,6 +4,7 @@ import static net.makholm.henning.mapwarper.gui.projection.OrthoProjection.ORTHO
 import static net.makholm.henning.mapwarper.gui.projection.TurnedProjection.turnCounterclockwise;
 
 import java.awt.geom.AffineTransform;
+import java.nio.file.Path;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
@@ -38,11 +39,6 @@ public class QuickWarp extends BaseProjection {
     var yscale = yBecomes.length();
     var squeeze = xBecomes.length()/yscale;
     return base.withScaleAndSqueeze(yscale, squeeze);
-  }
-
-  @Override
-  public boolean isQuickwarp() {
-    return true;
   }
 
   @Override
@@ -121,6 +117,16 @@ public class QuickWarp extends BaseProjection {
     hash = hashStep(hash);
     hash ^= Double.doubleToLongBits(direction.y);
     return hash;
+  }
+
+  @Override
+  public String describe(Path currentFile) {
+    return "quickwarp";
+  }
+
+  @Override
+  public String toString() {
+    return "quickwarp "+direction.bearingString()+"\u00B0";
   }
 
 }
