@@ -15,6 +15,7 @@ import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.georaster.Tile;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
+import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.FilePane;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
@@ -647,6 +648,30 @@ public class MapView {
       cachedTranslator = projection.createWorker();
     }
     return cachedTranslator;
+  }
+
+  // -------------------------------------------------------------------------
+
+  private int cachedGauge;
+  private double cachedGaugeScale;
+  private double cachedGaugeMinY;
+  private double cachedGaugeMaxY;
+
+  public int gaugeInPixels(Point global) {
+    double scale = projection.scaleAcross();
+    if( scale != cachedGaugeScale ||
+        global.y < cachedGaugeMinY ||
+        global.y > cachedGaugeMaxY ) {
+      double unitsPerMeter = WebMercator.unitsPerMeter(global.y);
+      cachedGauge = (int)Math.round(1.435 * unitsPerMeter  / scale);
+      // a rough estimate of the distance in global coordinates it
+      // takes until the cached value is one pixel off
+      double validity = Coords.EARTH_SIZE / (2 * Math.PI) / cachedGauge;
+      cachedGaugeScale = scale;
+      cachedGaugeMinY = global.y - validity;
+      cachedGaugeMaxY = global.y + validity;
+    }
+    return cachedGauge;
   }
 
 }

@@ -1,32 +1,23 @@
 package net.makholm.henning.mapwarper.gui;
 
-import static java.util.Collections.singletonList;
-
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.Coords;
-import net.makholm.henning.mapwarper.georaster.WebMercator;
-import net.makholm.henning.mapwarper.gui.overlays.CircleOverlay;
-import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.track.ChainClass;
 import net.makholm.henning.mapwarper.track.ChainRef;
-import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackHighlight;
 import net.makholm.henning.mapwarper.track.TrackNode;
-import net.makholm.henning.mapwarper.track.VisibleTrackData;
 import net.makholm.henning.mapwarper.util.TreeList;
 
-class EditTool extends Tool {
+class EditTool extends Tool implements StandardAction.Context {
   protected final SegKind kind;
   protected final List<SegKind> kindx1;
   protected final String kindDescription;
@@ -35,7 +26,7 @@ class EditTool extends Tool {
   protected EditTool(Commands owner, SegKind kind, String kindDescription) {
     super(owner, kind.toString(), "Draw "+kindDescription+"s");
     this.kind = kind;
-    this.kindx1 = singletonList(kind);
+    this.kindx1 = List.of(kind);
     this.kindDescription = kindDescription;
     this.chainClass = kind.chainClass();
 
@@ -53,31 +44,37 @@ class EditTool extends Tool {
     return other instanceof EditTool;
   }
 
-  record ProposedAction(String undoDesc,
-      TrackHighlight highlight, Point newGlobal,
-      Set<SegmentChain> fileContent, SegmentChain editingChain) {}
+  @Override
+  public void anActionHasExecuted() {
+    enableSameKeyCancel();
+  }
 
   @Override
   public ToolResponse mouseResponse(Point local, int modifiers) {
     var action = decideAction(local, modifiers, local, modifiers);
     if( action == null )
       action = noopAction(local);
-    boolean preview =
-        shiftHeld(modifiers) || altHeld(modifiers) || mouseHeld(modifiers);
-    return new EditToolResponse(action, preview, true);
+    if( shiftHeld(modifiers) || mouseHeld(modifiers) )
+      action = action.withPreview();
+    return action.freeze();
   }
 
   @Override
   public MouseAction drag(Point p1, int mod1) {
     var clickAction = decideAction(p1, mod1, p1, mod1);
-    if( switchChainIfThatIsTheOnlyEffect(clickAction) )
+    if( clickAction != null && clickAction.executeIfSelectingChain() )
       mapView().collectVisibleTrackData();
     return (p2, mod2) -> {
       var action = decideAction(p1, mod1, p2, mod2);
       if( action == null )
         action = noopAction(p2);
-      var enable = new AxisRect(mapView().visibleArea).contains(p2);
-      return new EditToolResponse(action, true, enable);
+      var response = action.withPreview().freeze();
+      if( !new AxisRect(mapView().visibleArea).contains(p2) ) {
+        return new WrappedToolResponse(response) {
+          @Override public void execute(ExecuteWhy why) { SwingUtils.beep(); }
+        };
+      } else
+        return response;
     };
   }
 
@@ -133,8 +130,8 @@ class EditTool extends Tool {
       // if it's an endpoint.
       var chain = editingChain();
       if( chain.numSegments <= 1 ) {
-        return new ProposedAction("Delete chain",
-            new TrackHighlight(chain, DELETE_HIGHLIGHT), null, null, null);
+        var highlight = new TrackHighlight(chain, DELETE_HIGHLIGHT);
+        return killTheChain("Delete chain").with(highlight);
       } else if( index == 0 ) {
         return actionFromEditingSegment(0, p1, mod1, p2, mod2);
       } else if( index == chain.numNodes-1 ) {
@@ -146,16 +143,14 @@ class EditTool extends Tool {
         kinds.remove(index);
         kinds.set(index-1, kind);
         var newChain = new SegmentChain(nodes, kinds, chainClass);
-        return new ProposedAction("Delete node",
-            new TrackHighlight(chain, index-1, index+1, kind.rgb), null,
-            null, newChain);
+        var highlight = new TrackHighlight(chain, index-1, index+1, kind.rgb);
+        return rewriteTo("Delete node", newChain).with(highlight);
       }
     } else if( p1.dist(p2) < 3 ) {
       // This is probably just a plain click. If you want to actually move
       // a node this little, zoom in first!
-      return new ProposedAction("!Don't move node",
-          new TrackHighlight(editingChain(), index, 0xFFFFFF), null,
-          null, editingChain());
+      var hl = new TrackHighlight(editingChain(), index, 0xFFFFFF);
+      return noopAction("!Don't move node").with(hl);
     } else {
       return actionForDraggingNode(index, mod1, p2, mod2);
     }
@@ -168,7 +163,7 @@ class EditTool extends Tool {
     var nodes = new ArrayList<>(chain.nodes);
     nodes.set(index, n2);
     var newChain = new SegmentChain(nodes, chain.kinds, chainClass);
-    return new ProposedAction("Move node", null, n2, null, newChain);
+    return rewriteTo("Move node", newChain).with(n2);
   }
 
   static final int DELETE_HIGHLIGHT = 0xFF0000;
@@ -183,26 +178,18 @@ class EditTool extends Tool {
       TrackHighlight highlight =
           new TrackHighlight(chain, index, index+1, DELETE_HIGHLIGHT);
       if( chain.numSegments <= 1 ) {
-        return new ProposedAction("Delete chain", highlight, null,
-            null, null);
+        return killTheChain("Delete chain").with(highlight);
       } else if( index == 0 ) {
-        return new ProposedAction("Delete segment", highlight, null,
-            null, chain.subchain(1,chain.numSegments));
+        return rewriteTo("Delete segment",
+            chain.subchain(1,chain.numSegments)).with(highlight);
       } else if( index == chain.numSegments-1 ) {
-        return new ProposedAction("Delete segment", highlight, null,
-            null, chain.subchain(0, index));
+        return rewriteTo("Delete segment",
+            chain.subchain(0, index)).with(highlight);
       } else {
         var front = chain.subchain(0, index);
         var back = chain.subchain(index+1, chain.numSegments);
-        var allChains = activeFileContent().chainsCopy();
-        allChains.remove(chain);
-        allChains.add(front);
-        allChains.add(back);
-        var localNodes = chain.localize(translator()).nodes;
-        var frontDist = localNodes.get(index).dist(p2);
-        var backDist = localNodes.get(index+1).dist(p2);
-        return new ProposedAction("Delete segment", highlight, null,
-            allChains, frontDist < backDist ? front : back);
+        return StandardAction.split(this, "Delete segment", front, p2, back)
+            .with(highlight);
       }
     } else if( chain.kinds.get(index) == kind ) {
       return actionInFreeSpace(p1, mod1, p2, mod2);
@@ -210,9 +197,8 @@ class EditTool extends Tool {
       var kinds = new ArrayList<>(chain.kinds);
       kinds.set(index, kind);
       var newChain = new SegmentChain(chain.nodes, kinds, chainClass);
-      return new ProposedAction("Change to @",
-          new TrackHighlight(chain, index, index+1, kind.rgb), null,
-          null, newChain);
+      var highlight = new TrackHighlight(chain, index, index+1, kind.rgb);
+      return rewriteTo("Change to @", newChain).with(highlight);
     }
   }
 
@@ -245,16 +231,11 @@ class EditTool extends Tool {
         TreeList.concat(a.nodes, b.nodes),
         TreeList.concat(a.kinds, TreeList.concat(kindx1, b.kinds)));
 
-    var fileContent = activeFileContent().chainsCopy();
-    fileContent.remove(a);
-    fileContent.remove(b);
-    fileContent.add(joined);
-
     TrackHighlight highlight =
         new TrackHighlight(joined, a.numSegments, a.numSegments+1, kind.rgb);
 
-    return new ProposedAction("Join segment chains", highlight, null,
-        fileContent, joined);
+    return StandardAction.join(this, "Join segment chains",
+        List.of(a,b), joined).with(highlight);
   }
 
   protected ProposedAction actionFromOtherSegment(ChainRef<?> which,
@@ -264,33 +245,32 @@ class EditTool extends Tool {
 
   protected ProposedAction selectEditingChain(ChainRef<?> which, Point p2) {
     var theChain = which.chain();
-    return new ProposedAction("Select active chain",
-        new TrackHighlight(theChain, 0xEEEE99), local2node(p2),
-        activeFileContent().chainsCopy(), theChain);
+    return StandardAction.switchChain(mapView(), theChain);
   }
 
   protected ProposedAction actionWithNoEditingChain(
       Point p1, int mod1, Point p2, int mod2) {
+    if( altHeld(mod1) ) return null;
     if( p1.dist(p2) < 5 ) {
       TrackNode n = local2node(p1);
-      return new ProposedAction("Create new node", null, n,
-          null, singletonChain(n));
+      return createChain("Create new node", singletonChain(n)).with(n);
     } else {
       TrackNode n1 = local2node(p1);
       TrackNode n2 = local2node(p2);
       var chain = new SegmentChain(Arrays.asList(n1, n2), kindx1);
-      return new ProposedAction("Draw new @", null, n2, null, chain);
+      return createChain("Draw new @", chain).with(n2);
     }
   }
 
   protected ProposedAction actionInFreeSpace(
       Point p1, int mod1, Point p2, int mod2) {
+    if( altHeld(mod1) ) return null;
     SegmentChain chain = editingChain();
     if( chain.numNodes == 1 ) {
       TrackNode n1 = chain.nodes.get(0);
       TrackNode n2 = local2node(p2);
       var newChain = new SegmentChain(Arrays.asList(n1, n2), kindx1);
-      return new ProposedAction("Draw new @", null, n2, null, newChain);
+      return rewriteTo("Draw new @", newChain).with(n2);
     }
 
     // Use p1 to decide _where_ to insert the point, but p2 for where
@@ -306,18 +286,18 @@ class EditTool extends Tool {
     if( i == 0 ) {
       if( shouldAppend(gp1, chain.nodes.get(0), chain.nodes.get(1)) ) {
         var newChain = new SegmentChain(
-            TreeList.concat(singletonList(n), chain.nodes),
+            TreeList.concat(List.of(n), chain.nodes),
             TreeList.concat(kindx1, chain.kinds));
-        return new ProposedAction("Append @", null, n, null, newChain);
+        return rewriteTo("Append @", newChain).with(n);
       } else {
         insertBefore = false;
       }
     } else if( i == chain.numNodes-1 ) {
       if( shouldAppend(gp1, chain.nodes.get(i), chain.nodes.get(i-1)) ) {
         var newChain = new SegmentChain(
-            TreeList.concat(chain.nodes, singletonList(n)),
+            TreeList.concat(chain.nodes, List.of(n)),
             TreeList.concat(chain.kinds, kindx1));
-        return new ProposedAction("Append @", null, n, null, newChain);
+        return rewriteTo("Append @", newChain).with(n);
       } else {
         insertBefore = true;
       }
@@ -331,7 +311,7 @@ class EditTool extends Tool {
     newNodes.add(insertBefore ? i : i+1, n);
     newKinds.add(i, kind);
     var newChain = new SegmentChain(newNodes, newKinds);
-    return new ProposedAction("Insert @", null, n, null, newChain);
+    return rewriteTo("Insert @", newChain).with(n);
   }
 
   protected static boolean shouldAppend(
@@ -345,8 +325,7 @@ class EditTool extends Tool {
   }
 
   protected ProposedAction noopAction(Point p2) {
-    return new ProposedAction("!Do nothing", null, local2node(p2),
-        null, editingChain());
+    return noopAction("!Do nothing").with(local2node(p2));
   }
 
   @Override
@@ -373,9 +352,7 @@ class EditTool extends Tool {
   }
 
   public SegmentChain singletonChain(TrackNode theNode) {
-    return new SegmentChain(
-        Collections.singletonList(theNode), Collections.emptyList(),
-        chainClass);
+    return new SegmentChain(List.of(theNode), List.of(), chainClass);
   }
 
   protected TrackNode local2node(Point local) {
@@ -389,119 +366,32 @@ class EditTool extends Tool {
     return new TrackNode((int)x&mask, (int)y&mask);
   }
 
-  class EditToolResponse implements ToolResponse {
-    final boolean enableExecute;
-    final ProposedAction action;
-    final VisibleTrackData tracks;
-    final VectorOverlay cursor;
-
-    EditToolResponse(ProposedAction action,
-        boolean preview, boolean enable) {
-      this.enableExecute = enable;
-      this.action = action;
-      if( preview ) {
-        tracks = mapView().currentVisible.clone();
-        tracks.setHighlight(action.highlight());
-        if( action.fileContent != null ) {
-          tracks.setCurrentChains(action.fileContent);
-        } else {
-          tracks.removeCurrentChain(editingChain());
-        }
-        tracks.setEditingChain(action.editingChain);
-        tracks.freeze();
-        cursor = circleCursor(mapView().mouseLocal, action.newGlobal);
-      } else if( action.highlight != null ) {
-        tracks = mapView().currentVisible.clone();
-        tracks.setHighlight(action.highlight());
-        tracks.freeze();
-        cursor = null;
-      } else {
-        tracks = null;
-        cursor = circleCursor(mapView().mouseLocal, action.newGlobal);
-      }
-    }
-
-    @Override
-    public VectorOverlay previewOverlay() {
-      return cursor;
-    }
-    @Override
-    public VisibleTrackData previewTrackData() {
-      return tracks;
-    }
-    @Override
-    public void execute(ExecuteWhy why) {
-      if( !enableExecute ) {
-        SwingUtils.beep();
-        return;
-      }
-      if( switchChainIfThatIsTheOnlyEffect(action) )
-        return;
-      if( action.fileContent != null ||
-          !activeFileContent().contains(action.editingChain) ) {
-        Set<SegmentChain> chains = action.fileContent;
-        if( chains == null ) {
-          chains = activeFileContent().chainsCopy();
-          chains.remove(editingChain());
-          if( action.editingChain != null &&
-              action.editingChain.numNodes > 1 )
-            chains.add(action.editingChain);
-        }
-        FileContent newContent = activeFileContent().withChains(chains);
-        String undoDesc = action.undoDesc.replace("@", kindDescription);
-        System.err.println("  Executing edit: "+undoDesc);
-        owner.files.activeFile().rewriteContent(
-            mapView().undoList, undoDesc, c->newContent);
-      }
-      mapView().setEditingChain(action.editingChain);
-      enableSameKeyCancel();
-    }
+  protected final StandardAction noopAction(String undoDesc) {
+    return StandardAction.noop(this, undoDesc);
   }
 
-  private boolean switchChainIfThatIsTheOnlyEffect(ProposedAction action) {
-    if( action != null &&
-        activeFileContent().chainsEquals(action.fileContent) ) {
-      mapView().setEditingChain(action.editingChain);
-      return true;
-    }
-    return false;
+  protected final StandardAction rewriteTo(String undoDesc,
+      SegmentChain newChain) {
+    return StandardAction.simple(this, undoDesc, newChain);
   }
 
-  private CircleOverlay circleCursor(Point local, Point global) {
-    int rgb = kind.rgb;
-    if( global instanceof TrackNode node ) {
-      int circleDiameter = diameterAt(node);
-      if( circleDiameter > 15) {
-        return new CircleOverlay(rgb, circleDiameter,
-            translator().global2localWithHint(node, local));
-      }
-    } else if( global != null ) {
-      return new CircleOverlay(rgb, 10,
-          translator().global2localWithHint(global, local));
-    }
-    return new CircleOverlay(rgb, 10, Point.at(local.x+10, local.y+10));
+  protected final StandardAction killTheChain(String undoDesc) {
+    return StandardAction.common(this, undoDesc, List.of(), null);
   }
 
-  private int cachedDiameter;
-  private double cachedDiameterScale;
-  private double cachedDiameterMinY;
-  private double cachedDiameterMaxY;
+  protected final StandardAction createChain(String undoDesc,
+      SegmentChain newChain) {
+    return StandardAction.join(this, undoDesc, List.of(), newChain);
+  }
 
-  private int diameterAt(Point global) {
-    double scale = owner.mapView.projection.scaleAcross();
-    if( scale != cachedDiameterScale ||
-        global.y < cachedDiameterMinY ||
-        global.y > cachedDiameterMaxY ) {
-      double unitsPerMeter = WebMercator.unitsPerMeter(global.y);
-      cachedDiameter = (int)Math.round(1.435 * unitsPerMeter  / scale);
-      // a rough estimate of the distance in global coordinates it
-      // takes until the cached value is one pixel off
-      double validity = Coords.EARTH_SIZE / (2 * Math.PI) / cachedDiameter;
-      cachedDiameterScale = scale;
-      cachedDiameterMinY = global.y - validity;
-      cachedDiameterMaxY = global.y + validity;
-    }
-    return cachedDiameter;
+  @Override
+  public String finalizeUndoDesc(String template) {
+    return template.replace("@", kindDescription);
+  }
+
+  @Override
+  public int circleCursorColor() {
+    return kind.rgb;
   }
 
 }

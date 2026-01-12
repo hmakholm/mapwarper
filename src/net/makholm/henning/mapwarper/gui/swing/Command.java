@@ -35,7 +35,7 @@ public abstract class Command {
     owner.commandRegistry.put(codename, this);
   }
 
-  protected final MapView mapView() {
+  public final MapView mapView() {
     return owner.mapView;
   }
 

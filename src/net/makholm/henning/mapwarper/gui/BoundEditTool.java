@@ -7,6 +7,7 @@ import net.makholm.henning.mapwarper.geometry.LineSeg;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
+import net.makholm.henning.mapwarper.gui.overlays.CircleOverlay;
 import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.SegmentChain;
@@ -46,7 +47,7 @@ class BoundEditTool extends BoundSnappingTool {
     var nodes = new ArrayList<>(chain.nodes);
     nodes.set(index, n2);
     var newChain = new SegmentChain(nodes, chain.kinds, chainClass);
-    return new ProposedAction("Slide bounds node", null, n2, null, newChain);
+    return rewriteTo("Slide bounds node", newChain).with(n2);
   }
 
 
@@ -102,7 +103,7 @@ class BoundEditTool extends BoundSnappingTool {
         chain.nodes.subList(1, chain.numNodes));
     var kinds = TreeList.concat(List.of(chain.kinds.get(0)), chain.kinds);
     var newChain = new SegmentChain(nodes, kinds, chainClass);
-    return new ProposedAction("Extrapolate @", null, newEndNode, null, newChain);
+    return rewriteTo("Extrapolate @", newChain).with(newEndNode);
   }
 
   private ProposedAction extendLast(SegmentChain chain,
@@ -123,7 +124,7 @@ class BoundEditTool extends BoundSnappingTool {
         List.of(newInnerNode, newEndNode));
     var kinds = TreeList.concat(chain.kinds, List.of(chain.kinds.last()));
     var newChain = new SegmentChain(nodes, kinds, chainClass);
-    return new ProposedAction("Extrapolate @", null, newEndNode, null, newChain);
+    return rewriteTo("Extrapolate @", newChain).with(newEndNode);
   }
 
   private ProposedAction internalTangent(SegmentChain chain, int insertAt,
@@ -148,7 +149,8 @@ class BoundEditTool extends BoundSnappingTool {
         List.of(kind),
         chain.kinds.subList(insertAt, chain.numSegments));
     var newChain = new SegmentChain(nodes, kinds, chainClass);
-    return new ProposedAction("Interpolate @", null, pwna, null, newChain);
+    var pivot = new CircleOverlay(kind.rgb, 10, dragged.a);
+    return rewriteTo("Interpolate @", newChain).with(pivot);
   }
 
   private LineSeg lineSeg(SegmentChain chain, int index) {
@@ -209,8 +211,8 @@ class BoundEditTool extends BoundSnappingTool {
     var newChain = new SegmentChain(nodes, kinds, chainClass);
 
     var highlight = new TrackHighlight(chain, index, index+1, kind.rgb);
-    return new ProposedAction("Contract bound segment", highlight, null,
-        null, newChain);
+    return rewriteTo("Contract bound segment", newChain)
+        .with(highlight).withPreview();
   }
 
 }

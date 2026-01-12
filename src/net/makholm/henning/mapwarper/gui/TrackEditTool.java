@@ -48,7 +48,7 @@ class TrackEditTool extends EditTool {
       var nodes = new ArrayList<>(chain.nodes);
       nodes.set(index, n2);
       var newChain = new SegmentChain(nodes, chain.kinds, chainClass);
-      return new ProposedAction("Slide node", null, n2, null, newChain);
+      return rewriteTo("Slide node", newChain).with(n2);
     }
 
     // We offset the node _plus_ its neighbor nodes, until/unless we reach
@@ -92,7 +92,7 @@ class TrackEditTool extends EditTool {
       undoDesc = "Offset chain";
     else
       undoDesc = "Offset "+(last+1-first)+" segments";
-    return new ProposedAction(undoDesc, null, nodes.get(index), null, newChain);
+    return rewriteTo(undoDesc, newChain).with(nodes.get(index));
   }
 
   private static boolean isSlewing(SegKind kind) {
