@@ -23,14 +23,14 @@ class BoundSnappingTool extends EditTool {
         activeFileContent().nodeTree(translator()), ChainRef::data,
         SNAP_DISTANCE, local);
     if( found != null && found.chain().isBound() ) {
-      return found.chain().nodes.get(found.index());
+      return lastSnapped = found.chain().nodes.get(found.index());
     }
 
     found = FindClosest.point(
         mapView().currentVisible.otherBoundNodeTree.apply(translator()),
         ChainRef::data, SNAP_DISTANCE, local);
     if( found != null )
-      return found.chain().nodes.get(found.index());
+      return lastSnapped = found.chain().nodes.get(found.index());
 
     TrackNode created = super.local2node(local);
 
@@ -42,7 +42,8 @@ class BoundSnappingTool extends EditTool {
       TrackNode corner = new TrackNode(snapx, snapy);
       Point localCorner = translator().global2localWithHint(corner, local);
       if( localCorner.dist(local) < SNAP_DISTANCE ) {
-        return corner;
+        lastSnapped = corner;
+        return lastSnapped = corner;
       }
     }
 
@@ -53,6 +54,13 @@ class BoundSnappingTool extends EditTool {
 
   private int gridsnap(int coord) {
     return (coord + TILESIZE/2) & -TILESIZE;
+  }
+
+  private TrackNode lastSnapped;
+
+  @Override
+  public boolean isSnappedNode(TrackNode node) {
+    return node == lastSnapped;
   }
 
 }

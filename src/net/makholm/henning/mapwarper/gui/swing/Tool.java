@@ -82,7 +82,7 @@ public abstract class Tool extends Command implements MouseAction {
 
   private static final Map<String, Cursor> cursors = new LinkedHashMap<>();
 
-  protected static Cursor loadCursor(String name) {
+  public static Cursor loadCursor(String name) {
     synchronized( cursors ) {
       return cursors.computeIfAbsent(name, Tool::loadCursorInternal);
     }

@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.gui;
 
+import java.awt.Cursor;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -9,6 +10,7 @@ import net.makholm.henning.mapwarper.gui.MouseAction.ExecuteWhy;
 import net.makholm.henning.mapwarper.gui.MouseAction.ToolResponse;
 import net.makholm.henning.mapwarper.gui.overlays.CircleOverlay;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
+import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackHighlight;
 import net.makholm.henning.mapwarper.track.TrackNode;
@@ -21,6 +23,7 @@ class StandardAction implements ProposedAction {
 
     MapView mapView();
     default String finalizeUndoDesc(String template) { return template; }
+    default boolean isSnappedNode(TrackNode node) { return false; }
     default int circleCursorColor() { return NO_CURSOR; }
     default void anActionHasExecuted() { }
   }
@@ -124,6 +127,13 @@ class StandardAction implements ProposedAction {
 
   StandardAction with(TrackNode toDisplay) {
     this.newNode = toDisplay;
+    this.snapped = cxt.isSnappedNode(toDisplay);
+    return this;
+  }
+
+  StandardAction with(TrackNode toDisplay, boolean snapped) {
+    this.newNode = toDisplay;
+    this.snapped = snapped;
     return this;
   }
 
@@ -144,6 +154,7 @@ class StandardAction implements ProposedAction {
   TrackHighlight highlight;
   VectorOverlay overlay;
   TrackNode newNode;
+  boolean snapped;
   boolean preview;
 
   private StandardAction(Context cxt, String undoDesc,
@@ -157,6 +168,7 @@ class StandardAction implements ProposedAction {
 
   @Override
   public ToolResponse freeze() {
+    Cursor cursor = snapped ? Tool.loadCursor("snapCrosshairs.png") : null;
     if( overlay == null && (highlight == null || newNode != null) )
       overlay = makeCircleCursor();
 
@@ -184,6 +196,10 @@ class StandardAction implements ProposedAction {
         return tracks;
       }
       @Override
+      public Cursor cursor() {
+        return cursor;
+      }
+      @Override
       public void execute(ExecuteWhy why) {
         boolean nontrivial = false;
         var currentFile = mapView.files.activeFile();
@@ -206,7 +222,8 @@ class StandardAction implements ProposedAction {
     Point local = mapView.mouseLocal;
     if( newNode != null ) {
       int diameter = mapView.gaugeInPixels(newNode);
-      if( diameter > 15 ) {
+      if( snapped && diameter < 10 ) diameter = 10;
+      if( diameter > 15 || snapped ) {
         return new CircleOverlay(rgb, diameter,
             mapView.translator().global2localWithHint(newNode, local));
       }

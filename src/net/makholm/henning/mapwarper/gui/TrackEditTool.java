@@ -73,7 +73,9 @@ class TrackEditTool extends EditTool {
       }
     }
 
-    if( Math.abs(snap-distAcross) < 5 * mapView().projection.scaleAcross() )
+    var snapdist = 5 * mapView().projection.scaleAcross();
+    var doSnap = Math.abs(snap-distAcross) < snapdist;
+    if( doSnap )
       distAcross = snap;
 
     var nodes = new ArrayList<>(chain.nodes);
@@ -92,7 +94,7 @@ class TrackEditTool extends EditTool {
       undoDesc = "Offset chain";
     else
       undoDesc = "Offset "+(last+1-first)+" segments";
-    return rewriteTo(undoDesc, newChain).with(nodes.get(index));
+    return rewriteTo(undoDesc, newChain).with(nodes.get(index), doSnap);
   }
 
   private static boolean isSlewing(SegKind kind) {
