@@ -54,6 +54,10 @@ class EditTool extends GenericEditTool {
 
   @Override
   public MouseAction drag(Point p1, int mod1) {
+    if( ctrlHeld(mod1) )
+      return new DragSubchainSelector(mapView(), p1, kind.rgb,
+          this::actionForDeletingNodes);
+
     var clickAction = decideAction(p1, mod1, p1, mod1);
     if( clickAction != null && clickAction.executeIfSelectingChain() )
       mapView().collectVisibleTrackData();
@@ -105,26 +109,7 @@ class EditTool extends GenericEditTool {
   protected ProposedAction actionFromEditingPoint(int index,
       Point p1, int mod1, Point p2, int mod2) {
     if( ctrlHeld(mod1) ) {
-      // Ctrl-click deletes a point -- which deletes an entire segment
-      // if it's an endpoint.
-      var chain = editingChain();
-      if( chain.numSegments <= 1 ) {
-        var highlight = new TrackHighlight(chain, DELETE_HIGHLIGHT);
-        return killTheChain("Delete chain").with(highlight);
-      } else if( index == 0 ) {
-        return actionFromEditingSegment(0, p1, mod1, p2, mod2);
-      } else if( index == chain.numNodes-1 ) {
-        return actionFromEditingSegment(index-1, p1, mod1, p2, mod2);
-      } else {
-        var nodes = new ArrayList<>(chain.nodes);
-        var kinds = new ArrayList<>(chain.kinds);
-        nodes.remove(index);
-        kinds.remove(index);
-        kinds.set(index-1, kind);
-        var newChain = new SegmentChain(nodes, kinds, chainClass);
-        var highlight = new TrackHighlight(chain, index-1, index+1, kind.rgb);
-        return rewriteTo("Delete node", newChain).with(highlight);
-      }
+      return actionForDeletingNodes(editingChain(), index, index);
     } else if( p1.dist(p2) < 3 ) {
       // This is probably just a plain click. If you want to actually move
       // a node this little, zoom in first!
@@ -148,7 +133,14 @@ class EditTool extends GenericEditTool {
   protected ProposedAction actionFromEditingSegment(int index,
       Point p1, int mod1, Point p2, int mod2) {
     SegmentChain chain = editingChain();
-    if( chain.kinds.get(index) == kind ) {
+    if( ctrlHeld(mod1) && chain.numSegments >= 2 ) {
+      var l1 = translator().global2local(chain.nodes.get(index));
+      var l2 = translator().global2local(chain.nodes.get(index+1));
+      if( l1.sqDist(p1) < l2.sqDist(p1) )
+        return actionForDeletingNodes(chain, index, index);
+      else
+        return actionForDeletingNodes(chain, index+1, index+1);
+    } else if( chain.kinds.get(index) == kind ) {
       return actionInFreeSpace(p1, mod1, p2, mod2);
     } else {
       var kinds = new ArrayList<>(chain.kinds);
@@ -156,6 +148,33 @@ class EditTool extends GenericEditTool {
       var newChain = new SegmentChain(chain.nodes, kinds, chainClass);
       var highlight = new TrackHighlight(chain, index, index+1, kind.rgb);
       return rewriteTo("Change to @", newChain).with(highlight);
+    }
+  }
+
+  protected ProposedAction actionForDeletingNodes(SegmentChain chain,
+      int a, int b) {
+    var last = chain.numNodes-1;
+    if( b-a >= chain.numSegments-1 ) {
+      // At most one mode would be left, so delete everything
+      return killTheChain("Delete chain")
+          .with(new TrackHighlight(chain, 0, last, DELETE_HIGHLIGHT));
+    } else if( a == 0 ) {
+      return rewriteTo("Truncate chain", chain.subchain(b+1,last))
+          .with(new TrackHighlight(chain, 0, b+1, DELETE_HIGHLIGHT));
+    } else if( b == last ) {
+      return rewriteTo("Truncate chain", chain.subchain(0, a-1))
+          .with(new TrackHighlight(chain, a-1, last, DELETE_HIGHLIGHT));
+    } else {
+      var nodes = TreeList.concat(
+          chain.nodes.subList(0, a),
+          chain.nodes.subList(b+1, last+1));
+      var kinds = TreeList.concat(
+          chain.kinds.subList(0, a-1),
+          kindx1,
+          chain.kinds.subList(b+1, last));
+      var newChain = new SegmentChain(nodes, kinds, chainClass);
+      return rewriteTo(a==b ? "Delete node" : "Delete nodes", newChain)
+          .with(new TrackHighlight(chain, a-1, b+1, kind.rgb));
     }
   }
 

@@ -392,11 +392,15 @@
      - KLIK enden af en inaktiv kæde for at sætte den sammen med den
        aktive kæde, hvis de matchende ender af de to kæder passer
        nogenlunde sammen i retningerne.
-     - Ctrl-KLIK på en aktiv knude for at slette den.
+     - Ctrl-KLIK på den akive kæde for at fjerne den nærmeste kunde.
          * hvis det var et indre punkt, forbindes dets to naboer i
            stedet af et nyt segment af værktøjets type.
          * mens Ctrl holdes nede, vises en indikering af de segmenter
            der bliver erstattet af nyt.
+     - Ctrl-TRÆK for at slette flere knuder i den aktive kæde.
+         * hvis er er overlevende knuder på begge sider af de
+           slettede, forbindes de to ender af et nyt segment af
+           værktøjets type.
    Særhandlinger for "bound":
      - Alt-TRÆK: Ny tangent. Det nye segment går gennem endepunkterne
        for trækket. Det splejses ind i den aktive kæde ved den knude
