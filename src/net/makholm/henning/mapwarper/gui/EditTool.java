@@ -6,9 +6,7 @@ import java.util.List;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
-import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
-import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.track.ChainClass;
 import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.track.SegKind;
@@ -17,7 +15,7 @@ import net.makholm.henning.mapwarper.track.TrackHighlight;
 import net.makholm.henning.mapwarper.track.TrackNode;
 import net.makholm.henning.mapwarper.util.TreeList;
 
-class EditTool extends Tool implements StandardAction.Context {
+class EditTool extends GenericEditTool {
   protected final SegKind kind;
   protected final List<SegKind> kindx1;
   protected final String kindDescription;
@@ -37,11 +35,6 @@ class EditTool extends Tool implements StandardAction.Context {
   public final void activeFileChanged() {
     super.activeFileChanged();
     sanitizeEditingStateWhenSelected();
-  }
-
-  @Override
-  protected boolean canEscapeBackTo(Tool other) {
-    return other instanceof EditTool;
   }
 
   @Override
@@ -78,25 +71,15 @@ class EditTool extends Tool implements StandardAction.Context {
     };
   }
 
-  private static final int PICK_CURVE_TOLERANCE = 4;
-  private static final int PICK_START_DISTANCE = 10;
-
   protected ProposedAction decideAction(Point p1, int mod1, Point p2, int mod2) {
     // If you point near the current editing chain, that wins
-    if( editingChain() != null ) {
-      var localChain = editingChain().localize(translator());
-      ChainRef<?> found = FindClosest.point(
-          localChain.nodeTree.get(), ChainRef::data,
-          PICK_START_DISTANCE, p1);
-      if( found != null )
-        return actionFromEditingPoint(found.index(), p1, mod1, p2, mod2);
+    ChainRef<?> found = pickNodeInActive(p1);
+    if( found != null )
+      return actionFromEditingPoint(found.index(), p1, mod1, p2, mod2);
 
-      found = FindClosest.curve(
-          localChain.segmentTree.get(), ChainRef::data,
-          PICK_START_DISTANCE, p1, PICK_CURVE_TOLERANCE);
-      if( found != null )
-        return actionFromEditingSegment(found.index(), p1, mod1, p2, mod2);
-    }
+    found = pickSegmentInActive(p1);
+    if( found != null )
+      return actionFromEditingSegment(found.index(), p1, mod1, p2, mod2);
 
     if( ctrlHeld(mod1) ) {
       // everything else is not a deletion action
@@ -105,17 +88,13 @@ class EditTool extends Tool implements StandardAction.Context {
 
     // Else, if you point to another chain _of the right class_
     // in the open file, use that
-    ChainRef<?> found = FindClosest.point(
-        activeFileContent().nodeTree(translator()), ChainRef::data,
-        PICK_START_DISTANCE, p1);
+    found = pickNode(p1, activeFileContent().nodeTree(translator()));
     if( found != null && found.chain().chainClass == chainClass )
       return actionFromOtherPoint(found, p1, mod1, p2, mod2);
 
-    found = FindClosest.curve(
-        activeFileContent().segmentTree.apply(translator()), ChainRef::data,
-        PICK_START_DISTANCE, p1, PICK_CURVE_TOLERANCE);
+    found = pickSegmentAnyChain(p1);
     if( found != null && found.chain().chainClass == chainClass )
-      return actionFromOtherSegment(found, p1, mod1, p2, mod2);
+      return selectEditingChain(found);
 
     if( editingChain() == null )
       return actionWithNoEditingChain(p1, mod1, p2, mod2);
@@ -166,32 +145,10 @@ class EditTool extends Tool implements StandardAction.Context {
     return rewriteTo("Move node", newChain).with(n2);
   }
 
-  static final int DELETE_HIGHLIGHT = 0xFF0000;
-
   protected ProposedAction actionFromEditingSegment(int index,
       Point p1, int mod1, Point p2, int mod2) {
     SegmentChain chain = editingChain();
-    if( ctrlHeld(mod1) ) {
-      // Ctrl-click deletes a segment.
-      // This may or may not split the chain into two, or remove it
-      // completely.
-      TrackHighlight highlight =
-          new TrackHighlight(chain, index, index+1, DELETE_HIGHLIGHT);
-      if( chain.numSegments <= 1 ) {
-        return killTheChain("Delete chain").with(highlight);
-      } else if( index == 0 ) {
-        return rewriteTo("Delete segment",
-            chain.subchain(1,chain.numSegments)).with(highlight);
-      } else if( index == chain.numSegments-1 ) {
-        return rewriteTo("Delete segment",
-            chain.subchain(0, index)).with(highlight);
-      } else {
-        var front = chain.subchain(0, index);
-        var back = chain.subchain(index+1, chain.numSegments);
-        return StandardAction.split(this, "Delete segment", front, p2, back)
-            .with(highlight);
-      }
-    } else if( chain.kinds.get(index) == kind ) {
+    if( chain.kinds.get(index) == kind ) {
       return actionInFreeSpace(p1, mod1, p2, mod2);
     } else {
       var kinds = new ArrayList<>(chain.kinds);
@@ -213,7 +170,7 @@ class EditTool extends Tool implements StandardAction.Context {
       if( join != null )
         return join;
     }
-    return selectEditingChain(which, p2);
+    return selectEditingChain(which);
   }
 
   protected ProposedAction joinChainsAction(SegmentChain a, SegmentChain b) {
@@ -236,16 +193,6 @@ class EditTool extends Tool implements StandardAction.Context {
 
     return StandardAction.join(this, "Join segment chains",
         List.of(a,b), joined).with(highlight);
-  }
-
-  protected ProposedAction actionFromOtherSegment(ChainRef<?> which,
-      Point p1, int mod1, Point p2, int mod2) {
-    return selectEditingChain(which, p2);
-  }
-
-  protected ProposedAction selectEditingChain(ChainRef<?> which, Point p2) {
-    var theChain = which.chain();
-    return StandardAction.switchChain(mapView(), theChain);
   }
 
   protected ProposedAction actionWithNoEditingChain(
@@ -353,35 +300,6 @@ class EditTool extends Tool implements StandardAction.Context {
 
   public SegmentChain singletonChain(TrackNode theNode) {
     return new SegmentChain(List.of(theNode), List.of(), chainClass);
-  }
-
-  protected TrackNode local2node(Point local) {
-    return global2node(translator().local2global(local));
-  }
-
-  protected TrackNode global2node(Point global) {
-    long x = Math.round(global.x);
-    long y = Math.round(global.y);
-    int mask = Coords.EARTH_SIZE-1;
-    return new TrackNode((int)x&mask, (int)y&mask);
-  }
-
-  protected final StandardAction noopAction(String undoDesc) {
-    return StandardAction.noop(this, undoDesc);
-  }
-
-  protected final StandardAction rewriteTo(String undoDesc,
-      SegmentChain newChain) {
-    return StandardAction.simple(this, undoDesc, newChain);
-  }
-
-  protected final StandardAction killTheChain(String undoDesc) {
-    return StandardAction.common(this, undoDesc, List.of(), null);
-  }
-
-  protected final StandardAction createChain(String undoDesc,
-      SegmentChain newChain) {
-    return StandardAction.join(this, undoDesc, List.of(), newChain);
   }
 
   @Override

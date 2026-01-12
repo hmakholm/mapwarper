@@ -397,12 +397,6 @@
            stedet af et nyt segment af værktøjets type.
          * mens Ctrl holdes nede, vises en indikering af de segmenter
            der bliver erstattet af nyt.
-     - Ctrl-KLIK på et aktivt segment for at slette det.
-         * hvis det valgte segment havde naboer på begge sider,
-           splittes sporforløbet i to. Det af de to dele der var
-           tættest på klikket, bliver nyt aktivt segmet.
-         * mens Ctrl holdes nede, vises de udpegede segment med
-           rød indikering.
    Særhandlinger for "bound":
      - Alt-TRÆK: Ny tangent. Det nye segment går gennem endepunkterne
        for trækket. Det splejses ind i den aktive kæde ved den knude
@@ -421,6 +415,20 @@
            forskydningen i et af de afgrænsende slew-segmenter til 0.
      Den af disse to muligheder der giver den mindste afstand til
      musens position _på skærmen_ vælges.
+
+   Værktøj: slet segmenter
+     * Sletning af et eller flere segmenter midt i en kæde splitter
+       den i to. For ikke at komme til at gøre det uagtsomt skal man
+       vælge et særligt værktøj til det.
+     * Når en kæde splittes, bliver den af de to resulterende kæder
+       der ender tættest på musen aktiv.
+   Handlinger:
+     - KLIK på et segment i den aktive kæde for at slette det.
+     - TRÆK et rektangel for at slette segmenter hvis endepunkter
+       befinder sig indenfor rektanglet. (Hvis kæden forlader
+       rektanglet og ommer tilbage igen, slettes den mellemliggende
+       del også -- det er lettest at implementere og passer
+       sandsynligvis også bedre med hensigten).
 
    Kommando: Skift sporretning
      * vender rækkefølgen af den aktive sporkæde om
