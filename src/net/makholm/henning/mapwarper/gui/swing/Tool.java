@@ -111,6 +111,8 @@ public abstract class Tool extends Command implements MouseAction {
       arrivedBySwitchingBack = false;
       mayCancelWhenReselecting = false;
       mapView().selectTool(this);
+    } else {
+      sanitizeEditingStateWhenSelected();
     }
   }
 
