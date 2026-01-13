@@ -63,10 +63,10 @@ public final class SegmentChain extends LongHashed {
 
   @Override
   protected long longHashImpl() {
-    long h = nodes.get(0).pos;
+    long h = nodes.get(0).longHash();
     for( int i=0; i<numSegments; i++ ) {
       h = hashStep(h);
-      h ^= nodes.get(i+1).pos;
+      h ^= nodes.get(i+1).longHash();
       h += (long)kinds.get(i).ordinal() << 28;
     }
     return h;
@@ -78,11 +78,11 @@ public final class SegmentChain extends LongHashed {
     if( o instanceof SegmentChain other ) {
       if( other.longHash() != longHash() ||
           other.nodes.size() != nodes.size() ||
-          other.nodes.get(0).pos != nodes.get(0).pos )
+          !other.nodes.get(0).equals(nodes.get(0)) )
         return false;
       for( int i=0; i<numSegments; i++ ) {
         if( other.kinds.get(i)!= kinds.get(i) ||
-            other.nodes.get(i+1).pos != nodes.get(i+1).pos )
+            !other.nodes.get(i+1).equals(nodes.get(i+1)) )
           return false;
       }
       return true;

@@ -45,11 +45,9 @@ public class VectParser {
   public void giveLine(String line) {
     lnum++ ;
     Regexer re = new Regexer(line.strip());
-    if( re.match("node ([0-9]+)::([0-9]+)(?: ([0-9]+))?") ) {
-      // The 'size' parameter is not used for anything, but we preserve it
-      // through edits if it's there, in order not to create any Git wobble.
-      var size = re.group(3) == null ? 0 : re.igroup(3);
-      var node = new TrackNode(re.igroup(1), re.igroup(2), size);
+
+    var node = TrackNode.parse(re);
+    if( node != null ) {
       if( !nodeCollector.isEmpty() ) {
         if( currentKind == null )
           currentKind = SegKind.TRACK;
