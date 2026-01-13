@@ -16,12 +16,13 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
     super(owner, "quickwarp", "Quick-warp");
   }
 
-  public Command quickLinear() {
-    return bareQuickCommand("Linear warp extrapolation");
+  public Command quickCircle() {
+    return altQuickCommand("Circular quick-warp");
   }
 
-  public Command quickCircle() {
-    return altQuickCommand("Circular warp extrapolation");
+  @Override
+  protected ToolResponse simpleKeyAction(Point pos, int modifiers) {
+    return clickResponse(pos, modifiers);
   }
 
   @Override

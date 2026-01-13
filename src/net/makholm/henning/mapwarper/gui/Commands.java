@@ -281,9 +281,8 @@ public class Commands {
     keymap.accept("+", zoomIn);
 
     keymap.accept("Tab", toggleFilePane);
-    keymap.accept("Q", quickwarp.quickLinear());
+    keymap.accept("Q", quickwarp);
     keymap.accept("M-Q", quickwarp.quickCircle());
-    keymap.accept("S-Q", quickwarp);
     keymap.accept("W", tilesetCommands("google").warp);
     keymap.accept("S-W", tilesetCommands("bing").lens);
     keymap.accept("E", tilesetCommands("google").weakOrtho);
@@ -358,7 +357,7 @@ public class Commands {
     zoom.add(unzoom);
     zoom.add(squeeze);
     zoom.add(stretch);
-    zoom.add(quickwarp.quickLinear());
+    zoom.add(quickwarp);
     zoom.add(quickwarp.quickCircle());
     zoom.addSeparator();
     zoom.add(rotate);
@@ -384,7 +383,6 @@ public class Commands {
     tools.add(boundTool);
     tools.add(localBoundTool);
     tools.addSeparator();
-    tools.add(quickwarp);
     tools.add(lens);
     tools.add(zoomTool);
     tools.add(move);

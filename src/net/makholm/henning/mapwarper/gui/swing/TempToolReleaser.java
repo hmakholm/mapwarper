@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
 import net.makholm.henning.mapwarper.geometry.Point;
+import net.makholm.henning.mapwarper.gui.MouseAction.ExecuteWhy;
 
 final class TempToolReleaser {
   final char key;
@@ -50,12 +51,21 @@ final class TempToolReleaser {
 
   void keyRelease(KeyEvent e) {
     if( enabled && e.getKeyChar() == key ) {
-      if( !seenActivity )
-        disable();
-      else if( lingerForMouse(e) )
-        waitingForMouseRelease = true;
-      else
-        switchBack();
+      if( seenActivity ) {
+        if( lingerForMouse(e) )
+          waitingForMouseRelease = true;
+        else
+          switchBack();
+      } else {
+        var a = switchFrom.simpleKeyAction(initMouseLocal,
+            e.getModifiersEx() | Tool.QUICK_COM_MASK);
+        if( a != null && a != Tool.NO_RESPONSE ) {
+          a.execute(ExecuteWhy.QUICKTOOL);
+          switchBack();
+        } else {
+          disable();
+        }
+      }
     }
   }
 

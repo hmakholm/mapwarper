@@ -108,6 +108,10 @@ public abstract class Tool extends Command implements MouseAction {
       mapView().swing.tempTool = new TempToolReleaser(this, key, prev);
   }
 
+  protected ToolResponse simpleKeyAction(Point pos, int modifiers) {
+    return null;
+  }
+
   private Tool previousTool;
 
   @Override
@@ -142,7 +146,7 @@ public abstract class Tool extends Command implements MouseAction {
 
   // -------------------------------------------------------------------------
 
-  private static final int QUICK_COM_MASK = 1 << 31;
+  static final int QUICK_COM_MASK = 1 << 31;
 
   private final Map<Integer, Command> quickCommands = new LinkedHashMap<>();
 

@@ -43,7 +43,6 @@
 
      Q: quick warp
      Alt-Q: cirkulært quickwarp
-     Skift-Q: quickwarp som værktøj
      W: google warp
      R: osm ortho
 
