@@ -21,7 +21,6 @@ final class ScaledProjection extends Projection {
   @Override public BaseProjection base() { return base; }
   @Override public double scaleAcross() { return yscale; }
   @Override public double scaleAlong() { return xscale; }
-  @Override public double getSqueeze() { return squeeze; }
 
   @Override
   public Point local2projected(Point local) {
@@ -51,32 +50,11 @@ final class ScaledProjection extends Projection {
   }
 
   @Override
-  public Projection withScaleAndSqueeze(double newScale, double newSqueeze) {
-    return base.withScaleAndSqueeze(newScale, newSqueeze);
-  }
-
-  @Override
-  public Projection scaleAndSqueezeSimilarly(BaseProjection base) {
-    return new ScaledProjection(base, yscale, squeeze);
-  }
-
-  @Override
-  public Projection perhapsOrthoEquivalent() {
-    if( squeeze != 1 )
-      return null;
-    Projection p = base.perhapsOrthoEquivalent();
-    if( p == null )
-      return null;
-    return p.withScaleAcross(yscale);
-  }
-
-  @Override
-  public Projection makeQuickwarp(Point local, boolean circle) {
-    var projected = Point.at(local.x * xscale, local.y * yscale);
-    var got = base.makeQuickwarp(projected, circle);
-    return got.withScaleAndSqueeze(
-        got.scaleAcross()*yscale,
-        got.getSqueeze()*squeeze);
+  public Affinoid getAffinoid() {
+    var aff = base.getAffinoid();
+    aff.scaleAcross *= yscale;
+    aff.squeeze *= squeeze;
+    return aff;
   }
 
   @Override

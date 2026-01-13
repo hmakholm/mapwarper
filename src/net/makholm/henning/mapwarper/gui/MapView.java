@@ -339,7 +339,7 @@ public class MapView {
       try {
         var newWarp = new WarpedProjection(vf, files.cache,
             editingChain, wp.track);
-        var proj = projection.scaleAndSqueezeSimilarly(newWarp);
+        var proj = newWarp.apply(projection.getAffinoid());
         setProjection(proj);
       } catch( CannotWarp e ) {
         // Hmm, showing a box in this case might be too invasive.
@@ -418,7 +418,7 @@ public class MapView {
     setProjection(OrthoProjection.ORTHO.withScaleAcross(1 << logPixsize));
   }
 
-  private WarpedProjection makeWarpedProjection() throws CannotWarp {
+  WarpedProjection makeWarpedProjection() throws CannotWarp {
     var file = files.activeFile();
     if( editingChain != null && editingChain.isTrack() )
       return new WarpedProjection(file, files.cache, editingChain);
@@ -462,16 +462,15 @@ public class MapView {
     }
   }
 
-  Projection makeScaledWarpedProjection(Tileset tiles) throws CannotWarp {
-    if( tiles == null ) tiles = mainTiles;
-    double squeeze = Math.rint(projection.getSqueeze());
-    if( squeeze <= 1 ) squeeze = 5;
-    double scale = Math.min(projection.scaleAcross(),
-        Coords.zoom2pixsize(tiles.guiTargetZoom()));
-    Projection orienter = projection.withScaleAndSqueeze(scale, squeeze);
-
+  private Projection makeScaledWarpedProjection(Tileset tiles)
+      throws CannotWarp {
     var baseWarp = makeWarpedProjection();
-    return orienter.scaleAndSqueezeSimilarly(baseWarp);
+
+    var aff = projection.getAffinoid();
+    aff.makeSqueezable(5);
+    aff.scaleAcross = Math.min(aff.scaleAcross,
+        Coords.zoom2pixsize(tiles.guiTargetZoom()));
+    return baseWarp.apply(aff);
   }
 
   void warpCommand(Tileset targetTiles) {
@@ -511,20 +510,19 @@ public class MapView {
   }
 
   void squeezeCommand() {
-    double newSqueeze = projection.getSqueeze()+1;
-    setProjection(projection.makeSqueezeable().withSqueeze(newSqueeze));
+    var aff = projection.getAffinoid();
+    aff.squeeze = Math.round(aff.squeeze+1);
+    setProjection(projection.base().apply(aff));
   }
 
   Runnable stretchCommand() {
-    double oldSqueeze = projection.getSqueeze();
-    double newSqueeze = Math.max(1, oldSqueeze-1);
-    if( newSqueeze == oldSqueeze )
+    var aff = projection.getAffinoid();
+    if( aff.squeeze <= 1 )
       return null;
-    else return () -> {
-      Projection p = projection.withSqueeze(newSqueeze);
-      Projection q = p.perhapsOrthoEquivalent();
-      setProjection(q != null ? q : p);
-    };
+    else {
+      aff.squeeze = Math.max(1, Math.round(aff.squeeze-1));
+      return () -> setProjection(projection.base().apply(aff));
+    }
   };
 
   Runnable copyCommand() {

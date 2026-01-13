@@ -28,14 +28,32 @@ public class CircleWarp extends BaseProjection {
   final double radius;
   final double degxscale;
   final double bearing0;
+  final boolean trackGoesClockwise;
 
-  public CircleWarp(Point center, Point focus) {
+  public CircleWarp(Point center, Point focus, boolean trackGoesClockwise) {
     var radiusVector = center.to(focus);
     this.center = new PointWithNormal(center, radiusVector.normalize());
     this.focus = focus;
     this.radius = radiusVector.length();
     this.degxscale = (180/Math.PI) / radius;
     this.bearing0 = radiusVector.bearing();
+    this.trackGoesClockwise = trackGoesClockwise;
+  }
+
+  @Override
+  public Affinoid getAffinoid() {
+    var aff = new Affinoid();
+    if( trackGoesClockwise )
+      aff.quadrantsTurned ^= 2;
+    return aff;
+  }
+
+  @Override
+  public Projection apply(Affinoid aff) {
+    aff.assertSqueezable();
+    if( trackGoesClockwise )
+      aff.quadrantsTurned ^= 2;
+    return aff.apply(this);
   }
 
   @Override
@@ -181,12 +199,15 @@ public class CircleWarp extends BaseProjection {
   }
 
   @Override
-  public Projection makeQuickwarp(Point local, boolean tryCircle) {
+  public Projection makeQuickwarp(Point local, boolean tryCircle,
+      Affinoid aff) {
+    aff.assertSqueezable();
     if( tryCircle )
-      return this;
-    var down = UnitVector.withBearing(bearing0 - local.x*degxscale);
-    var right = down.turnLeft().scale(Math.max(100, Math.abs(local.y))/radius);
-    return QuickWarp.ofAffine(center, right, down);
+      return this.apply(aff);
+    var right = UnitVector.withBearing(bearing0 - local.x*degxscale
+        + (trackGoesClockwise ? 90 : -90));
+    aff.squeezefactor(Math.abs(local.y)/radius);
+    return new QuickWarp(center, right).apply(aff);
   }
 
   @Override
@@ -212,7 +233,7 @@ public class CircleWarp extends BaseProjection {
 
   @Override
   public String describe(Path currentFile) {
-    return "circlewarp";
+    return trackGoesClockwise ? "clockwise" : "counterclockwise";
   }
 
 }

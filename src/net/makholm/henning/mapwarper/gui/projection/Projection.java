@@ -6,10 +6,10 @@ import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.geometry.Vector;
-import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
 import net.makholm.henning.mapwarper.util.LongHashed;
+import net.makholm.henning.mapwarper.util.MathUtil;
 
 public abstract class Projection extends LongHashed {
 
@@ -46,42 +46,17 @@ public abstract class Projection extends LongHashed {
 
   public abstract double scaleAcross();
   public abstract double scaleAlong();
-  public abstract double getSqueeze();
 
   public AxisRect maxUnzoom() {
     return base().maxUnzoom().transform(this::projected2local);
   }
 
-  public abstract Projection withScaleAndSqueeze(
-      double pixelSizeAcross, double squeezeFactor);
-
-  public final Projection atZoom(int zoom) {
-    return withScaleAcross(Coords.zoom2pixsize(zoom));
-  }
+  public abstract Affinoid getAffinoid();
 
   public final Projection withScaleAcross(double pixelSizeAcross) {
-    return withScaleAndSqueeze(pixelSizeAcross, getSqueeze());
-  }
-
-  public final Projection withSqueeze(double squeezeFactor) {
-    return withScaleAndSqueeze(scaleAcross(), squeezeFactor);
-  }
-
-  public abstract Projection scaleAndSqueezeSimilarly(BaseProjection base);
-
-  /**
-   * {@link TurnedProjection} overrides this to make the squeeze go in the
-   * expected direction.
-   */
-  public Projection makeSqueezeable() {
-    if( base().isOrtho() )
-      return scaleAndSqueezeSimilarly(new QuickWarp(UnitVector.RIGHT));
-    else
-      return this;
-  }
-
-  public Projection perhapsOrthoEquivalent() {
-    return null;
+    var aff = getAffinoid();
+    aff.scaleAcross = MathUtil.snapToPowerOf2(pixelSizeAcross, 0.0001);
+    return base().apply(aff);
   }
 
   // -------------------------------------------------------------------------
@@ -95,7 +70,5 @@ public abstract class Projection extends LongHashed {
   public abstract AffineTransform createAffine();
 
   protected abstract ProjectionWorker createNonAffineWorker();
-
-  public abstract Projection makeQuickwarp(Point local, boolean allowCircle);
 
 }

@@ -1,8 +1,5 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
-import static net.makholm.henning.mapwarper.gui.projection.OrthoProjection.ORTHO;
-import static net.makholm.henning.mapwarper.gui.projection.TurnedProjection.turnCounterclockwise;
-
 import java.awt.geom.AffineTransform;
 import java.nio.file.Path;
 
@@ -10,7 +7,6 @@ import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
-import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
@@ -33,22 +29,22 @@ public class QuickWarp extends BaseProjection {
     this.normal = direction.turnRight();
   }
 
-  public static Projection ofAffine(Point global,
-      Vector xBecomes, Vector yBecomes) {
-    var base = new QuickWarp(global, xBecomes.normalize());
-    var yscale = yBecomes.length();
-    var squeeze = xBecomes.length()/yscale;
-    return base.withScaleAndSqueeze(yscale, squeeze);
+  @Override
+  public Projection apply(Affinoid aff) {
+    if( aff.squeeze == 1 ) {
+      if( direction.y == 0 )
+        return applyOrtho(aff, direction.x > 0 ? 0 : 2);
+      if( direction.x == 0 )
+        return applyOrtho(aff, direction.y > 0 ? 1 : 3);
+    }
+    aff.assertSqueezable();
+    return aff.apply(this);
   }
 
-  @Override
-  public Projection perhapsOrthoEquivalent() {
-    if( direction.y == 0 )
-      return turnCounterclockwise(ORTHO, direction.x > 0 ? 0 : 2);
-    else if( direction.x == 0 )
-      return turnCounterclockwise(ORTHO, direction.y > 0 ? 1 : 3);
-    else
-      return null;
+  private Projection applyOrtho(Affinoid aff, int ourTurn) {
+    aff.squeezable = false;
+    aff.quadrantsTurned += ourTurn;
+    return aff.apply(OrthoProjection.ORTHO);
   }
 
   @Override
@@ -94,8 +90,8 @@ public class QuickWarp extends BaseProjection {
   }
 
   @Override
-  public Projection makeQuickwarp(Point local, boolean circle) {
-    return this;
+  public Projection makeQuickwarp(Point local, boolean circle, Affinoid aff) {
+    return this.apply(aff);
   }
 
   @Override

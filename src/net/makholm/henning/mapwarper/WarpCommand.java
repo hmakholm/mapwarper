@@ -18,6 +18,7 @@ import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
+import net.makholm.henning.mapwarper.gui.projection.Affinoid;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.tiles.Tileset;
@@ -80,15 +81,17 @@ class WarpCommand extends Mapwarper.Command {
     var tiles = common.tilesWithDefault("google");
     var fallbackTiles = common.tileContext.nomapTileset;
 
-    double scaleAcross;
+    Affinoid aff = new Affinoid();
     if( wantMm > 0 ) {
-      scaleAcross = wantMm * 0.001 *
+      aff.scaleAcross = wantMm * 0.001 *
           WebMercator.unitsPerMeter(vf.content().nodeTree.get().center().y);
     } else {
-      scaleAcross = wantPx * Coords.zoom2pixsize(zoom);
+      aff.scaleAcross = wantPx * Coords.zoom2pixsize(zoom);
     }
+    aff.squeeze = wantWarpFactor;
+    aff.squeezable = true;
 
-    var proj = wp.withScaleAndSqueeze(scaleAcross,  wantWarpFactor);
+    var proj = wp.apply(aff);
     var inf = Double.POSITIVE_INFINITY;
     var rect = new AxisRect(Point.at(-inf, -inf), Point.at(inf, inf));
     rect = wp.shrinkToMargins(rect, proj.scaleAlong());

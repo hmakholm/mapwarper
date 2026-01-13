@@ -29,6 +29,31 @@ public final class OrthoProjection extends BaseProjection {
   }
 
   @Override
+  public Affinoid getAffinoid() {
+    var aff = new Affinoid();
+    aff.squeezable = false;
+    return aff;
+  }
+
+  @Override
+  public Projection apply(Affinoid aff) {
+    if( aff.squeezable ) {
+      aff.squeezable = false;
+      aff.quadrantsTurned = 0;
+    }
+    if( aff.squeeze == 1 ) {
+      return aff.apply(this);
+    } else {
+      UnitVector dir = UnitVector.RIGHT;
+      for( int i = 0; i< (aff.quadrantsTurned&3); i++ )
+        dir = dir.turnRight();
+      aff.squeezable = true;
+      aff.quadrantsTurned = 0;
+      return new QuickWarp(dir).apply(aff);
+    }
+  }
+
+  @Override
   public AxisRect maxUnzoom() {
     return new AxisRect(Point.ORIGIN,
         Point.at(Coords.EARTH_SIZE, Coords.EARTH_SIZE));
@@ -71,8 +96,8 @@ public final class OrthoProjection extends BaseProjection {
   }
 
   @Override
-  public Projection makeQuickwarp(Point local, boolean circle) {
-    return this;
+  public Projection makeQuickwarp(Point local, boolean circle, Affinoid aff) {
+    return this.apply(aff);
   }
 
   @Override

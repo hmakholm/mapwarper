@@ -70,15 +70,14 @@ public class WindowTitle {
       if( !desc.isEmpty() )
         sb.append(desc).append(' ');
 
-      double squeeze = projection.getSqueeze();
-      if( squeeze != 1 || !projection.base().isOrtho() ) {
-        appendNumber(sb, "\u00d7", squeeze, " ");
+      var aff = projection.getAffinoid();
+      if( aff.squeeze != 1 || !projection.base().isOrtho() ) {
+        appendNumber(sb, "\u00d7", aff.squeeze, " ");
       }
 
-      double pixsize = projection.scaleAcross();
       int zoom = tiles.guiTargetZoom();
       if( baseproj.isOrtho() ) {
-        int natzoom = FallbackChain.naturalZoom(pixsize, tiles);
+        int natzoom = FallbackChain.naturalZoom(aff.scaleAcross, tiles);
         int natlogsize = Coords.BITS - natzoom - tiles.logTilesize();
         zoom = Math.min(zoom, Coords.logPixsize2zoom(natlogsize));
       }
@@ -86,7 +85,7 @@ public class WindowTitle {
       if( baseproj.usesDownloadFlag() && !Toggles.DOWNLOAD.setIn(flagBits) )
         sb.append('?');
       sb.append(zoom);
-      double factor = pixsize / Coords.zoom2pixsize(zoom);
+      double factor = aff.scaleAcross / Coords.zoom2pixsize(zoom);
       if( factor == 1 ) {
         // nothing
       } else if( factor > 1 )

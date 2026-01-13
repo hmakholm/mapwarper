@@ -7,7 +7,6 @@ import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.TransformHelper;
-import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
@@ -29,6 +28,7 @@ public final class TurnedProjection extends Projection {
   }
 
   public static Projection turnCounterclockwise(Projection base, int quadrants) {
+    quadrants &= 3;
     if( base instanceof TurnedProjection tp ) {
       quadrants = (quadrants + tp.quadrants) % 4;
       base = tp.base;
@@ -61,41 +61,12 @@ public final class TurnedProjection extends Projection {
   @Override public BaseProjection base() { return base.base(); }
   @Override public double scaleAcross() { return base.scaleAcross(); }
   @Override public double scaleAlong() { return base.scaleAlong(); }
-  @Override public double getSqueeze() { return base.getSqueeze(); }
 
   @Override
-  public Projection withScaleAndSqueeze(double scale, double squeeze) {
-    Projection newBase = base.withScaleAndSqueeze(scale, squeeze);
-    if( newBase.equals(base) )
-      return this;
-    else
-      return new TurnedProjection(newBase, quadrants);
-  }
-
-  @Override
-  public Projection scaleAndSqueezeSimilarly(BaseProjection realBase) {
-    Projection turnedBase = base.scaleAndSqueezeSimilarly(realBase);
-    if( base.base().isOrtho() ) {
-      // It doesn't make sense to preserve the turning in this case
-      return turnedBase;
-    } else {
-      return new TurnedProjection(turnedBase, quadrants);
-    }
-  }
-
-  @Override
-  public Projection makeSqueezeable() {
-    if( base().isOrtho() ) {
-      var dir0 = UnitVector.along(local2next.getScaleX(),local2next.getShearY());
-      return base.scaleAndSqueezeSimilarly(new QuickWarp(dir0));
-    } else
-      return this;
-  }
-
-  @Override
-  public Projection perhapsOrthoEquivalent() {
-    Projection newBase = base.perhapsOrthoEquivalent();
-    return newBase == null ? null : turnCounterclockwise(newBase, quadrants);
+  public Affinoid getAffinoid() {
+    var aff = base.getAffinoid();
+    aff.quadrantsTurned = (aff.quadrantsTurned + quadrants) & 3;
+    return aff;
   }
 
   private Point local2next(Point local) {
@@ -168,12 +139,6 @@ public final class TurnedProjection extends Projection {
   @Override
   public ProjectionWorker createNonAffineWorker() {
     return new TurningWorker();
-  }
-
-  @Override
-  public Projection makeQuickwarp(Point local, boolean circle) {
-    var got = base.makeQuickwarp(local2next(local), circle);
-    return turnCounterclockwise(got, quadrants);
   }
 
   @Override
@@ -291,7 +256,7 @@ public final class TurnedProjection extends Projection {
 
   @Override
   public String toString() {
-    return "turned("+quadrants+") "+base;
+    return base + " turned " + quadrants*90 + "\u00B0";
   }
 
 }

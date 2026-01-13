@@ -8,7 +8,6 @@ import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
 import net.makholm.henning.mapwarper.util.BadError;
-import net.makholm.henning.mapwarper.util.MathUtil;
 
 public abstract class BaseProjection extends Projection {
 
@@ -29,25 +28,17 @@ public abstract class BaseProjection extends Projection {
   @Override public final Point projected2local(Point p) { return p; }
   @Override public final double scaleAcross() { return 1.0; }
   @Override public final double scaleAlong() { return 1.0; }
-  @Override public final double getSqueeze() { return 1.0; }
 
   @Override
   public abstract AxisRect maxUnzoom();
 
   @Override
-  public final Projection withScaleAndSqueeze(double scale, double squeeze) {
-    scale = MathUtil.snapToPowerOf2(scale, 0.0001);
-    squeeze = MathUtil.snapToInteger(squeeze, 0.01);
-    if( scale == 1.0 && squeeze == 1.0 )
-      return this;
-    else
-      return new ScaledProjection(this, scale, squeeze);
+  public Affinoid getAffinoid() {
+    // ortho and circlewarp override this
+    return new Affinoid();
   }
 
-  @Override
-  public final Projection scaleAndSqueezeSimilarly(BaseProjection base) {
-    return base;
-  }
+  public abstract Projection apply(Affinoid aff);
 
   protected ProjectionWorker createWorker(Projection owningProjection,
       double xscale, double yscale) {
@@ -66,6 +57,9 @@ public abstract class BaseProjection extends Projection {
 
   protected abstract RenderFactory makeRenderFactory(LayerSpec spec,
       double xpixsize, double ypixsize);
+
+  public abstract Projection makeQuickwarp(Point pos, boolean circle,
+      Affinoid aff);
 
   abstract public String describe(Path currentFile);
 
