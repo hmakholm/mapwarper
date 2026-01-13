@@ -578,6 +578,11 @@ public class MapView {
       var kindList = new ArrayList<>(editingChain.kinds);
       Collections.reverse(nodeList);
       Collections.reverse(kindList);
+      for( int i=0; i<nodeList.size(); i++ ) {
+        TrackNode n = nodeList.get(i);
+        if( n.locksDirection() )
+          nodeList.set(i, n.withDirection(n.direction.reverse()));
+      }
       var newChain = new SegmentChain(nodeList, kindList);
       files.activeFile().rewriteContent(undoList, "Reverse track",
           content -> {

@@ -64,7 +64,7 @@ class MinimalWarpWorker {
     return curve.derivativeAt(parameterWithinCurve()).length() * invCurvelen;
   }
 
-  private UnitVector currentNormal() {
+  protected UnitVector currentNormal() {
     if( commonNormal != null )
       return commonNormal;
     else

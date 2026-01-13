@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
+import java.awt.geom.AffineTransform;
 import java.util.List;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
@@ -20,6 +21,13 @@ public interface ProjectionWorker {
   public abstract Point global2localWithHint(Point global, Point nearbyLocal);
 
   public abstract List<Bezier> global2local(Bezier global);
+
+  /**
+   * Makes a linear transformation that makes a <em>global</em> delta at the given local
+   * point into a <em>local</em> one. The constant part of the transformation is
+   * unpredictable and should not be used.
+   */
+  public abstract AffineTransform createDifferential(Point local);
 
   public default void dumpSearchStats() { }
 

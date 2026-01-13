@@ -160,6 +160,14 @@ public class CircleWarp extends BaseProjection {
         var dx = global.dot(n.turnLeft()) * radius / (r * xscale);
         return Vector.of(dx, dy);
       }
+
+      @Override
+      public AffineTransform createDifferential(Point local) {
+        var global = local2global(local);
+        var xx = delta2local(UnitVector.RIGHT, global);
+        var yy = delta2local(UnitVector.DOWN, global);
+        return new AffineTransform(xx.x, xx.y, yy.x, yy.y, 0, 0);
+      }
     };
   }
 

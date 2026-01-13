@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
+import java.awt.geom.AffineTransform;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -173,6 +174,12 @@ implements ProjectionWorker {
     }
   }
 
+  private LocalPoint local2local(Point local) {
+    var lefting = local.x * xscale;
+    setLefting(lefting);
+    return new LocalPoint(segment, lefting, local.y*yscale, currentNormal());
+  }
+
   @Override
   public List<Bezier> global2local(Bezier global) {
     LocalPoint l1 = global2local(global.p1);
@@ -293,6 +300,14 @@ implements ProjectionWorker {
     double y = down.dot(v);
     double x = down.y*v.x - down.x*v.y;
     return Vector.of(x/xscale, y/yscale);
+  }
+
+  @Override
+  public AffineTransform createDifferential(Point local) {
+    LocalPoint lp = local2local(local);
+    var xx = delta2local(UnitVector.RIGHT, lp);
+    var yy = delta2local(UnitVector.DOWN, lp);
+    return new AffineTransform(xx.x, xx.y, yy.x, yy.y, 0, 0);
   }
 
 }

@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -147,7 +148,9 @@ public final class TrackPainter extends LongHashed {
     }
 
     for( var chain : trackdata.currentFileChains() ) {
-      if( editingChain == null )
+      if( chain == editingChain ) {
+        // we will draw this later
+      } else if( editingChain == null )
         drawCrosshairs(chain, 64, 0x00BBCC);
       else if( chain.chainClass == editingClass )
         drawCrosshairs(chain, 32, 0xD2D2D2);
@@ -358,16 +361,22 @@ public final class TrackPainter extends LongHashed {
     g.setColor(new Color(rgb));
     var localCurves = chain.localize(translator);
     var nodes = localCurves.nodes;
+    boolean mainChain = chain == trackdata.editingChain();
 
     int max = nodes.size()-1;
     for( int i=0; i<=max; i++ ) {
-      Point curPoint = nodes.get(i);
+      PointWithNormal curPoint = nodes.get(i);
       double dist = 1000;
       if( i > 0   ) dist = Math.min(dist, curPoint.dist(nodes.get(i-1)));
       if( i < max ) dist = Math.min(dist, curPoint.dist(nodes.get(i+1)));
       double size = dist * 1.5;
       size = maxsize - maxsize/(1+(size/maxsize));
-      drawOneCrosshair(curPoint, size, localCurves.curves, i);
+      if( mainChain &&
+          size > 8*linewidth &&
+          chain.nodes.get(i).locksDirection() )
+        drawDirectedCrosshair(curPoint, size);
+      else
+        drawOneCrosshair(curPoint, size, localCurves.curves, i);
     }
   }
 
@@ -377,7 +386,7 @@ public final class TrackPainter extends LongHashed {
    */
   private static final UnitVector DIAG = Vector.of(1,1).normalize();
 
-  private void drawOneCrosshair(Point p, double size,
+  private void drawOneCrosshair(PointWithNormal p, double size,
       FrozenArray<List<Bezier>> curves, int index) {
     int W = linewidth;
     long x = (long)(Math.round(p.x - W*0.5));
@@ -414,6 +423,24 @@ public final class TrackPainter extends LongHashed {
 
   private void fillRect(long x, long y, int width, int height) {
     g.fill(new Rectangle2D.Double(x, y, width, height));
+  }
+
+  private void drawDirectedCrosshair(PointWithNormal p, double size) {
+    var trans = new AffineTransform(size, 0, 0, size, p.x, p.y);
+    trans.rotate(p.normal.y, -p.normal.x);
+
+    Path2D.Double arrow = new Path2D.Double();
+    arrow.moveTo(-0.3, 0.2);
+    arrow.lineTo(0.3, 0.2);
+    // arrow.lineTo(0.5, 0);
+    arrow.moveTo(0.3, -0.2);
+    arrow.lineTo(-0.3, -0.2);
+    arrow.moveTo(0, -0.5);
+    arrow.lineTo(0, -0.1);
+    arrow.moveTo(0, 0.1);
+    arrow.lineTo(0, 0.5);
+    arrow.transform(trans);
+    g.draw(arrow);
   }
 
   private void linestyle(int rgb, Stroke stroke) {

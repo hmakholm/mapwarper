@@ -44,7 +44,7 @@ class TrackEditTool extends EditTool {
     Point lpAcross = translator().global2localWithHint(gpAcross, p2);
 
     if( lpAlong.sqDist(p2) < lpAcross.sqDist(p2) ) {
-      TrackNode n2 = global2node(gpAlong);
+      TrackNode n2 = global2node(gpAlong).withDirection(gp1.direction);
       var nodes = new ArrayList<>(chain.nodes);
       nodes.set(index, n2);
       var newChain = new SegmentChain(nodes, chain.kinds, chainClass);
@@ -82,7 +82,8 @@ class TrackEditTool extends EditTool {
     for( int i=first; i<=last; i++ ) {
       TrackNode g = nodes.get(i);
       UnitVector d = smoothed.direction(i).turnRight();
-      nodes.set(i, global2node(g.plus(distAcross, d)));
+      TrackNode n = global2node(g.plus(distAcross, d));
+      nodes.set(i, n.withDirection(nodes.get(i).direction));
     }
     var newChain = new SegmentChain(nodes, chain.kinds, chainClass);
     String undoDesc;

@@ -58,4 +58,9 @@ implements ProjectionWorker {
     return Collections.singletonList(global.transform(global2local, this));
   }
 
+  @Override
+  public AffineTransform createDifferential(Point local) {
+    return new AffineTransform(global2local);
+  }
+
 }

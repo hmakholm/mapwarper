@@ -81,6 +81,7 @@ public class Commands {
   private final Tool localBoundTool =
       new BoundSnappingTool(this, SegKind.LBOUND, "locally straight bound");
   private final Tool delete = new DeleteTool(this);
+  private final Tool lock = new LockingTool(this);
 
   private final Cmd unzoom = simple("unzoom", "Fit visible",
       self -> self.mapView.unzoomCommand());
@@ -303,6 +304,7 @@ public class Commands {
     keymap.accept("M-G", Toggles.TILEGRID.command(this));
     keymap.accept("S-G", Toggles.DOWNLOAD.command(this));
     keymap.accept("G", downloadTile);
+    keymap.accept("H", lock);
     keymap.accept("L", lens);
 
     keymap.accept("Z", zoomTool);
@@ -343,6 +345,7 @@ public class Commands {
     edit.add(magicTool);
     edit.add(boundTool);
     edit.add(delete);
+    edit.add(lock);
     edit.addSeparator();
     edit.add(newChain);
     edit.add(reverse);

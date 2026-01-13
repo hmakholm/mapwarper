@@ -134,6 +134,13 @@ public final class TurnedProjection extends Projection {
       List<Bezier> got = inner.global2local(global);
       return ListMapper.map(got, b -> b.transform(next2local, this));
     }
+
+    @Override
+    public AffineTransform createDifferential(Point local) {
+      var got = inner.createDifferential(local2next(local));
+      got.preConcatenate(next2local);
+      return got;
+    }
   }
 
   @Override

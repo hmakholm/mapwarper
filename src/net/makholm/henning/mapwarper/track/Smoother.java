@@ -85,15 +85,29 @@ class Smoother {
     ArrayList<LineSeg> segments = null;
     int currentPrio = -2;
     int multiStart = 0;
+    UnitVector multiDirection = null;
     for( int node = 0; node < chain.numNodes; node++ ) {
+      if( multiDirection == null )
+        multiDirection = chain.nodes.get(node).direction;
       int thisPrio = segmentPriority(node);
       if( thisPrio == SLEWPRIO ) {
         // include it in the current multinode
-        continue;
+        if( multiDirection != null &&
+            chain.nodes.get(node+1).locksDirection() ) {
+          // hmm, no that would make two forced directions come together
+          // in a multinode. Just wrap up the multinode instead hat will
+          // effectively cause the last slew to be handled like a magic
+          // connector instead.
+        } else {
+          continue;
+        }
       }
       MultiNode mnode = new MultiNode(this, multiStart, node);
+      if( multiDirection != null )
+        mnode.put(multiDirection);
       multiStart = node+1;
-      if( thisPrio != currentPrio ) {
+      multiDirection = null;
+      if( thisPrio != currentPrio || mnode.get() != null ) {
         if( mnodes != null ) {
           mnodes.add(mnode);
           subchains.add(new Subchain(currentPrio, mnodes, segments));
