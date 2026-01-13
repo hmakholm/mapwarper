@@ -80,7 +80,10 @@ public class ZoomTool extends ProjectionSwitchingTool {
   }
 
   void zoom100Command() {
-    setScale(Coords.zoom2pixsize(mapView().mainTiles.guiTargetZoom()));
+    var aff = projection().getAffinoid();
+    aff.scaleAcross = Coords.zoom2pixsize(mapView().mainTiles.guiTargetZoom());
+    aff.squeeze = Math.round(aff.squeeze);
+    mapView().setProjection(projection().base().apply(aff));
   }
 
   private Projection projection() {
