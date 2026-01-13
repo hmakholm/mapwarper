@@ -302,15 +302,15 @@ public class Commands {
     keymap.accept("M-G", Toggles.TILEGRID.command(this));
     keymap.accept("S-G", Toggles.DOWNLOAD.command(this));
     keymap.accept("G", downloadTile);
-    keymap.accept("K", delete);
     keymap.accept("L", lens);
 
     keymap.accept("Z", zoomTool);
-    keymap.accept("X", move);
+    keymap.accept("X", delete);
     keymap.accept("C", trackTool);
     keymap.accept("V", weakTrackTool);
     keymap.accept("B", boundTool);
     keymap.accept("N", localBoundTool);
+    keymap.accept("M", move);
     keymap.accept("<", squeeze);
     keymap.accept(">", stretch);
 

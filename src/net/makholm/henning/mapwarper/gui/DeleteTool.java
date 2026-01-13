@@ -12,7 +12,7 @@ final class DeleteTool extends GenericEditTool
 implements DragSubchainSelector.Callback {
 
   DeleteTool(Commands owner) {
-    super(owner, "delete", "Delete segments");
+    super(owner, "delete", "Cut segment(s)");
     toolCursor = loadCursor("crosshairCursor.png");
   }
 
@@ -56,21 +56,26 @@ implements DragSubchainSelector.Callback {
 
   @Override
   public ProposedAction draggedSubchain(SegmentChain chain, int a, int b) {
-    var highlight = new TrackHighlight(chain, a, b, DELETE_HIGHLIGHT);
     var last = chain.numNodes-1;
+    String desc = b-a == 1 ? "Cut segment" : "Cut " + (b-a) + " segments";
+    StandardAction action;
     if( a == 0 && b == last )
-      return killTheChain("Delete chain").with(highlight);
+      action = killTheChain("Cut chain");
     else if( a == b )
       return noopAction("Cannot cut single node")
           .with(new TrackHighlight(chain, a, b, 0xCCCCCC));
     else if( a == 0 )
-      return rewriteTo("Truncate chain", chain.subchain(b, last)).with(highlight);
+      action = rewriteTo(desc, chain.subchain(b, last));
     else if( b == last )
-      return rewriteTo("Truncate chain", chain.subchain(0, a)).with(highlight);
+      action = rewriteTo(desc, chain.subchain(0, a));
     else
-      return StandardAction.split(this, "Delete "+(b-a)+" segments",
-          chain.subchain(0, a), mapView().mouseLocal, chain.subchain(b,last))
-          .with(highlight);
+      action = StandardAction.split(this, desc,
+          chain.subchain(0, a), mapView().mouseLocal, chain.subchain(b,last));
+    return action
+        .with(new TrackHighlight(chain, a, b, DELETE_HIGHLIGHT))
+        .with(() -> {
+          mapView().clipboard = chain.subchain(a,b);
+        });
   }
 
 }

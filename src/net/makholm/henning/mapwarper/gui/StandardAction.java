@@ -142,6 +142,11 @@ class StandardAction implements ProposedAction {
     return this;
   }
 
+  public StandardAction with(Runnable r) {
+    extraAction = r;
+    return this;
+  }
+
   // -------------------------------------------------------------------------
 
   final Context cxt;
@@ -155,6 +160,7 @@ class StandardAction implements ProposedAction {
   TrackNode newNode;
   boolean snapped;
   boolean preview;
+  Runnable extraAction = () -> {};
 
   private StandardAction(Context cxt, String undoDesc,
       Set<SegmentChain> newFileContent, SegmentChain newActiveChain) {
@@ -208,6 +214,7 @@ class StandardAction implements ProposedAction {
               c -> c.withChains(newFileContent));
         }
         mapView.setEditingChain(newActiveChain);
+        extraAction.run();
       }
     };
   }

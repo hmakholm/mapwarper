@@ -40,6 +40,9 @@
      C: Tegn spor (:curved track)
 
      B: Tegn grænse
+     N: Tegn grænse som bliver vist som lige
+
+     X: Slet segmenter
 
      Q: quick warp
      Alt-Q: cirkulært quickwarp
@@ -59,7 +62,7 @@
      Ctrl-I: Skift sporretning
 
      Z: Zoom
-     X: (Næsten) noop-tool
+     M: (Næsten) noop-tool
 
      Ctrl-Z: Fortryd
      Ctrl-Y: Ufortryd
@@ -423,6 +426,7 @@
      * Sletning af et eller flere segmenter midt i en kæde splitter
        den i to. For ikke at komme til at gøre det uagtsomt skal man
        vælge et særligt værktøj til det.
+     * De slettede segmenter bliver fyldt i clipboardet.
      * Når en kæde splittes, bliver den af de to resulterende kæder
        der ender tættest på musen aktiv.
    Handlinger:
