@@ -254,6 +254,7 @@ public class Commands {
     keymap.accept("C-L", repaint);
     keymap.accept("C-N", newFile);
     keymap.accept("C-O", open);
+    keymap.accept("C-Q", quit);
     keymap.accept("C-R", revert);
     keymap.accept("C-S", saveAll);
     keymap.accept("C-V", paste);

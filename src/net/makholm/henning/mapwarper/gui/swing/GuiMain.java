@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.gui.swing;
 
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.util.List;
@@ -13,6 +14,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
+import javax.swing.WindowConstants;
 
 import net.makholm.henning.mapwarper.gui.Commands;
 import net.makholm.henning.mapwarper.gui.MapView;
@@ -85,6 +87,14 @@ public class GuiMain extends JFrame {
     commands.defineKeyBindings(this::defineKeyBinding);
 
     mainLogic.swing.repaintFromScratch();
+
+    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+    addWindowListener(new WindowAdapter() {
+      @Override
+      public void windowClosing(WindowEvent e) {
+        quitCommand();
+      }
+    });
   }
 
   private void leftDividerMoved(PropertyChangeEvent e) {
@@ -135,7 +145,26 @@ public class GuiMain extends JFrame {
   }
 
   public void quitCommand() {
-    dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+    if( filePane.cache.anyUnsavedChanges() ) {
+      int result = JOptionPane.showConfirmDialog(this,
+          "There are unsaved files. Save before closing?",
+          "Mapwarper", JOptionPane.YES_NO_CANCEL_OPTION);
+      switch( result ) {
+      case JOptionPane.CANCEL_OPTION:
+      case JOptionPane.CLOSED_OPTION:
+        return;
+      case JOptionPane.YES_OPTION:
+        if( !filePane.saveAllCommand() )
+          return;
+        else
+          break;
+      case JOptionPane.NO_OPTION:
+        break;
+      default:
+        throw BadError.of("showConfirmDialog returned %d", result);
+      }
+    }
+    dispose();
   }
 
   private void defineKeyBinding(String key, Command command) {

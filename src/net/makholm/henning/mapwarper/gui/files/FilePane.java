@@ -261,9 +261,9 @@ public class FilePane {
     }
   }
 
-  public void saveAllCommand() {
+  public boolean saveAllCommand() {
     if( !saveAsIfNecessary() )
-      return;
+      return false;
 
     List<String> problems = saveAll();
     if( !problems.isEmpty() ) {
@@ -273,8 +273,10 @@ public class FilePane {
         msg.append(s);
       }
       window.showErrorBox("%s", msg.toString());
+      return false;
     }
     // TODO: we should clear out unused VectFiles from the cache now
+    return true;
   }
 
   public List<String> saveAll() {
