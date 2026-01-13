@@ -27,11 +27,6 @@ implements DragSubchainSelector.Callback {
   }
 
   @Override
-  public void anActionHasExecuted() {
-    switchToPreviousTool();
-  }
-
-  @Override
   public ToolResponse mouseResponse(Point local, int modifiers) {
     if( editingChain() == null ) {
       var found = pickSegmentAnyChain(local);

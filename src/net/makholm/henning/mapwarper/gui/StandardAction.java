@@ -25,7 +25,6 @@ class StandardAction implements ProposedAction {
     default String finalizeUndoDesc(String template) { return template; }
     default boolean isSnappedNode(TrackNode node) { return false; }
     default int circleCursorColor() { return NO_CURSOR; }
-    default void anActionHasExecuted() { }
   }
 
   /**
@@ -201,17 +200,14 @@ class StandardAction implements ProposedAction {
       }
       @Override
       public void execute(ExecuteWhy why) {
-        boolean nontrivial = false;
         var currentFile = mapView.files.activeFile();
         if( newFileContent != null ) {
           String desc = cxt.finalizeUndoDesc(undoDesc);
           System.err.println("  Executing edit: "+desc);
           currentFile.rewriteContent(mapView.undoList, desc,
               c -> c.withChains(newFileContent));
-          nontrivial = true;
         }
         mapView.setEditingChain(newActiveChain);
-        if( nontrivial ) cxt.anActionHasExecuted();
       }
     };
   }

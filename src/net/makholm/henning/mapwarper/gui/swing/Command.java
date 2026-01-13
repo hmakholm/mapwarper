@@ -55,10 +55,6 @@ public abstract class Command {
     return true;
   }
 
-  public boolean specialKeypressAction() {
-    return false;
-  }
-
   public abstract void invoke();
 
   final Action makeAction() {
@@ -72,13 +68,9 @@ public abstract class Command {
           System.err.println("[ignoing spurious "+codename+"]");
           return;
         }
-        if( !invokedFromMenu && specialKeypressAction() ) {
-          // Nothing more to do
-        } else {
-          owner.swing.whenInvokingCommand(invokedFromMenu);
-          debugTraceInvoke();
-          invoke();
-        }
+        owner.swing.whenInvokingCommand(invokedFromMenu);
+        debugTraceInvoke();
+        invoke();
         owner.swing.refreshScene();
       }
     };

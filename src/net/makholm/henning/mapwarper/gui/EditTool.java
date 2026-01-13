@@ -38,11 +38,6 @@ class EditTool extends GenericEditTool {
   }
 
   @Override
-  public void anActionHasExecuted() {
-    enableSameKeyCancel();
-  }
-
-  @Override
   public ToolResponse mouseResponse(Point local, int modifiers) {
     var action = decideAction(local, modifiers, local, modifiers);
     if( action == null )

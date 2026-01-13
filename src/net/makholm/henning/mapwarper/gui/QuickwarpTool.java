@@ -49,10 +49,7 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
 
     if( proj.equals(orig) )
       return NO_RESPONSE;
-    return why -> {
-      mapView().setProjection(proj);
-      enableSameKeyCancel();
-    };
+    return why -> mapView().setProjection(proj);
   }
 
   @Override
@@ -78,7 +75,6 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
         aff.makeSqueezable(5);
         var proj = new QuickWarp(a, dir).apply(aff);
         owner.mapView.setProjection(proj, midLocal);
-        enableSameKeyCancel();
       }
     };
   }
