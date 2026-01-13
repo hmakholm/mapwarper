@@ -362,7 +362,7 @@ public class MapView {
 
   public void selectTool(Tool tool) {
     currentTool = tool;
-    currentTool.sanitizeEditingStateWhenSelected();
+    currentTool.whenSelected();
   }
 
   void selectEditingTool() {

@@ -64,6 +64,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   private ToolResponse toolResponse = why -> {};
   private VectorOverlay previousOverlay;
 
+  TempToolReleaser tempTool = new TempToolReleaser();
+
   private boolean everPaintedYet;
 
   public SwingMapView(MapView logic) {
@@ -403,6 +405,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     popupMousePosition = null;
     cancelDrag();
     readMousePosition(e);
+    tempTool.hasActivity();
     if( e.getButton() == 3 ) {
       popupMousePosition = windowMousePosition;
       PopupMenu popup = new PopupMenu();
@@ -425,6 +428,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
       ongoingToolDrag = null;
       invalidateToolResponse();
       toolResponse.execute(MouseAction.ExecuteWhy.DRAG);
+      tempTool.mouseRelease(e);
       // artificially kill the modifiers right after a drag so one can
       // see the result.
       modifierState = 0;
@@ -432,6 +436,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
       return;
     }
     readMousePosition(e);
+    tempTool.mouseRelease(e);
   }
 
   @Override
@@ -452,6 +457,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     if( checkOngoingDrag(e) ) return;
     readMousePosition(e);
     refreshToolResponse(false);
+    tempTool.mouseMove(logic.mouseLocal);
   }
 
   @Override
@@ -539,6 +545,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
       resetProjectionAtShiftUp = null;
       logic.disableTempProjectionsOnShift = false;
     }
+    tempTool.keyRelease(e);
     refreshToolResponse(false);
   }
 

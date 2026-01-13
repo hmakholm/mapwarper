@@ -17,7 +17,8 @@ implements DragSubchainSelector.Callback {
   }
 
   @Override
-  public void sanitizeEditingStateWhenSelected() {
+  public void whenSelected() {
+    super.whenSelected();
     if( editingChain() == null ) {
       var chains = mapView().files.activeFile().content().chainsCopy();
       if( chains.size() == 1 ) {

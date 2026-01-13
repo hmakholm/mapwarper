@@ -55,13 +55,19 @@ public abstract class Command {
     return true;
   }
 
+  protected void invokeByKey(char key) {
+    mapView().swing.tempTool.disable();
+    invoke();
+  }
+
   public abstract void invoke();
 
   final Action makeAction() {
     return new AbstractAction(niceName) {
       @Override
       public void actionPerformed(ActionEvent e) {
-        boolean invokedFromMenu = niceName.equals(e.getActionCommand());
+        String swingstring = e.getActionCommand();
+        boolean invokedFromMenu = niceName.equals(swingstring);
         if( !invokedFromMenu &&
             (e.getModifiers() & ActionEvent.ALT_MASK) != 0 &&
             !hasAltBinding ) {
@@ -69,8 +75,16 @@ public abstract class Command {
           return;
         }
         owner.swing.whenInvokingCommand(invokedFromMenu);
-        debugTraceInvoke();
-        invoke();
+        if( !invokedFromMenu &&
+            swingstring != null && swingstring.length() == 1 ) {
+          if( mapView().swing.tempTool.waitingFor(swingstring.charAt(0)) )
+            return;
+          debugTraceInvoke();
+          invokeByKey(swingstring.charAt(0));
+        } else {
+          debugTraceInvoke();
+          invoke();
+        }
         owner.swing.refreshScene();
       }
     };

@@ -34,7 +34,7 @@ class EditTool extends GenericEditTool {
   @Override
   public final void activeFileChanged() {
     super.activeFileChanged();
-    sanitizeEditingStateWhenSelected();
+    whenSelected();
   }
 
   @Override
@@ -290,7 +290,8 @@ class EditTool extends GenericEditTool {
   }
 
   @Override
-  public void sanitizeEditingStateWhenSelected() {
+  public void whenSelected() {
+    super.whenSelected();
     var logic = mapView();
 
     // cancel current chain if it has the wrong class

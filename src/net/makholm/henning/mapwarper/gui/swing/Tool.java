@@ -96,8 +96,16 @@ public abstract class Tool extends Command implements MouseAction {
         name);
   }
 
-  public void sanitizeEditingStateWhenSelected() {
-    // Nothing by default
+  public void whenSelected() {
+    mapView().swing.tempTool.disable();
+  }
+
+  @Override
+  protected final void invokeByKey(char key) {
+    var prev = mapView().currentTool;
+    invoke();
+    if( prev != this )
+      mapView().swing.tempTool = new TempToolReleaser(this, key, prev);
   }
 
   private Tool previousTool;
@@ -108,7 +116,7 @@ public abstract class Tool extends Command implements MouseAction {
       previousTool = mapView().currentTool;
       mapView().selectTool(this);
     } else {
-      sanitizeEditingStateWhenSelected();
+      whenSelected();
     }
   }
 
