@@ -35,6 +35,10 @@ public interface MouseAction {
     default public Cursor cursor() { return null; }
 
     public void execute(ExecuteWhy why);
+
+    default MouseAction constantDrag() {
+      return (p,m) -> this;
+    }
   }
 
 }

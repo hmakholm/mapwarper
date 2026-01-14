@@ -60,7 +60,7 @@ final class LockingTool extends GenericEditTool {
     var found = pickNodeInActive(p1);
     var clickAction = lockOrUnlock(found);
     if( clickAction == null ) {
-      return (p2, mod2) -> NO_RESPONSE;
+      return NO_RESPONSE.constantDrag();
     }
     var clickResponse = clickAction.withPreview().freeze();
 
@@ -73,7 +73,7 @@ final class LockingTool extends GenericEditTool {
       differential.invert();
     } catch( NoninvertibleTransformException e ) {
       e.printStackTrace();
-      return (p2, mod2) -> NO_RESPONSE;
+      return NO_RESPONSE.constantDrag();
     }
     var th = new TransformHelper();
     return (p2, mod2) -> {

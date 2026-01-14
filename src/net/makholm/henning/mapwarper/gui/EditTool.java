@@ -49,11 +49,16 @@ class EditTool extends GenericEditTool {
 
   @Override
   public MouseAction drag(Point p1, int mod1) {
-    if( ctrlHeld(mod1) )
-      return new DragSubchainSelector(mapView(), p1, kind.rgb,
-          this::actionForDeletingNodes);
-
     var clickAction = decideAction(p1, mod1, p1, mod1);
+
+    if( ctrlHeld(mod1) ) {
+      if( clickAction != null )
+        return clickAction.withPreview().freeze().constantDrag();
+      else
+        return new DragSubchainSelector(mapView(), p1, kind.rgb,
+            this::actionForDeletingNodes);
+    }
+
     if( clickAction != null && clickAction.executeIfSelectingChain() )
       mapView().collectVisibleTrackData();
     return (p2, mod2) -> {
@@ -76,14 +81,14 @@ class EditTool extends GenericEditTool {
     if( found != null )
       return actionFromEditingPoint(found.index(), p1, mod1, p2, mod2);
 
+    if( ctrlHeld(mod1) ) {
+      // everything else is not a segment collapsing action
+      return null;
+    }
+
     found = pickSegmentInActive(p1);
     if( found != null )
       return actionFromEditingSegment(found.index(), p1, mod1, p2, mod2);
-
-    if( ctrlHeld(mod1) ) {
-      // everything else is not a deletion action
-      return null;
-    }
 
     // Else, if you point to another chain _of the right class_
     // in the open file, use that
