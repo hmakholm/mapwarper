@@ -161,7 +161,29 @@ public final class Bezier extends LongHashed {
   }
 
   public double estimateLength() {
-    return p1.dist(p4);
+    // When first drafting warps, one sometimes uses rather long curves
+    // -- up to a quarter-turn, in which case the straight-line distance
+    // between p1 and p4 would underestimate the length by about 10%.
+    // That leads to unsightly jumps when the curve is split and the warp
+    // is updated.
+    // On the other hand, this handpicked four-point average experimentally
+    // seems to get better 1 in 50,000 for our approximations of circle arcs
+    // up to 90 degrees, and still better than 0.2% for (dubiously realistic)
+    // wide S-curves.
+    var estimate = (
+        derivativeAt(0.104).norm() +
+        derivativeAt(0.400).norm() +
+        derivativeAt(0.600).norm() +
+        derivativeAt(0.896).norm()) / 4;
+    //    double acc = 0;
+    //    for( int i=1; i<256; i+= 2 )
+    //      acc += derivativeAt(i/256.0).norm();
+    //    var veryPrecise = acc/128;
+    //    var degrees = Math.abs(v1.bearing() - v4.bearing()) % 360;
+    //    var invError = veryPrecise/(estimate-veryPrecise);
+    //    System.out.println(Math.round(degrees)+": "+invError+" "
+    //        +estimate+" "+veryPrecise);
+    return estimate;
   }
 
   /**
