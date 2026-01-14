@@ -46,11 +46,8 @@ class DragSubchainSelector implements MouseAction {
     ToolResponse toWrap = null;
     if( a <= b ) {
       var action = callback.draggedSubchain(chain, a, b);
-      if( action != null ) {
-        if( Tool.shiftHeld(mod2) )
-          action = action.withPreview();
-        toWrap = action.freeze();
-      }
+      if( action != null )
+        toWrap = action.withPreview().freeze();
     }
     if( toWrap == null ) toWrap = Tool.NO_RESPONSE;
     return new WrappedToolResponse(toWrap) {
