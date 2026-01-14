@@ -3,6 +3,7 @@ package net.makholm.henning.mapwarper.gui.swing;
 import java.awt.Cursor;
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -104,7 +105,7 @@ public abstract class Tool extends Command implements MouseAction {
   protected final void invokeByKey(char key) {
     var prev = mapView().currentTool;
     invoke();
-    if( prev != this )
+    if( prev != this && key != KeyEvent.CHAR_UNDEFINED )
       mapView().swing.tempTool = new TempToolReleaser(this, key, prev);
   }
 

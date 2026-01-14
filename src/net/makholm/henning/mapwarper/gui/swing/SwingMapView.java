@@ -457,7 +457,6 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     if( checkOngoingDrag(e) ) return;
     readMousePosition(e);
     refreshToolResponse(false);
-    tempTool.mouseMove(logic.mouseLocal);
   }
 
   @Override

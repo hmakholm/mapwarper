@@ -13,47 +13,55 @@ final class TempToolReleaser {
   final Tool switchTo;
   final Point initMouseLocal;
 
-  private boolean enabled;
-  private boolean seenActivity;
-  private boolean waitingForMouseRelease;
+  /**
+   * After this amount of time the tool selection is assumed to be meant
+   * as temporary even if we haven't seen a button press.
+   */
+  public static final int WAIT_MILLIS = 600;
+
+  private static final long NEVER = Long.MAX_VALUE;
+  private static final long MOUSE_RELEASE = Long.MAX_VALUE-1;
+
+  private long waitingFor;
 
   TempToolReleaser() {
     this.key = 0;
     this.switchFrom = null;
     this.switchTo = null;
     this.initMouseLocal = Point.ORIGIN;
+    this.waitingFor = NEVER;
   }
 
   TempToolReleaser(Tool switchFrom, char key, Tool switchTo) {
     this.switchFrom = switchFrom;
     this.key = key;
     this.switchTo = switchTo;
-    this.initMouseLocal = switchTo.mapView().mouseLocal;
-    enabled = key != KeyEvent.CHAR_UNDEFINED;
+    this.initMouseLocal = switchFrom.mapView().mouseLocal;
+    this.waitingFor = System.nanoTime() + WAIT_MILLIS * 1_000_000L;
+  }
+
+  private boolean waitingForKeyRelease() {
+    return waitingFor < MOUSE_RELEASE;
   }
 
   boolean waitingFor(char key) {
-    return enabled && key == this.key;
+    return waitingForKeyRelease() && key == this.key;
   }
 
   void disable() {
-    enabled = false;
+    waitingFor = NEVER;
   }
 
   void hasActivity() {
-    seenActivity = true;
-  }
-
-  void mouseMove(Point newLocal) {
-    if( enabled && newLocal.sqDist(initMouseLocal) > 200 )
-      hasActivity();
+    if( waitingForKeyRelease() )
+      waitingFor = Long.MIN_VALUE;
   }
 
   void keyRelease(KeyEvent e) {
-    if( enabled && e.getKeyChar() == key ) {
-      if( seenActivity ) {
+    if( e.getKeyChar() == key ) {
+      if( System.nanoTime() > waitingFor ) {
         if( lingerForMouse(e) )
-          waitingForMouseRelease = true;
+          waitingFor = MOUSE_RELEASE;
         else
           switchBack();
       } else {
@@ -70,7 +78,7 @@ final class TempToolReleaser {
   }
 
   void mouseRelease(MouseEvent e) {
-    if( enabled && waitingForMouseRelease && !lingerForMouse(e) )
+    if( waitingFor == MOUSE_RELEASE && !lingerForMouse(e) )
       switchBack();
   }
 
@@ -80,7 +88,7 @@ final class TempToolReleaser {
 
   private void switchBack() {
     System.err.println("[resume "+switchTo.codename+"]");
-    enabled = false;
+    waitingFor = NEVER;
     switchTo.mapView().selectTool(switchTo);
     switchTo.mapView().swing.refreshScene();
   }
