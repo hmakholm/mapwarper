@@ -52,6 +52,13 @@ public class GuiMain extends JFrame {
         "Error", JOptionPane.ERROR_MESSAGE);
   }
 
+  public boolean showYesCancelBox(String title, String fmt, Object... params) {
+    String msg = String.format(Locale.ROOT, fmt, params);
+    int result = JOptionPane.showConfirmDialog(this, msg, title,
+        JOptionPane.OK_CANCEL_OPTION);
+    return result == JOptionPane.OK_OPTION;
+  }
+
   private GuiMain(TileContext tiles, String filearg) {
     setMainIcon();
     setTitle("Mapwarper v3");

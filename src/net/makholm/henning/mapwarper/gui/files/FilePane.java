@@ -198,9 +198,8 @@ public class FilePane {
 
   private boolean showBoxIfSavingIsNeeded() {
     if( unnamedFileNeedsSaving() ) {
-      window.showErrorBox("The current anonymous file contains changes "
-          + "that would be lost. Please save them first.");
-      return true;
+      return !window.showYesCancelBox("You may want to save",
+          "Discard contents of current anonymous file?");
     } else {
       return false;
     }
