@@ -108,7 +108,7 @@ class EditTool extends GenericEditTool {
 
   protected ProposedAction actionFromEditingPoint(int index,
       Point p1, int mod1, Point p2, int mod2) {
-    if( ctrlHeld(mod1) ) {
+    if( ctrlHeld(mod1) || isTempTool() ) {
       return actionForDeletingNodes(editingChain(), index, index);
     } else if( p1.dist(p2) < 3 ) {
       // This is probably just a plain click. If you want to actually move
@@ -147,7 +147,8 @@ class EditTool extends GenericEditTool {
       kinds.set(index, kind);
       var newChain = new SegmentChain(chain.nodes, kinds, chainClass);
       var highlight = new TrackHighlight(chain, index, index+1, kind.rgb);
-      return rewriteTo("Change to @", newChain).with(highlight);
+      var action = rewriteTo("Change to @", newChain).with(highlight);
+      return isTempTool() ? action.withPreview() : action;
     }
   }
 
@@ -174,6 +175,7 @@ class EditTool extends GenericEditTool {
           chain.kinds.subList(b+1, last));
       var newChain = new SegmentChain(nodes, kinds, chainClass);
       return rewriteTo(a==b ? "Delete node" : "Delete nodes", newChain)
+          .withPreview()
           .with(new TrackHighlight(chain, a-1, b+1, kind.rgb));
     }
   }

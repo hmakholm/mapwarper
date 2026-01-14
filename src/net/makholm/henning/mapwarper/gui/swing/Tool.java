@@ -109,6 +109,10 @@ public abstract class Tool extends Command implements MouseAction {
       mapView().swing.tempTool = new TempToolReleaser(this, key, prev);
   }
 
+  protected final boolean isTempTool() {
+    return mapView().swing.tempTool.waitingFor(this);
+  }
+
   protected ToolResponse simpleKeyAction(Point pos, int modifiers) {
     return null;
   }

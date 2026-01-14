@@ -40,6 +40,10 @@ final class TempToolReleaser {
     this.waitingFor = System.nanoTime() + WAIT_MILLIS * 1_000_000L;
   }
 
+  boolean waitingFor(Tool tool) {
+    return tool == switchFrom && waitingFor < NEVER;
+  }
+
   private boolean waitingForKeyRelease() {
     return waitingFor < MOUSE_RELEASE;
   }
