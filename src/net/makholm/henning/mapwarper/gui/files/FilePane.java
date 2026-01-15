@@ -376,6 +376,7 @@ public class FilePane {
    */
   private void toggleVisible(Path p) {
     if( showtracks.contains(p) ) {
+      cache.invalidateCount++;
       showtracks.remove(p);
     } else if( activeFile.content().usesBounds(p) ) {
       activeFile.rewriteContent(mapView.undoList, "Remove bounds usage",
@@ -388,6 +389,7 @@ public class FilePane {
         activeFile.rewriteContent(mapView.undoList, "Add bounds usage",
             fc -> fc.addUsebounds(p));
       } else {
+        cache.invalidateCount++;
         showtracks.add(p);
       }
     }

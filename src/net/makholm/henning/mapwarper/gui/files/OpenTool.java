@@ -105,18 +105,22 @@ public class OpenTool extends Tool {
       var cache = owner.files.cache;
       possibilities = new LinkedHashMap<SegmentChain, VectFile>();
       toShow = new VisibleTrackData();
-      for( var entry : owner.files.entryList ) {
-        if( entry.kind != FilePane.EntryKind.FILE ) continue;
-        var vf = cache.getFile(entry.path);
-        var content = vf.content();
-        toShow.showTrackChainsIn(vf.path, content);
-        for( var chain : content.chains() )
-          if( chain.chainClass == ChainClass.TRACK )
-            possibilities.put(chain, vf);
-      }
+      for( var entry : owner.files.entryList )
+        if( entry.kind == FilePane.EntryKind.FILE )
+          addPossibility(cache.getFile(entry.path));
+      for( var path : owner.files.showtracks() )
+        addPossibility(cache.getFile(path));
       toShow.setFlags(Toggles.STRONG_FOREIGN_TRACK_CHAINS.bit());
       toShow.freeze();
       lookupTree = SingleMemo.of(ProjectionWorker::projection, this::makeLookupTree);
+    }
+
+    private void addPossibility(VectFile vf) {
+      var content = vf.content();
+      toShow.showTrackChainsIn(vf.path, content);
+      for( var chain : content.chains() )
+        if( chain.chainClass == ChainClass.TRACK )
+          possibilities.put(chain, vf);
     }
 
     private XyTree<List<SegWithPath>> makeLookupTree(ProjectionWorker worker) {
