@@ -57,6 +57,10 @@ public abstract class Tool extends Command implements MouseAction {
     return this;
   }
 
+  public ToolResponse outsideWindowResponse() {
+    return NO_RESPONSE;
+  }
+
   public static boolean mouseHeld(int flags) {
     return (flags & InputEvent.BUTTON1_DOWN_MASK) != 0;
   }
@@ -134,10 +138,13 @@ public abstract class Tool extends Command implements MouseAction {
     }
   }
 
-  protected final void switchToPreviousTool() {
+  protected final boolean switchToPreviousTool() {
     if( previousTool != null && canEscapeBackTo(previousTool) ) {
       mapView().selectTool(previousTool);
       previousTool = null;
+      return true;
+    } else {
+      return false;
     }
   }
 

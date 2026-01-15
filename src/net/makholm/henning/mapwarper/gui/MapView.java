@@ -281,6 +281,11 @@ public class MapView {
 
   public void setInitialPosition() {
     VectFile active = files.activeFile();
+    if( active.path == null ) {
+      window.commands.openTool.invokeInitially(copenhagen());
+      currentTool = window.commands.openTool;
+      return;
+    }
     XyTree<ChainRef<TrackNode>> nodes = active.allShownNodes();
     if( nodes == null ) {
       var joiner = XyTree.<ChainRef<TrackNode>>leftWinsJoin();
@@ -289,16 +294,16 @@ public class MapView {
         nodes = joiner.union(nodes, vf.content().nodeTree.get());
       }
     }
-    AxisRect bbox = nodes;
-    if( bbox == null ) {
-      MutableLongRect copenhagen = new MutableLongRect();
-      copenhagen.left = 574130516;
-      copenhagen.right = 574431404;
-      copenhagen.top = 335858916;
-      copenhagen.bottom = 336208754;
-      bbox = new AxisRect(copenhagen);
-    }
-    new Teleporter(this, active, bbox).apply();
+    new Teleporter(this, active, nodes!=null ? nodes : copenhagen()).apply();
+  }
+
+  private static AxisRect copenhagen() {
+    MutableLongRect copenhagen = new MutableLongRect();
+    copenhagen.left = 574130516;
+    copenhagen.right = 574431404;
+    copenhagen.top = 335858916;
+    copenhagen.bottom = 336208754;
+    return new AxisRect(copenhagen);
   }
 
   public void switchToFile(VectFile newActive) {

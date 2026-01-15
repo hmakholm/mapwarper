@@ -97,6 +97,14 @@ public final class MeasureTool extends Tool {
   }
 
   @Override
+  public ToolResponse outsideWindowResponse() {
+    if( measuringChain != null )
+      return measuringChainResponse(Point.ORIGIN, false);
+    else
+      return NO_RESPONSE;
+  }
+
+  @Override
   public MouseAction drag(Point m1, int mod1) {
     int dragWhich = createOrReuseMeasuringChain(m1);
     return (m2, mod2) -> {

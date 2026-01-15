@@ -23,6 +23,7 @@ import net.makholm.henning.mapwarper.gui.swing.PokeReceiver;
 import net.makholm.henning.mapwarper.gui.swing.SwingFilePane;
 import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.util.BackgroundThread;
+import net.makholm.henning.mapwarper.util.BadError;
 import net.makholm.henning.mapwarper.util.LongHashed;
 import net.makholm.henning.mapwarper.util.NiceError;
 import net.makholm.henning.mapwarper.util.PokePublisher;
@@ -45,6 +46,10 @@ public class FilePane {
 
   public final PokePublisher activeFilePokes =
       new PokePublisher("activeFileChange");
+  public final PokePublisher fileOpenedPokes =
+      new PokePublisher("fileOpened");
+  public final PokePublisher focusDirPokes =
+      new PokePublisher("focusDirChange");
 
   public FilePane(MapView map, FSCache cache, String filearg) {
     this.window = map.window;
@@ -113,27 +118,35 @@ public class FilePane {
   }
 
   public void mouseClicked(Entry entry, boolean iconColumn) {
+    PokePublisher pokeWhat;
     switch( entry.kind ) {
     case TRUNK_DIR:
       focusDir = entry.path;
+      pokeWhat = focusDirPokes;
       break;
     case BRANCH_DIR:
     case TIP_DIR:
       focusDir = entry.path;
       descendWhileUnambiguous();
+      pokeWhat = focusDirPokes;
       break;
     case FILE:
       if( activeFile != null && entry.path.equals(activeFile.path) )
         return;
       else if( iconColumn ) {
         toggleVisible(entry.path);
-        activeFilePokes.poke();
+        pokeWhat = activeFilePokes;
       } else {
         openFile(entry);
+        pokeWhat = null;
       }
       break;
+    default:
+      throw BadError.of("This is not an entry kind: %s", entry.kind);
     }
     updateView();
+    if( pokeWhat != null )
+      pokeWhat.poke();
   }
 
   public void draggedToMapView(Entry entry) {
@@ -198,6 +211,7 @@ public class FilePane {
       descendWhileUnambiguous();
 
     updateView();
+    fileOpenedPokes.poke();
   }
 
   private boolean showBoxIfSavingIsNeeded() {

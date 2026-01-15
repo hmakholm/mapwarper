@@ -147,7 +147,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
       toolResponseModifiers = modifierState;
       toolResponsePoint = mousePosForTool;
       if( mousePosForTool == OUTSIDE_WINDOW )
-        toolResponse = Tool.NO_RESPONSE;
+        toolResponse = logic.currentTool.outsideWindowResponse();
       else
         toolResponse = action.mouseResponse(mousePosForTool, modifierState);
       var newOverlay = toolResponse.previewOverlay();
@@ -566,6 +566,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     readViewportRect();
     if( !everPaintedYet ) {
       logic.setInitialPosition();
+      refreshToolResponse(true);
       everPaintedYet = true;
       refreshScene();
     }

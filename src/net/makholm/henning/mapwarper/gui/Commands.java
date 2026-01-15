@@ -73,12 +73,12 @@ public class Commands {
   private final Tool straightTool = new TrackEditTool(this, SegKind.STRONG);
   private final Tool slewTool = new TrackEditTool(this, SegKind.SLEW);
   private final Tool magicTool = new TrackEditTool(this, SegKind.MAGIC);
-  final Tool boundTool = new BoundEditTool(this);
+  public final Tool boundTool = new BoundEditTool(this);
   private final Tool localBoundTool =
       new BoundSnappingTool(this, SegKind.LBOUND);
   private final Tool delete = new DeleteTool(this);
   private final Tool lock = new LockingTool(this);
-  private final Tool openTool = new OpenTool(this);
+  final OpenTool openTool = new OpenTool(this);
   private final Tool measureTool = new MeasureTool(this);
 
   private final Cmd unzoom = simple("unzoom", "Fit visible",

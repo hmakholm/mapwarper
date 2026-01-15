@@ -33,6 +33,11 @@ final class ExploreTool extends Tool {
   }
 
   @Override
+  public ToolResponse outsideWindowResponse() {
+    return myResponse;
+  }
+
+  @Override
   public MouseAction drag(Point pos, int modifiers) {
     return DRAG_THE_MAP;
   }

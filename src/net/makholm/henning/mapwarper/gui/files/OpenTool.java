@@ -11,6 +11,7 @@ import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.gui.Commands;
 import net.makholm.henning.mapwarper.gui.GenericEditTool;
+import net.makholm.henning.mapwarper.gui.MouseAction;
 import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.overlays.TextOverlay;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
@@ -39,6 +40,14 @@ public class OpenTool extends Tool {
     return flags;
   }
 
+  /**
+   * Return true if we have
+   */
+  public void invokeInitially(AxisRect fallbackLocation) {
+    makeVisible(fallbackLocation);
+    ensureSubscribed();
+  }
+
   @Override
   public void invoke() {
     if( cached().possibilities.isEmpty() ) {
@@ -46,6 +55,7 @@ public class OpenTool extends Tool {
           "%s does not contain any files with track definitions",
           owner.files.focusDir());
     } else {
+      ensureSubscribed();
       super.invoke();
     }
   }
@@ -56,25 +66,75 @@ public class OpenTool extends Tool {
     ensureVisible();
   }
 
-  private void ensureVisible() {
+  void ensureVisible() {
     var proj = mapView().projection;
-    if( proj.base() != OrthoProjection.ORTHO ) return;
-    var projectedRect =
-        new AxisRect(mapView().visibleArea).transform(proj::local2projected);
-    AxisRect commonBbox = null;
-    for( var chain : cached().possibilities.keySet() )
+    if( proj.base() == OrthoProjection.ORTHO && !alreadyVisible() )
+      makeVisible(null);
+  }
+
+  private boolean alreadyVisible() {
+    AxisRect localRect = new AxisRect(mapView().visibleArea);
+    AxisRect globalRect = localRect.transform(
+        mapView().projection::local2projected);
+    for( var chain : cached().possibilities.keySet() ) {
       for( var segment : chain.smoothed() ) {
         var bbox = segment.bbox.get();
-        if( projectedRect.contains(bbox) ) return;
-        commonBbox = bbox.union(commonBbox);
+        if( globalRect.contains(bbox) )
+          return true;
       }
-    if( commonBbox != null )
-      mapView().unzoomTo(commonBbox);
+    }
+    return false;
   }
+
+  private void makeVisible(AxisRect fallback) {
+    AxisRect commonBbox = null;
+    for( var chain : cached().possibilities.keySet() )
+      commonBbox = chain.nodeTree.get().union(commonBbox);
+    if( commonBbox == null ) commonBbox = fallback;
+    if( commonBbox != null ) mapView().unzoomTo(commonBbox);
+  }
+
+  private boolean subscribedYet;
+
+  private void ensureSubscribed() {
+    if( !subscribedYet ) {
+      subscribedYet = true;
+      owner.files.focusDirPokes.subscribe(() -> {
+        if( mapView().currentTool == OpenTool.this ) {
+          mapView().swing.invalidateToolResponse();
+          ensureVisible();
+          mapView().swing.refreshScene();
+        }
+      });
+      owner.files.fileOpenedPokes.subscribe(() -> {
+        if( mapView().currentTool != OpenTool.this ) {
+          // ignore
+        } else  if( switchToPreviousTool() ) {
+          // good
+        } else if( owner.files.activeFile().content().countsAsTrackFile() ) {
+          mapView().selectTool(owner.trackTool);
+        } else {
+          mapView().selectTool(owner.boundTool);
+        }
+      });
+    }
+  }
+
+  // ------------------------------------------------------------------------
 
   @Override
   public ToolResponse mouseResponse(Point pos, int modifiers) {
     return cached().mouseResponse(pos, modifiers);
+  }
+
+  @Override
+  public ToolResponse outsideWindowResponse() {
+    return cached().noResponse;
+  }
+
+  @Override
+  public MouseAction drag(Point p, int modifiers) {
+    return DRAG_THE_MAP;
   }
 
   private CachedState cached() {
@@ -101,7 +161,6 @@ public class OpenTool extends Tool {
         SingleMemo.of(this::makeLabel);
 
     CachedState() {
-      System.out.println("making new state");
       var cache = owner.files.cache;
       possibilities = new LinkedHashMap<SegmentChain, VectFile>();
       toShow = new VisibleTrackData();
