@@ -8,8 +8,8 @@ import net.makholm.henning.mapwarper.track.TrackNode;
 
 class BoundSnappingTool extends EditTool {
 
-  protected BoundSnappingTool(Commands owner, SegKind kind, String desc) {
-    super(owner, kind, desc);
+  protected BoundSnappingTool(Commands owner, SegKind kind) {
+    super(owner, kind);
   }
 
   private static final int SNAP_DISTANCE = 10;

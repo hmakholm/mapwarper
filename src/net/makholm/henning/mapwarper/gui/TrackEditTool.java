@@ -10,9 +10,8 @@ import net.makholm.henning.mapwarper.track.TrackNode;
 
 class TrackEditTool extends EditTool {
 
-  protected TrackEditTool(Commands owner,
-      SegKind kind, String kindDescription) {
-    super(owner, kind, kindDescription);
+  protected TrackEditTool(Commands owner, SegKind kind) {
+    super(owner, kind);
   }
 
   @Override

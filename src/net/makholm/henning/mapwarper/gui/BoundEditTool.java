@@ -18,7 +18,7 @@ import net.makholm.henning.mapwarper.util.TreeList;
 class BoundEditTool extends BoundSnappingTool {
 
   protected BoundEditTool(Commands owner) {
-    super(owner, SegKind.BOUND, "bound line");
+    super(owner, SegKind.BOUND);
   }
 
   @Override

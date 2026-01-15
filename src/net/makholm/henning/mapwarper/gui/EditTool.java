@@ -18,14 +18,12 @@ import net.makholm.henning.mapwarper.util.TreeList;
 class EditTool extends GenericEditTool {
   protected final SegKind kind;
   protected final List<SegKind> kindx1;
-  protected final String kindDescription;
   protected final ChainClass chainClass;
 
-  protected EditTool(Commands owner, SegKind kind, String kindDescription) {
-    super(owner, kind.toString(), "Draw "+kindDescription+"s");
+  protected EditTool(Commands owner, SegKind kind) {
+    super(owner, kind.toString(), "Draw "+kind.desc+"s");
     this.kind = kind;
     this.kindx1 = List.of(kind);
-    this.kindDescription = kindDescription;
     this.chainClass = kind.chainClass();
 
     toolCursor = loadCursor("crosshairCursor.png");
@@ -326,7 +324,7 @@ class EditTool extends GenericEditTool {
 
   @Override
   public String finalizeUndoDesc(String template) {
-    return template.replace("@", kindDescription);
+    return template.replace("@", kind.desc);
   }
 
   @Override

@@ -68,19 +68,14 @@ public class Commands {
   private final Tool nearestNodeTool = new NearestNodeDebugTool(this);
   private final Tool tilecacheDebugTool = new TilecacheDebugTool(this);
 
-  private final Tool weakTrackTool =
-      new TrackEditTool(this, SegKind.WEAK, "weak track");
-  public final Tool trackTool =
-      new TrackEditTool(this, SegKind.TRACK, "curved track");
-  private final Tool straightTool =
-      new TrackEditTool(this, SegKind.STRONG, "strong track");
-  private final Tool slewTool =
-      new TrackEditTool(this, SegKind.SLEW, "displacement joiner");
-  private final Tool magicTool =
-      new TrackEditTool(this, SegKind.MAGIC, "arc joiner");
+  private final Tool weakTrackTool = new TrackEditTool(this, SegKind.WEAK);
+  public final Tool trackTool = new TrackEditTool(this, SegKind.TRACK);
+  private final Tool straightTool = new TrackEditTool(this, SegKind.STRONG);
+  private final Tool slewTool = new TrackEditTool(this, SegKind.SLEW);
+  private final Tool magicTool = new TrackEditTool(this, SegKind.MAGIC);
   final Tool boundTool = new BoundEditTool(this);
   private final Tool localBoundTool =
-      new BoundSnappingTool(this, SegKind.LBOUND, "locally straight bound");
+      new BoundSnappingTool(this, SegKind.LBOUND);
   private final Tool delete = new DeleteTool(this);
   private final Tool lock = new LockingTool(this);
   private final Tool openTool = new OpenTool(this);
