@@ -265,9 +265,9 @@ public class Commands {
     keymap.accept("S-F2", forceGC);
     keymap.accept("S-F3", nearestNodeTool);
     keymap.accept("S-F4", tilecacheDebugTool);
-    keymap.accept("F5", Toggles.SUPERSAMPLE.command(this));
-    keymap.accept("F6", Toggles.DARKEN_MAP.command(this));
-    keymap.accept("F7", Toggles.SHOW_LABELS.command(this));
+    keymap.accept("F5", Toggles.DOWNLOAD.command(this));
+    keymap.accept("F6", Toggles.SUPERSAMPLE.command(this));
+    keymap.accept("F7", Toggles.DARKEN_MAP.command(this));
     keymap.accept("F8", Toggles.CURVATURE.command(this));
     keymap.accept("F9", Toggles.EXT_BOUNDS.command(this));
     keymap.accept("F10", Toggles.CROSSHAIRS.command(this));
@@ -301,7 +301,6 @@ public class Commands {
     keymap.accept("S", straightTool);
     keymap.accept("D", slewTool);
     keymap.accept("M-G", Toggles.TILEGRID.command(this));
-    keymap.accept("S-G", Toggles.DOWNLOAD.command(this));
     keymap.accept("G", downloadTile);
     keymap.accept("H", lock);
     keymap.accept("L", lens);
@@ -373,7 +372,6 @@ public class Commands {
     view.add(Toggles.CROSSHAIRS.command(this));
     view.add(Toggles.EXT_BOUNDS.command(this));
     view.add(Toggles.CURVATURE.command(this));
-    view.add(Toggles.SHOW_LABELS.command(this));
     view.add(Toggles.DARKEN_MAP.command(this));
     view.add(Toggles.SUPERSAMPLE.command(this));
     view.add(repaint);

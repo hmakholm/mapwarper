@@ -22,7 +22,6 @@ import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.Toggles;
-import net.makholm.henning.mapwarper.gui.overlays.TextOverlay;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
 import net.makholm.henning.mapwarper.rgb.RGB;
@@ -38,7 +37,6 @@ import net.makholm.henning.mapwarper.util.TreeList;
 
 public final class TrackPainter extends LongHashed {
 
-  private final MapView logic;
   private final Projection projection;
   private final ProjectionWorker translator;
   private final VisibleTrackData trackdata;
@@ -57,7 +55,6 @@ public final class TrackPainter extends LongHashed {
           new float[] { 10.0f }, 0);
 
   public TrackPainter(MapView logic, VisibleTrackData trackdata) {
-    this.logic = logic;
     projection = logic.projection;
     translator = logic.translator();
     this.trackdata = trackdata;
@@ -86,16 +83,6 @@ public final class TrackPainter extends LongHashed {
 
   public void paint(Graphics2D g, AxisRect paintBounds) {
     this.g = g;
-
-    if( trackdata.hasFlag(Toggles.SHOW_LABELS) ) {
-      trackdata.showTrackChainsIn().forEach((path, content) -> {
-        String name = path.getFileName().toString();
-        for( var chain : content.chains() ) {
-          if( chain.isTrack() )
-            showTrackLabel(name, chain);
-        }
-      });
-    }
 
     g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL,
         RenderingHints.VALUE_STROKE_PURE);
@@ -171,21 +158,6 @@ public final class TrackPainter extends LongHashed {
     }
 
     this.g = null;
-  }
-
-  private void showTrackLabel(String filename, SegmentChain chain) {
-    if( chain.numSegments < 1 ) return;
-    TextOverlay base = TextOverlay.of(logic.window,
-        filename, chain.numSegments+" segments");
-    var local = chain.localize(translator);
-    for( var curve : new Bezier[] {
-        local.curves.get(0).get(0),
-        local.curves.last().get(local.curves.last().size()-1).reverse() }) {
-      TextOverlay to = base.at(curve.p1);
-      if( curve.v1.x > 0 ) to = to.moveLeft();
-      if( curve.v1.y > 0 ) to = to.moveUp();
-      to.paint(g);
-    }
   }
 
   private static final float[] glowWidths = { 16, 13, 10 };

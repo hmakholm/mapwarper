@@ -379,7 +379,6 @@ public class MapView {
   public int toggleState =
       Toggles.DOWNLOAD.bit() |
       Toggles.SUPERSAMPLE.bit() |
-      Toggles.SHOW_LABELS.bit() |
       Toggles.EXT_BOUNDS.bit() |
       Toggles.CROSSHAIRS.bit() |
       Toggles.MAIN_TRACK.bit();
