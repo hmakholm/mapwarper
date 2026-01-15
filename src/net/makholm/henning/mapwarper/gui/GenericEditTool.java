@@ -68,7 +68,7 @@ implements StandardAction.Context {
     return global2node(translator().local2global(local));
   }
 
-  protected TrackNode global2node(Point global) {
+  protected static TrackNode global2node(Point global) {
     long x = Math.round(global.x);
     long y = Math.round(global.y);
     int mask = Coords.EARTH_SIZE-1;

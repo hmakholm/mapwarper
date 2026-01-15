@@ -119,6 +119,15 @@ public final class VisibleTrackData extends LongHashed {
     return t.setIn(flags);
   }
 
+  public void setFlag(Toggles t) {
+    flags |= t.bit() & Toggles.VECTOR_MASK;
+  }
+
+  public void clearFlag(Toggles t) {
+    checkEditable();
+    flags &= ~t.bit();
+  }
+
   public VisibleTrackData freeze() {
     frozen = true;
     return this;

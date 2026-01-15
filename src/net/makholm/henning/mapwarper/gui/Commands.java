@@ -79,6 +79,7 @@ public class Commands {
   private final Tool delete = new DeleteTool(this);
   private final Tool lock = new LockingTool(this);
   private final Tool openTool = new OpenTool(this);
+  private final Tool measureTool = new MeasureTool(this);
 
   private final Cmd unzoom = simple("unzoom", "Fit visible",
       self -> self.mapView.unzoomCommand());
@@ -311,9 +312,10 @@ public class Commands {
     keymap.accept("V", weakTrackTool);
     keymap.accept("B", boundTool);
     keymap.accept("N", localBoundTool);
-    keymap.accept("M", move);
+    keymap.accept("M", measureTool);
     keymap.accept("<", squeeze);
     keymap.accept(">", stretch);
+    keymap.accept("/", move);
 
     keymap.accept("Space", refresh);
   }
@@ -388,6 +390,7 @@ public class Commands {
     tools.addSeparator();
     tools.add(lens);
     tools.add(zoomTool);
+    tools.add(measureTool);
     tools.add(move);
     tools.add(explore);
 

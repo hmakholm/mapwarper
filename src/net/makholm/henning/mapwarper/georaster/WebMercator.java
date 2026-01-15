@@ -62,7 +62,7 @@ public final class WebMercator {
     else if( dist >= 100 )
       return (int)meters + " m";
     else if( meters >= 10 )
-      return String.format(Locale.ROOT, "%.1f k", meters);
+      return String.format(Locale.ROOT, "%.1f m", meters);
     else if( meters >= 0.1 )
       return (int)(meters * 100) + " cm";
     else if( meters >= 0.01 )
