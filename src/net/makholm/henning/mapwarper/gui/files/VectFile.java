@@ -95,6 +95,7 @@ public class VectFile {
   public synchronized void rewriteContent(UndoList undo, String undoDesc,
       Function<FileContent, FileContent> f) {
     synchronized(this) {
+      owner.invalidateCount++;
       FileContent newContent = f.apply(currentContent);
       if( newContent.equals(currentContent) ) return;
       undo.pushFileChange(undoDesc, this, currentContent,  newContent);
@@ -106,6 +107,7 @@ public class VectFile {
   public synchronized boolean changeContentNoUndo(FileContent oldContent,
       FileContent newContent) {
     synchronized(this) {
+      owner.invalidateCount++;
       if( oldContent != null && !content().equals(oldContent) )
         return false;
       currentContent = newContent;

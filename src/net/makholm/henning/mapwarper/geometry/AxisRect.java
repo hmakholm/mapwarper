@@ -139,6 +139,15 @@ public class AxisRect {
       return null;
   }
 
+  public AxisRect union(AxisRect other) {
+    if( other == null || contains(other) )
+      return this;
+    else if( other.contains(this) )
+      return other;
+    else
+      return new AxisRect(this, other);
+  }
+
   @Override
   public String toString() {
     return String.format(Locale.ROOT, "[%.2f,%.2f]x[%.2f,%.2f]",

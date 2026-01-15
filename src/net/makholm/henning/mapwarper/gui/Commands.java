@@ -8,6 +8,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import net.makholm.henning.mapwarper.gui.files.FilePane;
+import net.makholm.henning.mapwarper.gui.files.OpenTool;
 import net.makholm.henning.mapwarper.gui.swing.Command;
 import net.makholm.henning.mapwarper.gui.swing.GuiMain;
 import net.makholm.henning.mapwarper.gui.swing.SwingMapView;
@@ -69,7 +70,7 @@ public class Commands {
 
   private final Tool weakTrackTool =
       new TrackEditTool(this, SegKind.WEAK, "weak track");
-  final Tool trackTool =
+  public final Tool trackTool =
       new TrackEditTool(this, SegKind.TRACK, "curved track");
   private final Tool straightTool =
       new TrackEditTool(this, SegKind.STRONG, "strong track");
@@ -82,6 +83,7 @@ public class Commands {
       new BoundSnappingTool(this, SegKind.LBOUND, "locally straight bound");
   private final Tool delete = new DeleteTool(this);
   private final Tool lock = new LockingTool(this);
+  private final Tool openTool = new OpenTool(this);
 
   private final Cmd unzoom = simple("unzoom", "Fit visible",
       self -> self.mapView.unzoomCommand());
@@ -294,6 +296,7 @@ public class Commands {
     keymap.accept("S-T", tilesetCommands("openrail").lens);
     keymap.accept("U", teleport);
     keymap.accept("S-U", unzoom);
+    keymap.accept("O", openTool);
     keymap.accept("[", lensMinus);
     keymap.accept("]", lensPlus);
     keymap.accept("\\", toggleTilesetPane);
@@ -323,6 +326,7 @@ public class Commands {
   public void defineMenu(IMenu menu) {
     var files = menu.addSubmenu("File");
     files.add(open);
+    files.add(openTool);
     files.add(newFile);
     files.add(saveAll);
     files.add(revert);

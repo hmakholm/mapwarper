@@ -1,6 +1,7 @@
 package net.makholm.henning.mapwarper.gui;
 
 import java.util.List;
+import java.util.function.Function;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
@@ -15,7 +16,8 @@ import net.makholm.henning.mapwarper.util.XyTree;
  * Common code for editing tools that might not be bound to a particular
  * segment kind.
  */
-abstract class GenericEditTool extends Tool implements StandardAction.Context {
+public abstract class GenericEditTool extends Tool
+implements StandardAction.Context {
 
   GenericEditTool(Commands owner, String codename, String niceName) {
     super(owner, codename, niceName);
@@ -43,20 +45,20 @@ abstract class GenericEditTool extends Tool implements StandardAction.Context {
         editingChain().localize(translator()).nodeTree.get());
   }
 
-  static ChainRef<Bezier> pickSegment(Point p,
-      XyTree<List<ChainRef<Bezier>>> tree) {
-    return FindClosest.curve(tree, ChainRef::data,
+  public static<T> T pickCurve(Point p, Function<T, Bezier> toCurve,
+      XyTree<List<T>> tree) {
+    return FindClosest.curve(tree, toCurve,
         PICK_START_DISTANCE, p, PICK_CURVE_TOLERANCE);
   }
 
   ChainRef<Bezier> pickSegmentInActive(Point local) {
     if( editingChain() == null ) return null;
-    return pickSegment(local,
+    return pickCurve(local, ChainRef::data,
         editingChain().localize(translator()).segmentTree.get());
   }
 
   ChainRef<?> pickSegmentAnyChain(Point local) {
-    return pickSegment(local,
+    return pickCurve(local, ChainRef::data,
         activeFileContent().segmentTree.apply(translator()));
   }
 

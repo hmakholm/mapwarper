@@ -314,6 +314,10 @@ public class MapView {
     }
   }
 
+  public void unzoomTo(AxisRect box) {
+    new Teleporter(this, files.activeFile(), box).apply();
+  }
+
   void unzoomCommand() {
     teleport(Teleporter.unzoom(this));
   }

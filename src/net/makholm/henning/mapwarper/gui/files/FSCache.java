@@ -15,6 +15,8 @@ public class FSCache {
   public final PokePublisher modifiedFilesPokes =
       new PokePublisher("modifiedFiles");
 
+  public int invalidateCount;
+
   final Set<VectFile> modifiedFiles = new LinkedHashSet<>();
 
   public VectFile getFile(Path p) {
@@ -31,6 +33,7 @@ public class FSCache {
 
   public CachedDirectory refreshDirectory(Path p) {
     synchronized(this) {
+      invalidateCount++;
       CachedDirectory result = new CachedDirectory(p);
       knownDirs.put(p, result);
       return result;
@@ -51,6 +54,7 @@ public class FSCache {
 
   public void cleanCache(Path focusDir) {
     synchronized(this) {
+      invalidateCount++;
       knownDirs.clear();
       int beforeCount = knownFiles.size();
       for( var it = knownFiles.values().iterator(); it.hasNext(); ) {
@@ -74,6 +78,7 @@ public class FSCache {
   public Map<Path, FileContent> revertContent(boolean alsoChanged) {
     Map<Path, FileContent> undoMap = new LinkedHashMap<>();
     synchronized(this) {
+      invalidateCount++;
       knownDirs.clear();
       for( var vf : knownFiles.values() )
         vf.forgetContent(alsoChanged ? undoMap : null);

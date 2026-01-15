@@ -15,7 +15,8 @@ public enum Toggles {
   DOWNLOAD(true, false, "downloadMap", "Eagerly download tiles"),
   OVERLAY_MAP(true, false, ":overlayMapBit", null),
   LENS_MAP(true, false, ":lensMapFlagBit", null),
-  BLANK_OUTSIDE_MARGINS(true, false, ":clearMarginsFlagBit", null);
+  BLANK_OUTSIDE_MARGINS(true, false, ":clearMarginsFlagBit", null),
+  STRONG_FOREIGN_TRACK_CHAINS(false, true, ":strongTracks", null);
 
   public final String codename;
   public final String niceName;

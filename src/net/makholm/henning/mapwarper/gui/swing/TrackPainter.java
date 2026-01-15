@@ -107,7 +107,10 @@ public final class TrackPainter extends LongHashed {
 
     drawHighlight(trackdata.highlight());
 
-    linestyle(RGB.OTHER_TRACK, BUTT_STROKE);
+    if( trackdata.hasFlag(Toggles.STRONG_FOREIGN_TRACK_CHAINS) )
+      linestyle(SegKind.TRACK.rgb, BUTT_STROKE);
+    else
+      linestyle(RGB.OTHER_TRACK, BUTT_STROKE);
     for( var show: trackdata.showTrackChainsIn().values() )
       for( var chain: show.chains() )
         if( chain.isTrack() ) {

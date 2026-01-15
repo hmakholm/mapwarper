@@ -1,0 +1,166 @@
+package net.makholm.henning.mapwarper.gui.files;
+
+import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.makholm.henning.mapwarper.geometry.AxisRect;
+import net.makholm.henning.mapwarper.geometry.Bezier;
+import net.makholm.henning.mapwarper.geometry.Point;
+import net.makholm.henning.mapwarper.gui.Commands;
+import net.makholm.henning.mapwarper.gui.GenericEditTool;
+import net.makholm.henning.mapwarper.gui.Toggles;
+import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
+import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
+import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
+import net.makholm.henning.mapwarper.gui.swing.Tool;
+import net.makholm.henning.mapwarper.track.ChainClass;
+import net.makholm.henning.mapwarper.track.SegmentChain;
+import net.makholm.henning.mapwarper.track.TrackHighlight;
+import net.makholm.henning.mapwarper.track.VisibleTrackData;
+import net.makholm.henning.mapwarper.util.SingleMemo;
+import net.makholm.henning.mapwarper.util.XyTree;
+
+public class OpenTool extends Tool {
+
+  private CachedState cachedState;
+
+  public OpenTool(Commands owner) {
+    super(owner, "filepick", "Open file visually");
+  }
+
+  @Override
+  public int retouchDisplayFlags(int flags) {
+    flags |= Toggles.DARKEN_MAP.bit();
+    return flags;
+  }
+
+  @Override
+  public void invoke() {
+    if( cached().possibilities.isEmpty() ) {
+      owner.window.showErrorBox(
+          "%s does not contain any files with track definitions",
+          owner.files.focusDir());
+    } else {
+      super.invoke();
+    }
+  }
+
+  @Override
+  public void whenSelected() {
+    super.whenSelected();
+    ensureVisible();
+  }
+
+  private void ensureVisible() {
+    var proj = mapView().projection;
+    if( proj.base() != OrthoProjection.ORTHO ) return;
+    var projectedRect =
+        new AxisRect(mapView().visibleArea).transform(proj::local2projected);
+    AxisRect commonBbox = null;
+    for( var chain : cached().possibilities.keySet() )
+      for( var segment : chain.smoothed() ) {
+        var bbox = segment.bbox.get();
+        if( projectedRect.contains(bbox) ) return;
+        commonBbox = bbox.union(commonBbox);
+      }
+    if( commonBbox != null )
+      mapView().unzoomTo(commonBbox);
+  }
+
+  @Override
+  public ToolResponse mouseResponse(Point pos, int modifiers) {
+    return cached().mouseResponse(pos, modifiers);
+  }
+
+  private CachedState cached() {
+    if( cachedState == null || !cachedState.isValid() )
+      cachedState = new CachedState();
+    return cachedState;
+  }
+
+  private record SegWithPath(VectFile vf, SegmentChain chain, Bezier curve) {}
+
+  private class CachedState {
+    final int cacheInvalidateCount = owner.files.cache.invalidateCount;
+    final Path focusDir = owner.files.focusDir();
+
+    boolean isValid() {
+      return owner.files.cache.invalidateCount == cacheInvalidateCount &&
+          owner.files.focusDir().equals(focusDir);
+    }
+
+    final Map<SegmentChain, VectFile> possibilities;
+    final VisibleTrackData toShow;
+    final SingleMemo<ProjectionWorker, XyTree<List<SegWithPath>>> lookupTree;
+
+    CachedState() {
+      System.out.println("making new state");
+      var cache = owner.files.cache;
+      possibilities = new LinkedHashMap<SegmentChain, VectFile>();
+      toShow = new VisibleTrackData();
+      for( var entry : owner.files.entryList ) {
+        if( entry.kind != FilePane.EntryKind.FILE ) continue;
+        var vf = cache.getFile(entry.path);
+        var content = vf.content();
+        toShow.showTrackChainsIn(vf.path, content);
+        for( var chain : content.chains() )
+          if( chain.chainClass == ChainClass.TRACK )
+            possibilities.put(chain, vf);
+      }
+      toShow.setFlags(Toggles.STRONG_FOREIGN_TRACK_CHAINS.bit());
+      toShow.freeze();
+      lookupTree = SingleMemo.of(ProjectionWorker::projection, this::makeLookupTree);
+    }
+
+    private XyTree<List<SegWithPath>> makeLookupTree(ProjectionWorker worker) {
+      var joiner = XyTree.<SegWithPath>concatJoin();
+      var result = joiner.empty();
+      for( var chain : possibilities.keySet() ) {
+        var path = possibilities.get(chain);
+        var local = chain.localize(worker);
+        for( var segment : local.curves )
+          for( var curve : segment )
+            result = joiner.union(result, XyTree.singleton(curve.bbox.get(),
+                List.of(new SegWithPath(path, chain, curve))));
+      }
+      return result;
+    }
+
+    private final ToolResponse noResponse = new ToolResponse() {
+      @Override
+      public VisibleTrackData previewTrackData() {
+        return toShow;
+      }
+      @Override
+      public void execute(ExecuteWhy why) {
+        SwingUtils.beep();
+      }
+    };
+
+    ToolResponse mouseResponse(Point p, int modifiers) {
+      SegWithPath found = GenericEditTool.pickCurve(p, SegWithPath::curve,
+          lookupTree.apply(mapView().translator()));
+      if( found == null )
+        return noResponse;
+      var withHighlight = toShow.clone();
+      withHighlight.setHighlight(new TrackHighlight(found.chain, 0xDDFFDD));
+      withHighlight.freeze();
+      return new ToolResponse() {
+        @Override
+        public VisibleTrackData previewTrackData() {
+          return withHighlight;
+        }
+        @Override
+        public void execute(ExecuteWhy why) {
+          owner.files.openFile(found.vf());
+          switchToPreviousTool();
+          if( mapView().currentTool == OpenTool.this )
+            mapView().selectTool(owner.trackTool);
+        }
+      };
+    }
+
+  }
+}

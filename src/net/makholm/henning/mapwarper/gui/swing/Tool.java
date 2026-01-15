@@ -109,7 +109,8 @@ public abstract class Tool extends Command implements MouseAction {
   protected final void invokeByKey(char key) {
     var prev = mapView().currentTool;
     invoke();
-    if( prev != this && key != KeyEvent.CHAR_UNDEFINED )
+    if( prev != this && key != KeyEvent.CHAR_UNDEFINED &&
+        mapView().currentTool == this )
       mapView().swing.tempTool = new TempToolReleaser(this, key, prev);
   }
 

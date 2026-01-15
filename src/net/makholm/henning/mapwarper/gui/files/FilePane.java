@@ -67,6 +67,10 @@ public class FilePane {
     updateView();
   }
 
+  public Path focusDir() {
+    return focusDir;
+  }
+
   public VectFile activeFile() {
     return activeFile;
   }
