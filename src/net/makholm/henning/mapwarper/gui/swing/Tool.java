@@ -35,6 +35,10 @@ public abstract class Tool extends Command implements MouseAction {
     toolCursor = Cursor.getDefaultCursor();
   }
 
+  public int retouchDisplayFlags(int orig) {
+    return orig;
+  }
+
   /**
    * The main point to implement for at tool.
    *

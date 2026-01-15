@@ -22,6 +22,11 @@ final class ExploreTool extends Tool {
   }
 
   @Override
+  public int retouchDisplayFlags(int orig) {
+    return orig & ~Toggles.DARKEN_MAP.bit();
+  }
+
+  @Override
   public ToolResponse mouseResponse(Point pos, int modifiers) {
     if( shiftHeld(modifiers) ) return NO_RESPONSE;
     return myResponse;

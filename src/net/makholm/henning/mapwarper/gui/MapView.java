@@ -250,9 +250,7 @@ public class MapView {
     @Override public DoubleSupplier windowDiagonal() { return globalWindowDiagonal; }
 
     @Override public int flags() {
-      int flags = toggleState;
-      if( currentTool instanceof ExploreTool )
-        flags &= ~Toggles.DARKEN_MAP.bit();
+      int flags = currentTool.retouchDisplayFlags(toggleState);
       return flags & Toggles.MAP_MASK;
     }
   };
