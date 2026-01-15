@@ -8,9 +8,12 @@ import java.util.Map;
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
+import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.gui.Commands;
 import net.makholm.henning.mapwarper.gui.GenericEditTool;
 import net.makholm.henning.mapwarper.gui.Toggles;
+import net.makholm.henning.mapwarper.gui.overlays.TextOverlay;
+import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
 import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
@@ -94,6 +97,8 @@ public class OpenTool extends Tool {
     final Map<SegmentChain, VectFile> possibilities;
     final VisibleTrackData toShow;
     final SingleMemo<ProjectionWorker, XyTree<List<SegWithPath>>> lookupTree;
+    final SingleMemo<SegWithPath, TextOverlay> baseLabels =
+        SingleMemo.of(this::makeLabel);
 
     CachedState() {
       System.out.println("making new state");
@@ -147,10 +152,15 @@ public class OpenTool extends Tool {
       var withHighlight = toShow.clone();
       withHighlight.setHighlight(new TrackHighlight(found.chain, 0xDDFFDD));
       withHighlight.freeze();
+      VectorOverlay label = placeLabel(p, found);
       return new ToolResponse() {
         @Override
         public VisibleTrackData previewTrackData() {
           return withHighlight;
+        }
+        @Override
+        public VectorOverlay previewOverlay() {
+          return label;
         }
         @Override
         public void execute(ExecuteWhy why) {
@@ -162,5 +172,33 @@ public class OpenTool extends Tool {
       };
     }
 
+    private TextOverlay makeLabel(SegWithPath swp) {
+      Path path = swp.vf().path;
+      Path dir = null;
+      if( owner.files.activeFile().path != null )
+        dir = owner.files.activeFile().path.getParent();
+      if( dir == null )
+        dir = owner.files.focusDir();
+      path = dir.relativize(path);
+
+      double length = 0;
+      for( var curve : swp.chain.smoothed() )
+        length += curve.estimateLength();
+      var midpoint = swp.chain.nodes.get(0)
+          .interpolate(0.5, swp.chain.nodes.last());
+      return TextOverlay.of(owner.window,
+          path.toString(),
+          swp.chain.numSegments+" segments, " +
+              WebMercator.showlength(length, midpoint));
+    }
+
+    private TextOverlay placeLabel(Point p, SegWithPath found) {
+      TextOverlay label = baseLabels.apply(found).at(p);
+      if( p.y - label.boundingBox().height() >= mapView().visibleArea.top )
+        label = label.moveUp();
+      if( p.x - label.boundingBox().width() >= mapView().visibleArea.left )
+        label = label.moveLeft();
+      return label;
+    }
   }
 }

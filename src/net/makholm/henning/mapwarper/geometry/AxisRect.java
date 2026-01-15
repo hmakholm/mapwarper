@@ -149,6 +149,15 @@ public class AxisRect {
   }
 
   @Override
+  public boolean equals(Object o) {
+    return o instanceof AxisRect other &&
+        other.xmin == xmin &&
+        other.xmax == xmax &&
+        other.ymin == ymin &&
+        other.ymax == ymax;
+  }
+
+  @Override
   public String toString() {
     return String.format(Locale.ROOT, "[%.2f,%.2f]x[%.2f,%.2f]",
         xmin, xmax, ymin, ymax);

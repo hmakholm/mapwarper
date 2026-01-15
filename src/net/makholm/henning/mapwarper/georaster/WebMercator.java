@@ -1,5 +1,9 @@
 package net.makholm.henning.mapwarper.georaster;
 
+import java.util.Locale;
+
+import net.makholm.henning.mapwarper.geometry.Point;
+
 public final class WebMercator {
 
   public static String TAG = "web-mercator 2^" + Coords.BITS;
@@ -48,6 +52,23 @@ public final class WebMercator {
 
   public static String showpos(int zoom, long wrapped) {
     return Coords.roundedDMS(zoom, toLatlon(wrapped));
+  }
+
+  public static String showlength(double dist, Point refpoint) {
+    dist /= unitsPerMeter(refpoint.y);
+    double meters = dist;
+    if( dist >= 10000 )
+      return String.format(Locale.ROOT, "%.1f km", meters/1000);
+    else if( dist >= 100 )
+      return (int)meters + " m";
+    else if( meters >= 10 )
+      return String.format(Locale.ROOT, "%.1f k", meters);
+    else if( meters >= 0.1 )
+      return (int)(meters * 100) + " cm";
+    else if( meters >= 0.01 )
+      return (int)(meters * 1000) + " mm";
+    else
+      return String.format(Locale.ROOT, "%.3e mm", meters * 1000);
   }
 
 }

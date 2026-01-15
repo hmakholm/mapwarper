@@ -2,8 +2,6 @@ package net.makholm.henning.mapwarper.gui.swing;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
@@ -24,6 +22,7 @@ import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.Toggles;
+import net.makholm.henning.mapwarper.gui.overlays.TextOverlay;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
 import net.makholm.henning.mapwarper.rgb.RGB;
@@ -39,6 +38,7 @@ import net.makholm.henning.mapwarper.util.TreeList;
 
 public final class TrackPainter extends LongHashed {
 
+  private final MapView logic;
   private final Projection projection;
   private final ProjectionWorker translator;
   private final VisibleTrackData trackdata;
@@ -57,6 +57,7 @@ public final class TrackPainter extends LongHashed {
           new float[] { 10.0f }, 0);
 
   public TrackPainter(MapView logic, VisibleTrackData trackdata) {
+    this.logic = logic;
     projection = logic.projection;
     translator = logic.translator();
     this.trackdata = trackdata;
@@ -172,40 +173,18 @@ public final class TrackPainter extends LongHashed {
     this.g = null;
   }
 
-  private static final Font labelFont =
-      SwingUtils.getANiceDefaultFont().deriveFont(11.0f);
-
   private void showTrackLabel(String filename, SegmentChain chain) {
     if( chain.numSegments < 1 ) return;
-    String[] text = new String[] { filename, chain.numSegments+" segments" };
-    g.setFont(labelFont);
-    FontMetrics metrics = g.getFontMetrics();
-
-    int xmargin = 2;
-    int ymargin = 1;
-    int width = 0;
-    for( var s : text )
-      width = Math.max(width, metrics.stringWidth(s));
-    width += 2*xmargin;
-    int height = 2*ymargin+text.length*metrics.getHeight();
-
+    TextOverlay base = TextOverlay.of(logic.window,
+        filename, chain.numSegments+" segments");
     var local = chain.localize(translator);
     for( var curve : new Bezier[] {
         local.curves.get(0).get(0),
         local.curves.last().get(local.curves.last().size()-1).reverse() }) {
-      var left = Math.round( curve.v1.x > 0 ? curve.p1.x - 3 - width : curve.p1.x + 2);
-      var top = Math.round( curve.v1.y > 0 ? curve.p1.y - 3 - height : curve.p1.y + 2);
-      var gg = (Graphics2D)g.create();
-      gg.translate(left, top);
-      gg.setColor(new Color(0xDDEECCAA, true));
-      gg.fill(new Rectangle2D.Double(0, 0, width, height));
-      var x = xmargin;
-      var y = ymargin+metrics.getAscent();
-      gg.setColor(Color.BLACK);
-      for( var s : text ) {
-        gg.drawString(s, x, y);
-        y += metrics.getHeight();
-      }
+      TextOverlay to = base.at(curve.p1);
+      if( curve.v1.x > 0 ) to = to.moveLeft();
+      if( curve.v1.y > 0 ) to = to.moveUp();
+      to.paint(g);
     }
   }
 
