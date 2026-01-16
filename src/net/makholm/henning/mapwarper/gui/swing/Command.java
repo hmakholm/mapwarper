@@ -1,12 +1,14 @@
 package net.makholm.henning.mapwarper.gui.swing;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
+import javax.swing.KeyStroke;
 
 import net.makholm.henning.mapwarper.gui.Commands;
 import net.makholm.henning.mapwarper.gui.MapView;
@@ -22,7 +24,7 @@ public abstract class Command {
   public final String codename;
   public final String niceName;
 
-  boolean hasAltBinding;
+  KeyStroke keybinding;
   Action action;
 
   public Command(Commands owner, String codename, String niceName) {
@@ -67,23 +69,33 @@ public abstract class Command {
       @Override
       public void actionPerformed(ActionEvent e) {
         String swingstring = e.getActionCommand();
-        boolean invokedFromMenu = niceName.equals(swingstring);
-        if( !invokedFromMenu &&
-            (e.getModifiers() & ActionEvent.ALT_MASK) != 0 &&
-            !hasAltBinding ) {
-          System.err.println("[ignoing spurious "+codename+"]");
-          return;
+        if( swingstring == null ) {
+          // This seems to happen for non-character keys such as F-keys
+          swingstring = "("+keybinding+")";
         }
-        owner.swing.whenInvokingCommand(invokedFromMenu);
-        if( !invokedFromMenu &&
-            swingstring != null && swingstring.length() == 1 ) {
-          if( mapView().swing.tempTool.waitingFor(swingstring.charAt(0)) )
-            return;
-          debugTraceInvoke();
-          invokeByKey(swingstring.charAt(0));
-        } else {
+        if( niceName.equals(swingstring) ) {
+          // This happens when the invocation comes via a menu
+          owner.swing.whenInvokingCommand(true);
           debugTraceInvoke();
           invoke();
+        } else if( (e.getModifiers() & ActionEvent.ALT_MASK) != 0 &&
+            keybinding != null &&
+            (keybinding.getModifiers() & InputEvent.ALT_DOWN_MASK) == 0 ) {
+          System.err.println("[ignoing spurious "+codename+"] <"+keybinding+">");
+          return;
+        } else if( owner.swing.possiblyRepeatingKey.equals(swingstring) ) {
+          // ignore auto-repeating keys where we haven't seen a key
+          // release event first
+          return;
+        } else {
+          owner.swing.possiblyRepeatingKey = swingstring;
+          owner.swing.whenInvokingCommand(false);
+          debugTraceInvoke();
+          if( swingstring != null && swingstring.length() == 1 ) {
+            invokeByKey(swingstring.charAt(0));
+          } else {
+            invoke();
+          }
         }
         owner.swing.refreshScene();
       }

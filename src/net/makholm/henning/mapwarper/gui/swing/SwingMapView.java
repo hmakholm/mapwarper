@@ -537,6 +537,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
   @Override
   public void keyReleased(KeyEvent e) {
+    possiblyRepeatingKey = "NONE";
     modifierState = e.getModifiersEx();
     if( e.getKeyCode() == KeyEvent.VK_SHIFT &&
         resetProjectionAtShiftUp != null ) {
@@ -556,6 +557,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   public void commitToTempProjection() {
     resetProjectionAtShiftUp = null;
   }
+
+  String possiblyRepeatingKey = "NONE";
 
   // ------------------------------------------------------------------
   //     P A I N T I N G

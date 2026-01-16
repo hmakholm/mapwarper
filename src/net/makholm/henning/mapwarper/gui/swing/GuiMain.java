@@ -191,7 +191,6 @@ public class GuiMain extends JFrame {
     } else if( re.match("M-([A-Z]|F[0-9]+)") ) {
       key = "alt "+re.group(1);
       keystroke = KeyStroke.getKeyStroke(key);
-      command.hasAltBinding = true;
     } else if( re.match("[A-Z][a-z]+|F[0-9]+") ) {
       keystroke = KeyStroke.getKeyStroke(re.full.toUpperCase(Locale.ROOT));
     } else {
@@ -200,6 +199,7 @@ public class GuiMain extends JFrame {
     if( keystroke == null )
       throw BadError.of("Swing produced null KeyStroke for '%s'", key);
 
+    command.keybinding = keystroke;
     command.getAction().putValue(Action.ACCELERATOR_KEY, keystroke);
 
     for( var comp : new JComponent[] { leftSplitter, rightSplitter } ) {
