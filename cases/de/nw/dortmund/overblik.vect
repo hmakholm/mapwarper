@@ -1,0 +1,12 @@
+coords web-mercator 2^30
+usebounds bound/hbf.vect
+usebounds bound/hamm.vect
+node 559083349::357005004
+  straight
+node 559183163::356983660
+node 559210716::356975816 16
+  straight
+node 559225025::356970689 16
+node 559235898::356965576
+  straight
+node 559311535::356920738
