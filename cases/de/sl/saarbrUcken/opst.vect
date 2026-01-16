@@ -1,7 +1,6 @@
 comment opstillingsspor nord for banegården, med sporhale
 coords web-mercator 2^30
 usebounds bound/fischbach.vect
-usebounds bound/gods.vect
 usebounds bound/hbf.vect
 usebounds bound/neunkirchen.vect
 node 557685469::367636767 16
