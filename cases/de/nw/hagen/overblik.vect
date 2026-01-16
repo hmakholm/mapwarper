@@ -2,6 +2,7 @@ comment Wuppertal -> Dortmund
 coords web-mercator 2^30
 usebounds bound/hbf.vect
 usebounds bound/vorhalle.vect
+usebounds bound/wetter.vect
 node 559076927::357797677 16
   straight
 node 559081908::357795213 16
