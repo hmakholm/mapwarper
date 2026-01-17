@@ -75,7 +75,7 @@ public class TileDownloader {
     }
 
     @Override
-    protected void runInner() {
+    public void run() {
       int backoffSecs = 0;
       for(;;) {
         TileSpec toDownload = null;

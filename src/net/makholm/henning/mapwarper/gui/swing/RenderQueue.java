@@ -80,7 +80,7 @@ class RenderQueue {
     }
 
     @Override
-    protected void runInner() {
+    public void run() {
       RenderInstance work = null;
       for(;;) {
         work = findWork(work);

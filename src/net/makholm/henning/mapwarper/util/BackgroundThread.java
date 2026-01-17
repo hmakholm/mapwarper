@@ -7,12 +7,14 @@ public abstract class BackgroundThread extends Thread {
     setDaemon(true);
   }
 
-  protected abstract void runInner();
+  @Override
+  public abstract void run();
 
-  public void scheduleAbort(String name, Throwable rExn, String rString) {
+  public static void scheduleAbort(String name,
+      Throwable rExn, String rString) {
     new BackgroundThread(name) {
       @Override
-      public void runInner() {}
+      public void run() {}
     }.scheduleAbort(rExn, rString);
   }
 
@@ -45,6 +47,7 @@ public abstract class BackgroundThread extends Thread {
       System.err.println("Deferred error in "+where.getName()+": "+string);
       if( exn != null )
         exn.printStackTrace();
+      where = null;
     }
   }
 
@@ -53,16 +56,5 @@ public abstract class BackgroundThread extends Thread {
   private static BackgroundThread where;
   private static Throwable exn;
   private static String string;
-
-  @Override
-  public final void run() {
-    try {
-      runInner();
-    } catch( Throwable t) {
-      System.err.print("Uncaught exception in "+getName()+": ");
-      t.printStackTrace();
-      scheduleAbort(t, "Uncaught exception "+t.getClass().getSimpleName());
-    }
-  }
 
 }

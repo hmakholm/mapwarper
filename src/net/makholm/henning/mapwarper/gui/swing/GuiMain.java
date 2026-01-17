@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.gui.swing;
 
+import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
@@ -23,6 +24,7 @@ import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.FilePane;
 import net.makholm.henning.mapwarper.tiles.TileContext;
+import net.makholm.henning.mapwarper.util.BackgroundThread;
 import net.makholm.henning.mapwarper.util.BadError;
 import net.makholm.henning.mapwarper.util.Regexer;
 import net.makholm.henning.mapwarper.util.XyTree;
@@ -53,8 +55,9 @@ public class GuiMain extends JFrame {
       });
 
   public static void main(TileContext tiles, List<String> args) {
+    System.out.print("Starting GUI ...");
     var frame = new GuiMain(tiles, args.isEmpty() ? null : args.get(0));
-    System.out.println("Starting GUI ...");
+    System.out.println();
     frame.setVisible(true);
     frame.setTilesetPaneVisible(true);
   }
@@ -114,6 +117,14 @@ public class GuiMain extends JFrame {
       public void windowClosing(WindowEvent e) {
         quitCommand();
       }
+    });
+
+    Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+      e.printStackTrace();
+      BackgroundThread.scheduleAbort(t.getName(), e, null);
+    });
+    BackgroundThread.ERRORPOKE.subscribe(() -> {
+      EventQueue.invokeLater(filePane::perhapsDeferredShutdown);
     });
   }
 

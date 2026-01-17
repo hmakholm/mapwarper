@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.gui.swing;
 
+import java.awt.EventQueue;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -457,7 +458,7 @@ class MapPainter {
         int y0 = (int)(buffer.ymin + smallestY - positionOffsetY);
         int width = largestX - smallestX + 1;
         int height = largestY - smallestY + 1;
-        owner.repaint(x0, y0, width, height);
+        EventQueue.invokeLater(() -> owner.repaint(x0, y0, width, height));
       }
     }
 
