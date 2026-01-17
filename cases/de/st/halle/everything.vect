@@ -1,0 +1,15 @@
+coords web-mercator 2^30
+usebounds bound/wide.vect
+node 572668205::357248193
+  straight
+node 572654908::357231545
+  connect
+node 572635095::357191568
+  straight
+node 572631808::357185546
+  connect
+node 572628801::357159803 15.3
+  connect
+node 572667607::357109152
+  straight
+node 572731676::357076432
