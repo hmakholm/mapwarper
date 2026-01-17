@@ -5,6 +5,7 @@ import static java.util.Collections.singletonList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.IntPredicate;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
@@ -21,6 +22,7 @@ public class LocalSegmentChain {
   public final SegmentChain global;
   public final FrozenArray<PointWithNormal> nodes;
   public final FrozenArray<List<Bezier>> curves;
+  public final IntPredicate boundDiscarder;
 
   public final Lazy<XyTree<List<ChainRef<Bezier>>>> segmentTree;
   public final Lazy<XyTree<ChainRef<Point>>> nodeTree;
@@ -73,6 +75,10 @@ public class LocalSegmentChain {
 
     this.nodes = FrozenArray.of(nodes);
     this.curves = FrozenArray.freeze(curves);
+    if( global.chainClass == ChainClass.BOUND )
+      boundDiscarder = proj.makeBoundDiscarder(global);
+    else
+      boundDiscarder = ProjectionWorker.DISCARD_NONE;
 
     segmentTree = Lazy.of(() -> {
       var joiner = XyTree.<ChainRef<Bezier>>concatJoin();

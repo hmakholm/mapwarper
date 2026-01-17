@@ -1,5 +1,8 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
+import java.util.BitSet;
+import java.util.function.IntPredicate;
+
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.LineSeg;
 import net.makholm.henning.mapwarper.geometry.Point;
@@ -60,7 +63,7 @@ class WarpMargins {
           if( prevLocal.x < nextLocal.x ) {
             // Single sided bounds are _left_ bounds in the direction
             // they're drawn.
-            if( !prevLocal.rightOfTrack() && !nextLocal.rightOfTrack() ) {
+            if( prevLocal.leftOfTrack() && nextLocal.leftOfTrack() ) {
               rightBound = false;
               leftingMinMax = Point.at(prevLocal.x, nextLocal.x);
             } else
@@ -105,6 +108,26 @@ class WarpMargins {
     XyTree.resolveDeep(rightTree, source -> {});
     leftBoundaryTree = leftTree;
     rightBoundaryTree = rightTree;
+  }
+
+  static IntPredicate makeBoundDiscarder(WarpedProjectionWorker worker,
+      SegmentChain chain) {
+    BitSet toDiscard = new BitSet(chain.numSegments);
+    LocalPoint prevLocal = worker.global2local(chain.nodes.get(0)), nextLocal;
+    for( int i=0; i<chain.numSegments; i++, prevLocal = nextLocal ) {
+      nextLocal = worker.global2local(chain.nodes.get(i+1));
+      if( prevLocal.x < nextLocal.x ) {
+        if( !(prevLocal.leftOfTrack() && nextLocal.leftOfTrack()) )
+          toDiscard.set(i);
+      } else {
+        if( !(prevLocal.rightOfTrack() && nextLocal.rightOfTrack()) )
+          toDiscard.set(i);
+      }
+    }
+    if( toDiscard.isEmpty() )
+      return ProjectionWorker.DISCARD_NONE;
+    else
+      return toDiscard::get;
   }
 
   interface MarginSource {

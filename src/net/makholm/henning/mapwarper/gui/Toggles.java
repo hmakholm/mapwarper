@@ -15,6 +15,7 @@ public enum Toggles {
   OVERLAY_MAP(true, false, ":overlayMapBit", null),
   LENS_MAP(true, false, ":lensMapFlagBit", null),
   BLANK_OUTSIDE_MARGINS(true, false, ":clearMarginsFlagBit", null),
+  STRONG_BOUNDS_ALWAYS(false, true, ":strongBounds", null),
   STRONG_FOREIGN_TRACK_CHAINS(false, true, ":strongTracks", null);
 
   public final String codename;

@@ -12,6 +12,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.IntPredicate;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Bezier;
@@ -53,6 +54,11 @@ public final class TrackPainter extends LongHashed {
           BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
           10.0f,
           new float[] { 10.0f }, 0);
+  private static final BasicStroke DOTTED_STROKE =
+      new BasicStroke(linewidth,
+          BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+          10.0f,
+          new float[] { 2 * linewidth, 4 * linewidth }, 0);
 
   public TrackPainter(MapView logic, VisibleTrackData trackdata) {
     projection = logic.projection;
@@ -267,34 +273,61 @@ public final class TrackPainter extends LongHashed {
 
   private void drawBoundChain(SegmentChain chain, int color) {
     if( chain.numSegments <= 0 ) return;
-    List<Bezier> outline = List.of();
-    for( var cs : chain.localize(translator).curves )
-      for( var c : cs ) {
-        outline = TreeList.concat(
-            c.reverse().offset(10),
-            outline,
-            List.of(c));
-      }
-    startPath(outline.get(0).p1);
-    outline.forEach(this::append);
-    currentPath.closePath();
+    var local = chain.localize(translator);
+    IntPredicate discarder = trackdata.hasFlag(Toggles.STRONG_BOUNDS_ALWAYS) ?
+        ProjectionWorker.DISCARD_NONE : local.boundDiscarder;
+    drawBoundOutline(local, discarder);
+    drawBoundLines(chain, color, discarder);
+  }
+
+  private void drawBoundOutline(LocalSegmentChain chain,
+      IntPredicate discarder) {
     g.setColor(new Color(0x50_CCEE00, true));
-    g.fill(endPath());
+    List<Bezier> outline = List.of();
+    for( int i=0; i<=chain.curves.size(); i++ ) {
+      if( i < chain.curves.size() && !discarder.test(i) ) {
+        for( var c : chain.curves.get(i) )
+          outline = TreeList.concat(
+              c.reverse().offset(10),
+              outline,
+              List.of(c));
+      } else {
+        if( !outline.isEmpty() ) {
+          startPath(outline.get(0).p1);
+          outline.forEach(this::append);
+          currentPath.closePath();
+          g.fill(endPath());
+          outline = List.of();
+        }
+        if( i == chain.curves.size() )
+          return;
+        else
+          continue;
+      }
+    }
+  }
+
+  void drawBoundLines(SegmentChain chain, int color, IntPredicate discarder) {
     g.setColor(new Color(color));
     int start = 0;
-    for( int end = 1; end < chain.numNodes; end++ ) {
-      if( end == chain.numNodes-1 ||
-          chain.kinds.get(end) != chain.kinds.get(end-1) ) {
-        switch( chain.kinds.get(end-1) ) {
-        case LBOUND:
-          g.setStroke(DASHED_STROKE);
-          break;
-        default:
-          g.setStroke(BUTT_STROKE);
-          break;
+    Stroke curStroke = null;
+    for( int seg = 0; seg <= chain.numSegments; seg++ ) {
+      Stroke thisStroke;
+      if( seg == chain.numSegments )
+        thisStroke = null;
+      else if( discarder.test(seg) )
+        thisStroke = DOTTED_STROKE;
+      else if( chain.kinds.get(seg) == SegKind.LBOUND )
+        thisStroke = DASHED_STROKE;
+      else
+        thisStroke = BUTT_STROKE;
+      if( thisStroke != curStroke ) {
+        if( curStroke != null ) {
+          g.setStroke(curStroke);
+          g.draw(chain2Path(chain, start, seg));
         }
-        g.draw(chain2Path(chain, start, end));
-        start = end;
+        curStroke = thisStroke;
+        start = seg;
       }
     }
   }

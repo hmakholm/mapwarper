@@ -4,6 +4,7 @@ import java.awt.geom.AffineTransform;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.IntPredicate;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
@@ -12,6 +13,7 @@ import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.gui.FindClosest;
 import net.makholm.henning.mapwarper.track.ChainRef;
+import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.util.ListMapper;
 import net.makholm.henning.mapwarper.util.RootFinder;
 import net.makholm.henning.mapwarper.util.TreeList;
@@ -33,7 +35,7 @@ implements ProjectionWorker {
     this.yscale = yscale;
   }
 
-  /** This is used for the initial margin classification. */
+  /** This is used for margin classification. */
   WarpedProjectionWorker(WarpedProjection warp) {
     super(warp);
     this.owner = warp;
@@ -155,7 +157,7 @@ implements ProjectionWorker {
         pwn.normal);
   }
 
-  class LocalPoint extends Point {
+  final class LocalPoint extends Point {
     final double lefting, downing;
     final int segment;
     final UnitVector normal;
@@ -171,6 +173,10 @@ implements ProjectionWorker {
 
     public boolean rightOfTrack() {
       return downing > curves.segmentSlew(segment);
+    }
+
+    public boolean leftOfTrack() {
+      return !rightOfTrack();
     }
   }
 
@@ -308,6 +314,11 @@ implements ProjectionWorker {
     var xx = delta2local(UnitVector.RIGHT, lp);
     var yy = delta2local(UnitVector.DOWN, lp);
     return new AffineTransform(xx.x, xx.y, yy.x, yy.y, 0, 0);
+  }
+
+  @Override
+  public IntPredicate makeBoundDiscarder(SegmentChain chain) {
+    return WarpMargins.makeBoundDiscarder(this, chain);
   }
 
 }

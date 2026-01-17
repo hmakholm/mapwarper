@@ -636,6 +636,7 @@ public class MapView {
     }
     vdt.setFlags(toggleState);
     contentChangeListener.setSources(pokes);
+    currentTool.retouchTrackData(vdt);
     vdt.freeze();
     if( vdt.equals(currentVisible) )
       return currentVisible;

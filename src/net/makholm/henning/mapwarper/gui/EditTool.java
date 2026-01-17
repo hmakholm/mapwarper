@@ -13,6 +13,7 @@ import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackHighlight;
 import net.makholm.henning.mapwarper.track.TrackNode;
+import net.makholm.henning.mapwarper.track.VisibleTrackData;
 import net.makholm.henning.mapwarper.util.TreeList;
 
 class EditTool extends GenericEditTool {
@@ -33,6 +34,12 @@ class EditTool extends GenericEditTool {
   public final void activeFileChanged() {
     super.activeFileChanged();
     whenSelected();
+  }
+
+  @Override
+  public void retouchTrackData(VisibleTrackData vdt) {
+    if( chainClass == ChainClass.BOUND )
+      vdt.setFlag(Toggles.STRONG_BOUNDS_ALWAYS);
   }
 
   @Override

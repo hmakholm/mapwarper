@@ -14,6 +14,7 @@ import javax.swing.JRadioButtonMenuItem;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.Commands;
 import net.makholm.henning.mapwarper.gui.MouseAction;
+import net.makholm.henning.mapwarper.track.VisibleTrackData;
 import net.makholm.henning.mapwarper.util.BadError;
 
 public abstract class Tool extends Command implements MouseAction {
@@ -38,6 +39,8 @@ public abstract class Tool extends Command implements MouseAction {
   public int retouchDisplayFlags(int orig) {
     return orig;
   }
+
+  public void retouchTrackData(VisibleTrackData vdt) { }
 
   /**
    * The main point to implement for at tool.
