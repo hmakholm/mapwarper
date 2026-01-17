@@ -11,7 +11,6 @@ import javax.imageio.ImageIO;
 import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.georaster.Tile;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
-import net.makholm.henning.mapwarper.util.BadError;
 import net.makholm.henning.mapwarper.util.NiceError;
 
 public abstract class DiskCachedTileset extends Tileset {
@@ -96,7 +95,7 @@ public abstract class DiskCachedTileset extends Tileset {
   private static BufferedImage readFromFile(Path file) throws IOException {
     BufferedImage javaImage = ImageIO.read(file.toFile());
     if( javaImage == null )
-      throw BadError.of("Failed to read "+file);
+      throw new IOException("Failed to read "+file+" with no further information");
     return javaImage;
   }
 
