@@ -5,6 +5,8 @@ import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import javax.swing.Action;
 import javax.swing.InputMap;
@@ -38,6 +40,17 @@ public class GuiMain extends JFrame {
 
   private final JSplitPane leftSplitter;
   private final JSplitPane rightSplitter;
+
+  /**
+   * Used for short administrative actions that must be decoupled from the
+   * calling context for reasons of deadlock avoidance.
+   */
+  public final Executor miscAsyncWork =
+      Executors.newSingleThreadExecutor(r -> {
+        var thread = new Thread(r, "MiscAsyncWork");
+        thread.setDaemon(true);
+        return thread;
+      });
 
   public static void main(TileContext tiles, List<String> args) {
     var frame = new GuiMain(tiles, args.isEmpty() ? null : args.get(0));

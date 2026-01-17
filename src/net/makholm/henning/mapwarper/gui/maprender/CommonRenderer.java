@@ -1,6 +1,11 @@
 package net.makholm.henning.mapwarper.gui.maprender;
 
-import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.*;
+import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.ATTEMPT_MASK;
+import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.BITS_PER_ATTEMPT;
+import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.DOWNLOAD_BIT;
+import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.FALLBACK_BIT;
+import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.ZOOM_SHIFT;
+import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.cacheSetOf64;
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -195,9 +200,7 @@ abstract class CommonRenderer implements RenderWorker {
 
   @Override
   public void dispose() {
-    synchronized(this) {
-      tileDict.values().forEach(NeededTile::cancelSubscriptions);
-    }
+    tileDict.values().forEach(NeededTile::cancelSubscriptions);
   }
 
   // -------------------------------------------------------------------------

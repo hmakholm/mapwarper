@@ -136,15 +136,17 @@ public class TileDownloader {
             return;
           }
         }
+
+        Set<Consumer<TileBitmap>> toCall1, toCall2;
         synchronized(this) {
-          var finalGot = got;
-          var subscribers = queue.remove(toDownload);
-          if( subscribers != null )
-            subscribers.forEach(c -> c.accept(finalGot));
-          subscribers = watchers.remove(toDownload);
-          if( subscribers != null )
-            subscribers.forEach(c -> c.accept(finalGot));
+          toCall1 = queue.remove(toDownload);
+          toCall2 = watchers.remove(toDownload);
         }
+        var finalGot = got;
+        if( toCall1 != null )
+          toCall1.forEach(c -> c.accept(finalGot));
+        if( toCall2 != null )
+          toCall2.forEach(c -> c.accept(finalGot));
       }
     }
 

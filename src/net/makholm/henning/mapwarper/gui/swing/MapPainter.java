@@ -215,6 +215,19 @@ class MapPainter {
 
     /**
      * Thread-shared, so accesses must take the {@link RenderBuffer} lock.
+     *
+     * This is initialized to a non-null value in the UI thread by
+     * {@link #updateWantInstance()} before the buffer is first given
+     * to the render queue. After that has happened, once the field gets
+     * set to {@code null} (to indicate that the buffer will never be
+     * used again), it stays {@code null} for ever, so it is admissible
+     * to check <em>that</em> without taking the lock.
+     *
+     * Actually, at the time of this writing, this never changes
+     * <em>except</em> for being nulled out. There are still traces
+     * of an initial design where it could be replaced on the fly,
+     * but nowadays the entire {@link MapPainter} is replaced instead
+     * when the spec changes. (TODO: this should be straightened out!)
      */
     RenderInstance wantInstance;
 
@@ -448,8 +461,16 @@ class MapPainter {
       }
     }
 
+    /**
+     * This is generally called with the render buffer lock held,
+     * and must be careful not to let that spiral into deadlocks.
+     */
     void dispose() {
-      if( worker != null ) worker.dispose();
+      if( worker != null ) {
+        var toDispose = worker;
+        worker = null;
+        owner.logic.window.miscAsyncWork.execute(toDispose::dispose);
+      }
     }
 
     @Override
