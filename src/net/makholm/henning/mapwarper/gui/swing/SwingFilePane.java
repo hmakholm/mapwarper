@@ -76,7 +76,7 @@ public class SwingFilePane extends JComponent {
         // can get faster UI response by reacting to button-
         // _presses_ instead of complete clicks.
         if( entry != null )
-          logic.mouseClicked(entry, e.getX() < iconWidth);
+          logic.mouseClicked(entry, e.getModifiersEx(), e.getX() < iconWidth);
         break;
       }
     }

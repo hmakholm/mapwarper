@@ -227,7 +227,10 @@ public class OpenTool extends Tool {
         }
         @Override
         public void execute(ExecuteWhy why) {
-          owner.files.openFile(found.vf());
+          if( altHeld(modifiers) )
+            owner.files.setAsOnlyShownFile(found.vf());
+          else
+            owner.files.openFile(found.vf());
           switchToPreviousTool();
           if( mapView().currentTool == OpenTool.this )
             mapView().selectTool(owner.trackTool);

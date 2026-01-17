@@ -21,6 +21,7 @@ import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.gui.swing.GuiMain;
 import net.makholm.henning.mapwarper.gui.swing.PokeReceiver;
 import net.makholm.henning.mapwarper.gui.swing.SwingFilePane;
+import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.util.BackgroundThread;
 import net.makholm.henning.mapwarper.util.BadError;
@@ -91,6 +92,20 @@ public class FilePane {
     }
   }
 
+  public boolean setAsOnlyShownFile(VectFile file) {
+    if( file == activeFile ||
+        file.path == null ||
+        !file.content().countsAsTrackFile() ) {
+      return false;
+    } else {
+      showtracks.clear();
+      showtracks.add(file.path);
+      activeFilePokes.poke();
+      updateViewEventually();
+      return true;
+    }
+  }
+
   public Iterable<Path> showtracks() {
     return showtracks;
   }
@@ -117,7 +132,7 @@ public class FilePane {
       addEntryFlag(wp.sourcename0, WARP_FLAG);
   }
 
-  public void mouseClicked(Entry entry, boolean iconColumn) {
+  public void mouseClicked(Entry entry, int modifiers, boolean iconColumn) {
     PokePublisher pokeWhat;
     switch( entry.kind ) {
     case TRUNK_DIR:
@@ -132,6 +147,9 @@ public class FilePane {
       break;
     case FILE:
       if( activeFile != null && entry.path.equals(activeFile.path) )
+        return;
+      else if( Tool.altHeld(modifiers) &&
+          setAsOnlyShownFile(cache.getFile(entry.path)) )
         return;
       else if( iconColumn ) {
         toggleVisible(entry.path);
