@@ -187,7 +187,7 @@ public class OpenTool extends Tool {
       var result = joiner.empty();
       for( var chain : possibilities.keySet() ) {
         var path = possibilities.get(chain);
-        var local = chain.localize(worker);
+        var local = chain.localizePerhapsTiny(worker);
         for( var segment : local.curves )
           for( var curve : segment )
             result = joiner.union(result, XyTree.singleton(curve.bbox.get(),

@@ -23,7 +23,12 @@ public class FrozenArray<T> extends AbstractList<T> {
     return new FrozenArray<T>(new Object[0], 0);
   }
 
-  public static <T> FrozenArray<T> of(T[] data) {
+  public static <T> FrozenArray<T> of(T data) {
+    return new FrozenArray<T>(new Object[] {data}, 0);
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T> FrozenArray<T> of(T... data) {
     return new FrozenArray<T>(data);
   }
 

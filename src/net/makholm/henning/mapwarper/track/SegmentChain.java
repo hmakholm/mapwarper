@@ -2,6 +2,7 @@ package net.makholm.henning.mapwarper.track;
 
 import java.util.List;
 
+import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.geometry.Vector;
@@ -159,10 +160,35 @@ public final class SegmentChain extends LongHashed {
 
   public final SingleMemo<ProjectionWorker, LocalSegmentChain> localize =
       SingleMemo.of(ProjectionWorker::projection,
-          proj -> new LocalSegmentChain(this, proj));
+          proj -> LocalSegmentChain.make(this, proj));
 
   public LocalSegmentChain localize(ProjectionWorker worker) {
     return localize.apply(worker);
+  }
+
+  /**
+   * This is used for <em>displaying</em> non-current file tracks, in
+   * particular replacing them with a stylized symbol if they would
+   * otherwise show as very small.
+   */
+  private LocalSegmentChain makeShownAsChain(ProjectionWorker worker) {
+    // To handle cases where the chain is an almost closed loop (such as
+    // fully traced ring lines!) sample both ends _and_ a node in the middle.
+    var p0 = worker.global2local(nodes.get(0));
+    var p1 = worker.global2local(nodes.get(numNodes/2));
+    var p2 = worker.global2local(nodes.last());
+    var box = AxisRect.extend(new AxisRect(p0, p2), p1);
+    if( box.height() >= 10 || box.width() >= 10 )
+      return localize.apply(worker);
+    else
+      return LocalSegmentChain.diamond(this, box.center());
+  }
+
+  private final SingleMemo<ProjectionWorker, LocalSegmentChain> shownAs =
+      SingleMemo.of(ProjectionWorker::projection, this::makeShownAsChain);
+
+  public LocalSegmentChain localizePerhapsTiny(ProjectionWorker worker) {
+    return shownAs.apply(worker);
   }
 
 }

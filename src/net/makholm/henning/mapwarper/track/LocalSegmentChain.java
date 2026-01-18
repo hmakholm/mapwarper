@@ -10,6 +10,7 @@ import java.util.function.IntPredicate;
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
+import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
 import net.makholm.henning.mapwarper.util.FrozenArray;
@@ -19,7 +20,6 @@ import net.makholm.henning.mapwarper.util.XyTree;
 
 public class LocalSegmentChain {
 
-  public final SegmentChain global;
   public final FrozenArray<PointWithNormal> nodes;
   public final FrozenArray<List<Bezier>> curves;
   public final IntPredicate boundDiscarder;
@@ -27,8 +27,7 @@ public class LocalSegmentChain {
   public final Lazy<XyTree<List<ChainRef<Bezier>>>> segmentTree;
   public final Lazy<XyTree<ChainRef<Point>>> nodeTree;
 
-  LocalSegmentChain(SegmentChain global, ProjectionWorker proj) {
-    this.global = global;
+  static LocalSegmentChain make(SegmentChain global, ProjectionWorker proj) {
     var globalCurves = global.smoothed.get();
     var nodes = new PointWithNormal[global.numNodes];
     var curves = new ArrayList<List<Bezier>>(global.numSegments);
@@ -73,12 +72,23 @@ public class LocalSegmentChain {
           new PointWithNormal(localNode, Vector.of(1,0).normalize());
     }
 
-    this.nodes = FrozenArray.of(nodes);
-    this.curves = FrozenArray.freeze(curves);
+    IntPredicate boundDiscarder;
     if( global.chainClass == ChainClass.BOUND )
       boundDiscarder = proj.makeBoundDiscarder(global);
     else
       boundDiscarder = ProjectionWorker.DISCARD_NONE;
+
+    return new LocalSegmentChain(global, FrozenArray.of(nodes),
+        FrozenArray.freeze(curves), boundDiscarder);
+  }
+
+  private LocalSegmentChain(SegmentChain global,
+      FrozenArray<PointWithNormal> nodes,
+      FrozenArray<List<Bezier>> curves,
+      IntPredicate discarder) {
+    this.nodes = nodes;
+    this.curves = curves;
+    this.boundDiscarder = discarder;
 
     segmentTree = Lazy.of(() -> {
       var joiner = XyTree.<ChainRef<Bezier>>concatJoin();
@@ -97,13 +107,38 @@ public class LocalSegmentChain {
     nodeTree = Lazy.of(() -> {
       var joiner = XyTree.<ChainRef<Point>>leftWinsJoin();
       var tree = joiner.empty();
-      for( int i=0; i<nodes.length; i++ ) {
-        ChainRef<Point> sourced = ChainRef.of(nodes[i], global, i);
-        var singleton = XyTree.singleton(nodes[i], sourced);
+      for( int i=0; i<nodes.size(); i++ ) {
+        ChainRef<Point> sourced = ChainRef.of(nodes.get(i), global, i);
+        var singleton = XyTree.singleton(nodes.get(i), sourced);
         tree = joiner.union(tree, singleton);
       }
       return tree;
     });
+  }
+
+  /**
+   * This is used as a symbol for openable track chains that would otherwise
+   * show as very small.
+   *
+   * A diamond is chosen because it is easy to define <em>and</em> cheap
+   * to draw.
+   */
+  static LocalSegmentChain diamond(SegmentChain global, Point local) {
+    double size = 7;
+    var p1 = local.plus(-size, UnitVector.DOWN);
+    var p2 = local.plus(size, UnitVector.RIGHT);
+    var p3 = local.plus(size, UnitVector.DOWN);
+    var p4 = local.plus(-size, UnitVector.RIGHT);
+    var curves = List.of(
+        Bezier.line(p1,p2),
+        Bezier.line(p2,p3),
+        Bezier.line(p3,p4),
+        Bezier.line(p4,p1));
+    var pwn = new PointWithNormal(p1, UnitVector.RIGHT);
+    return new LocalSegmentChain(global,
+        FrozenArray.of(pwn, pwn),
+        FrozenArray.of(curves),
+        ProjectionWorker.DISCARD_NONE);
   }
 
 }
