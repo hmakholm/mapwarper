@@ -164,14 +164,37 @@ public class OpenTool extends Tool {
       var cache = owner.files.cache;
       possibilities = new LinkedHashMap<SegmentChain, VectFile>();
       toShow = new VisibleTrackData();
-      for( var entry : owner.files.entryList )
-        if( entry.kind == FilePane.EntryKind.FILE )
+      boolean seenAnyVectFiles = false;
+      for( var entry : owner.files.entryList ) {
+        switch( entry.kind ) {
+        case FILE:
+          seenAnyVectFiles = true;
           addPossibility(cache.getFile(entry.path));
+          break;
+        case TRUNK_DIR:
+          if( !cache.getDirectory(entry.path).vectFiles.isEmpty() )
+            seenAnyVectFiles = true;
+          break;
+        default:
+          break;
+        }
+      }
+      if( seenAnyVectFiles )
+        recursivelyScanSubdirs(cache, 0, owner.files.focusDir());
       for( var path : owner.files.showtracks() )
         addPossibility(cache.getFile(path));
       toShow.setFlags(Toggles.STRONG_FOREIGN_TRACK_CHAINS.bit());
       toShow.freeze();
       lookupTree = SingleMemo.of(ProjectionWorker::projection, this::makeLookupTree);
+    }
+
+    private void recursivelyScanSubdirs(FSCache cache, int level, Path p) {
+      if( level > 5 ) return; // guard against symlink loops etc
+      var dir = cache.getDirectory(p);
+      if( level > 0 )
+        dir.vectFiles.forEach((k,pp) -> addPossibility(cache.getFile(pp)));
+      for( var pp : dir.subdirs.values() )
+        recursivelyScanSubdirs(cache, level+1, pp);
     }
 
     private void addPossibility(VectFile vf) {
@@ -239,14 +262,7 @@ public class OpenTool extends Tool {
     }
 
     private TextOverlay makeLabel(SegWithPath swp) {
-      Path path = swp.vf().path;
-      Path dir = null;
-      if( owner.files.activeFile().path != null )
-        dir = owner.files.activeFile().path.getParent();
-      if( dir == null )
-        dir = owner.files.focusDir();
-      path = dir.relativize(path);
-
+      Path path = basedirForLabel().relativize(swp.vf().path);
       double length = 0;
       for( var curve : swp.chain.smoothed() )
         length += curve.estimateLength();
@@ -256,6 +272,16 @@ public class OpenTool extends Tool {
           path.toString(),
           swp.chain.numSegments+" segments, " +
               WebMercator.showlength(length, midpoint));
+    }
+
+    private Path basedirForLabel() {
+      Path apath = owner.files.activeFile().path;
+      Path fpath = owner.files.focusDir();
+      if( apath != null && apath.getParent() != null &&
+          fpath.startsWith(apath.getParent()) )
+        return apath.getParent();
+      else
+        return fpath;
     }
 
     private TextOverlay placeLabel(Point p, SegWithPath found) {

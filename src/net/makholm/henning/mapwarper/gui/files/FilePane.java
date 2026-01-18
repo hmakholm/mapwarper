@@ -560,7 +560,8 @@ public class FilePane {
         });
       }
       dir.vectFiles.forEach((name, path) -> {
-        allEntries.put(path, createEntry(path, EntryKind.FILE));
+        if( !name.equals(".marker.vect") )
+          allEntries.put(path, createEntry(path, EntryKind.FILE));
       });
       createEntry(p0, EntryKind.TRUNK_DIR);
       branches.put(p0, branchmap);
@@ -632,6 +633,7 @@ public class FilePane {
       list.add(allEntries.get(dir.path));
       for( Path p : dir.vectFiles.values() ) {
         Entry e = allEntries.get(p);
+        if( e == null ) continue;
         if( cache.getFile(p).error != null )
           e.addFlags(ERROR_FLAG);
         list.add(e);
