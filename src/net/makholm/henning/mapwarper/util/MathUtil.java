@@ -2,6 +2,10 @@ package net.makholm.henning.mapwarper.util;
 
 public class MathUtil {
 
+  public static int clamp(int min, int x, int max) {
+    return x < min ? min : x > max ? max : x;
+  }
+
   public static double sqr(double x) {
     return x*x;
   }

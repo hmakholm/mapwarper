@@ -26,6 +26,7 @@ import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.util.BackgroundThread;
 import net.makholm.henning.mapwarper.util.BadError;
 import net.makholm.henning.mapwarper.util.LongHashed;
+import net.makholm.henning.mapwarper.util.MathUtil;
 import net.makholm.henning.mapwarper.util.NiceError;
 import net.makholm.henning.mapwarper.util.PokePublisher;
 
@@ -132,17 +133,37 @@ public class FilePane {
       addEntryFlag(wp.sourcename0, WARP_FLAG);
   }
 
+  private int locateSelection() {
+    for( int i=0; i<entryList.length; i++ ) {
+      if( entryList[i].path.equals(selectionPath) )
+        return i;
+    }
+    // First fallback: look for ancestors of the current fire
+    if( activeFile.path != null ) {
+      for( int i=entryList.length-1; i>0; i-- )
+        if( activeFile.path.startsWith(entryList[i].path) )
+          return i;
+    }
+    // Second fallback: just the focus dir
+    for( int i=entryList.length-1; i>0; i-- )
+      if( entryList[i].kind == EntryKind.TRUNK_DIR )
+        return i;
+    // Otherwise, wut?
+    return 0;
+  }
+
   public void mouseClicked(Entry entry, int modifiers, boolean iconColumn) {
     PokePublisher pokeWhat;
     switch( entry.kind ) {
     case TRUNK_DIR:
-      focusDir = entry.path;
+      selectionPath = focusDir = entry.path;
       pokeWhat = focusDirClicked;
       break;
     case BRANCH_DIR:
     case TIP_DIR:
       focusDir = entry.path;
       descendWhileUnambiguous();
+      selectionPath = focusDir;
       pokeWhat = focusDirClicked;
       break;
     case FILE:
@@ -165,6 +186,53 @@ public class FilePane {
     updateView();
     if( pokeWhat != null )
       pokeWhat.poke();
+  }
+
+  public void moveSelection(int delta) {
+    int i = MathUtil.clamp(0, selectionIndex+delta, entryList.length-1);
+    selectionPath = entryList[i].path;
+    updateView();
+  }
+
+  public void collapseTree() {
+    if( entryList[selectionIndex].kind != EntryKind.TRUNK_DIR )
+      selectionPath = safeParent(selectionPath);
+    focusDir = safeParent(selectionPath);
+    updateView();
+    focusDirClicked.poke();
+  }
+
+  public void expandTree() {
+    switch( entryList[selectionIndex].kind ) {
+    case TRUNK_DIR:
+    case BRANCH_DIR:
+    case TIP_DIR:
+      focusDir = entryList[selectionIndex].path;
+      var dir = cache.getDirectory(focusDir);
+      if( !dir.subdirs.isEmpty() )
+        selectionPath = dir.subdirs.values().iterator().next();
+      else if( !dir.vectFiles.isEmpty() )
+        selectionPath = dir.vectFiles.values().iterator().next();
+      updateView();
+      focusDirClicked.poke();
+      return;
+    default:
+      return;
+    }
+  }
+
+  public void selectTree() {
+    var path = entryList[selectionIndex].path;
+    if( path.equals(activeFile.path) || path.equals(focusDir) ) {
+      // Nothing in particular to do. May be a spurious Enter press
+    } else {
+      mouseClicked(entryList[selectionIndex], 0, false);
+    }
+  }
+
+  private static Path safeParent(Path path) {
+    var parent = path.getParent();
+    return parent != null ? parent : path;
   }
 
   public void draggedToMapView(Entry entry) {
@@ -228,6 +296,7 @@ public class FilePane {
     else
       descendWhileUnambiguous();
 
+    selectionPath = vf.path;
     updateView();
     fileOpenedPokes.poke();
   }
@@ -473,6 +542,10 @@ public class FilePane {
 
   public Entry[] entryList;
 
+  private Path selectionPath;
+  private int selectionIndex;
+
+  public static final int SELECTION_FLAG = 128;
   public static final int PHANTOM_FILE_FLAG = 64;
   public static final int ERROR_FLAG = 32;
   public static final int MODIFIED_FLAG = 16;
@@ -537,6 +610,9 @@ public class FilePane {
       List<CachedDirectory> trunk = createTrunk();
       locateEntryFlags();
       entryList = collectEntries(trunk);
+      selectionIndex = locateSelection();
+      entryList[selectionIndex].addFlags(SELECTION_FLAG);
+      selectionPath = entryList[selectionIndex].path;
       updateViewTrigger.setSources(neededSubscriptions);
     } finally {
       allEntries.clear();

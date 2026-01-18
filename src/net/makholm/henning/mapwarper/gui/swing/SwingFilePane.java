@@ -152,6 +152,15 @@ public class SwingFilePane extends JComponent {
       break;
     }
 
+    if( (entry.displayFlags & FilePane.SELECTION_FLAG) != 0 ) {
+      Color fg = g.getColor();
+      Color trans = new Color(fg.getColorSpace(),
+          fg.getColorComponents(null), 0.1f);
+      g.setColor(trans);
+      g.fillRect(0, 0, getWidth(), fm.getHeight());
+      g.setColor(fg);
+    }
+
     String text = entry.name + suffix;
     if( (entry.displayFlags & FilePane.PHANTOM_FILE_FLAG) != 0 )
       text = "("+text+")";

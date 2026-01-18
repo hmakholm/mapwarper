@@ -83,7 +83,8 @@ public abstract class Command {
             (keybinding.getModifiers() & InputEvent.ALT_DOWN_MASK) == 0 ) {
           System.err.println("[ignoing spurious "+codename+"] <"+keybinding+">");
           return;
-        } else if( owner.swing.possiblyRepeatingKey.equals(swingstring) ) {
+        } else if( owner.swing.possiblyRepeatingKey.equals(swingstring) &&
+            !codename.endsWith("...")) {
           // ignore auto-repeating keys where we haven't seen a key
           // release event first
           return;

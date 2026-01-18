@@ -317,6 +317,12 @@ public class Commands {
     keymap.accept("/", move);
 
     keymap.accept("Space", refresh);
+
+    keymap.accept("Up", files("fileUp...", f -> f.moveSelection(-1)));
+    keymap.accept("Down", files("fileDown...", f -> f.moveSelection(1)));
+    keymap.accept("Left", files("fileLeft...", FilePane::collapseTree));
+    keymap.accept("Right", files("fileRight...", FilePane::expandTree));
+    keymap.accept("Enter", files("fileEnter", FilePane::selectTree));
   }
 
   public void defineMenu(IMenu menu) {
@@ -440,6 +446,15 @@ public class Commands {
       else
         toRun.run();
     }
+  }
+
+  private Command files(String codename, Consumer<FilePane> action) {
+    return new Command(this, codename, "("+codename+")") {
+      @Override
+      public void invoke() {
+        if( window.filePaneVisible() ) action.accept(files);
+      }
+    };
   }
 
 }

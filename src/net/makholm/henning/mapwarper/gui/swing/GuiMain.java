@@ -107,6 +107,7 @@ public class GuiMain extends JFrame {
     add(topLevelComponent);
 
     commands = new Commands(mainLogic);
+    killInputMaps();
     commands.defineKeyBindings(this::defineKeyBinding);
 
     mainLogic.swing.repaintFromScratch();
@@ -198,6 +199,14 @@ public class GuiMain extends JFrame {
     dispose();
   }
 
+  private void killInputMaps() {
+    var cond = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
+    leftSplitter.setInputMap(cond, null);
+    rightSplitter.setInputMap(cond, null);
+    mainLogic.swing.scrollPane.setInputMap(cond, null);
+    topLevelComponent.setInputMap(cond, new InputMap());
+  }
+
   private void defineKeyBinding(String key, Command command) {
     command.defineInActionMap(topLevelComponent);
 
@@ -225,17 +234,6 @@ public class GuiMain extends JFrame {
 
     command.keybinding = keystroke;
     command.getAction().putValue(Action.ACCELERATOR_KEY, keystroke);
-
-    for( var comp : new JComponent[] { leftSplitter, rightSplitter } ) {
-      InputMap imap = comp.getInputMap(
-          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-      if( imap.get(keystroke) != null ) {
-        imap.remove(keystroke);
-        var parentMap = imap.getParent();
-        if( parentMap != null )
-          parentMap.remove(keystroke);
-      }
-    }
 
     InputMap inputMap = topLevelComponent.getInputMap(
         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
