@@ -105,6 +105,10 @@ class StandardAction implements ProposedAction {
             return tracks;
           }
           @Override
+          public Cursor cursor() {
+            return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+          }
+          @Override
           public void execute(ExecuteWhy why) {
             executeIfSelectingChain();
           }

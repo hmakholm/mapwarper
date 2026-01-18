@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.gui;
 
+import java.awt.Cursor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,6 +117,14 @@ public final class MeasureTool extends Tool {
   }
 
   private int createOrReuseMeasuringChain(Point dragFrom) {
+    int i = pickUpMeasuringChain(dragFrom);
+    if( i >= 0 ) return i;
+    var n = local2node(dragFrom);
+    measuringChain = new SegmentChain(List.of(n,n), SHOWKIND);
+    return 1;
+  }
+
+  private int pickUpMeasuringChain(Point dragFrom) {
     if( measuringChain != null ) {
       for( int i=measuringChain.numNodes-1; i>=0; i-- ) {
         TrackNode n = measuringChain.nodes.get(i);
@@ -123,9 +132,7 @@ public final class MeasureTool extends Tool {
           return i;
       }
     }
-    var n = local2node(dragFrom);
-    measuringChain = new SegmentChain(List.of(n,n), SHOWKIND);
-    return 1;
+    return -1;
   }
 
   private TrackNode local2node(Point local) {
@@ -139,6 +146,9 @@ public final class MeasureTool extends Tool {
     vdt.setFlag(Toggles.MAIN_TRACK);
     vdt.freeze();
 
+    Cursor cursor = dragging || pickUpMeasuringChain(mouse) < 0
+        ? null : Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+
     var curve = Bezier.line(measuringChain.nodes.get(0),
         measuringChain.nodes.get(1));
     var label = placeLabel(curve, mouse,
@@ -151,6 +161,10 @@ public final class MeasureTool extends Tool {
       @Override
       public VectorOverlay previewOverlay() {
         return label;
+      }
+      @Override
+      public Cursor cursor() {
+        return cursor;
       }
       @Override
       public void execute(ExecuteWhy why) {
