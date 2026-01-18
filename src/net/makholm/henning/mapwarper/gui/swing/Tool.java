@@ -129,7 +129,7 @@ public abstract class Tool extends Command implements MouseAction {
     return null;
   }
 
-  private Tool previousTool;
+  protected Tool previousTool;
 
   @Override
   public void invoke() {

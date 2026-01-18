@@ -372,13 +372,6 @@ public class MapView {
     currentTool.whenSelected();
   }
 
-  void selectEditingTool() {
-    if( editingChain != null ) {
-      selectTool(editingChain.isTrack() ?
-          window.commands.trackTool : window.commands.boundTool);
-    }
-  }
-
   // -------------------------------------------------------------------------
 
   public int toggleState =

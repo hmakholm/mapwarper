@@ -18,7 +18,6 @@ import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
 import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
-import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.track.ChainClass;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackHighlight;
@@ -26,7 +25,7 @@ import net.makholm.henning.mapwarper.track.VisibleTrackData;
 import net.makholm.henning.mapwarper.util.SingleMemo;
 import net.makholm.henning.mapwarper.util.XyTree;
 
-public class OpenTool extends Tool {
+public class OpenTool extends TrackHidingTool {
 
   private CachedState cachedState;
 
@@ -104,17 +103,6 @@ public class OpenTool extends Tool {
           mapView().swing.invalidateToolResponse();
           makeVisible(null);
           mapView().swing.refreshScene();
-        }
-      });
-      owner.files.fileOpenedPokes.subscribe(() -> {
-        if( mapView().currentTool != OpenTool.this ) {
-          // ignore
-        } else  if( switchToPreviousTool() ) {
-          // good
-        } else if( owner.files.activeFile().content().countsAsTrackFile() ) {
-          mapView().selectTool(owner.trackTool);
-        } else {
-          mapView().selectTool(owner.boundTool);
         }
       });
     }
@@ -250,13 +238,12 @@ public class OpenTool extends Tool {
         }
         @Override
         public void execute(ExecuteWhy why) {
-          if( altHeld(modifiers) )
+          if( altHeld(modifiers) ) {
             owner.files.setAsOnlyShownFile(found.vf());
-          else
+            activeFileChanged();
+          } else {
             owner.files.openFile(found.vf());
-          switchToPreviousTool();
-          if( mapView().currentTool == OpenTool.this )
-            mapView().selectTool(owner.trackTool);
+          }
         }
       };
     }

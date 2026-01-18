@@ -48,8 +48,6 @@ public class FilePane {
 
   public final PokePublisher activeFilePokes =
       new PokePublisher("activeFileChange");
-  public final PokePublisher fileOpenedPokes =
-      new PokePublisher("fileOpened");
   public final PokePublisher focusDirClicked =
       new PokePublisher("focusDirChange");
 
@@ -167,9 +165,7 @@ public class FilePane {
       pokeWhat = focusDirClicked;
       break;
     case FILE:
-      if( activeFile != null && entry.path.equals(activeFile.path) )
-        return;
-      else if( Tool.altHeld(modifiers) &&
+      if( Tool.altHeld(modifiers) &&
           setAsOnlyShownFile(cache.getFile(entry.path)) )
         return;
       else if( iconColumn ) {
@@ -179,6 +175,7 @@ public class FilePane {
         openFile(entry);
         pokeWhat = null;
       }
+      mapView.swing.refreshScene();
       break;
     default:
       throw BadError.of("This is not an entry kind: %s", entry.kind);
@@ -276,12 +273,12 @@ public class FilePane {
   }
 
   public void openFile(VectFile vf) {
-    if( vf == activeFile && vf.error != null ) return;
-    if( vf.showBoxOnError(window) ) return;
-    if( showBoxIfSavingIsNeeded() ) return;
+    if( vf != activeFile ) {
+      if( vf.showBoxOnError(window) ) return;
+      if( showBoxIfSavingIsNeeded() ) return;
 
-    handleShownFilesWhenSwitching(activeFile, vf);
-    mapView.switchToFile(vf);
+      handleShownFilesWhenSwitching(activeFile, vf);
+    }
 
     // make sure we show an error early if one of the referenced
     // bounds files cannot be loaded.
@@ -290,15 +287,16 @@ public class FilePane {
 
     Path prevFocusDir = focusDir;
     focusDir = vf.path.getParent();
-    descendForBoundFiles();
+    descendForBoundFiles(vf);
     if( prevFocusDir.startsWith(focusDir) )
       focusDir = prevFocusDir;
     else
       descendWhileUnambiguous();
 
+    mapView.switchToFile(vf);
+
     selectionPath = vf.path;
     updateView();
-    fileOpenedPokes.poke();
   }
 
   private boolean showBoxIfSavingIsNeeded() {
@@ -496,9 +494,9 @@ public class FilePane {
     }
   }
 
-  private void descendForBoundFiles() {
+  private void descendForBoundFiles(VectFile newActive) {
     Path target = null;
-    for( var bound : activeFile.content().usebounds() ) {
+    for( var bound : newActive.content().usebounds() ) {
       if( !bound.startsWith(focusDir) ) {
         // Ignore completely external bounds
       } else if( target == null ) {
