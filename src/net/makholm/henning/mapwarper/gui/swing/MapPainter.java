@@ -223,12 +223,6 @@ class MapPainter {
      * set to {@code null} (to indicate that the buffer will never be
      * used again), it stays {@code null} for ever, so it is admissible
      * to check <em>that</em> without taking the lock.
-     *
-     * Actually, at the time of this writing, this never changes
-     * <em>except</em> for being nulled out. There are still traces
-     * of an initial design where it could be replaced on the fly,
-     * but nowadays the entire {@link MapPainter} is replaced instead
-     * when the spec changes. (TODO: this should be straightened out!)
      */
     RenderInstance wantInstance;
 
@@ -289,7 +283,7 @@ class MapPainter {
      * want work, false to drop silently from the queue.
      */
     boolean considerWork() {
-      if( superseded || dead || wantInstance == null || buffer == null ) {
+      if( superseded || dead || buffer == null ) {
         if( activeInstance != null ) {
           activeInstance.dispose();
           activeInstance = null;
