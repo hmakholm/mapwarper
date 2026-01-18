@@ -99,10 +99,10 @@ public class OpenTool extends Tool {
   private void ensureSubscribed() {
     if( !subscribedYet ) {
       subscribedYet = true;
-      owner.files.focusDirPokes.subscribe(() -> {
+      owner.files.focusDirClicked.subscribe(() -> {
         if( mapView().currentTool == OpenTool.this ) {
           mapView().swing.invalidateToolResponse();
-          ensureVisible();
+          makeVisible(null);
           mapView().swing.refreshScene();
         }
       });

@@ -49,7 +49,7 @@ public class FilePane {
       new PokePublisher("activeFileChange");
   public final PokePublisher fileOpenedPokes =
       new PokePublisher("fileOpened");
-  public final PokePublisher focusDirPokes =
+  public final PokePublisher focusDirClicked =
       new PokePublisher("focusDirChange");
 
   public FilePane(MapView map, FSCache cache, String filearg) {
@@ -137,13 +137,13 @@ public class FilePane {
     switch( entry.kind ) {
     case TRUNK_DIR:
       focusDir = entry.path;
-      pokeWhat = focusDirPokes;
+      pokeWhat = focusDirClicked;
       break;
     case BRANCH_DIR:
     case TIP_DIR:
       focusDir = entry.path;
       descendWhileUnambiguous();
-      pokeWhat = focusDirPokes;
+      pokeWhat = focusDirClicked;
       break;
     case FILE:
       if( activeFile != null && entry.path.equals(activeFile.path) )
