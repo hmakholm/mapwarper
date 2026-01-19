@@ -6,6 +6,10 @@ public class MathUtil {
     return x < min ? min : x > max ? max : x;
   }
 
+  public static double clamp(double min, double x, double max) {
+    return x < min ? min : x > max ? max : x;
+  }
+
   public static double sqr(double x) {
     return x*x;
   }

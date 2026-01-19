@@ -345,7 +345,7 @@ class Smoother {
     // When we reach here, we want a nice cubic curve with the already
     // computed endpoints and tangent directions.
 
-    if( t1 == t4 && Math.abs(chord.dot(t1.turnRight())) < 1 )
+    if( t1.dot(t4) > 0.9999 && Math.abs(chord.dot(t1.turnRight())) < 1 )
       return Bezier.line(p1, p4);
     var chordlen = chord.length();
     var ctrllen2 = chordlen/3;

@@ -47,7 +47,7 @@ public class TextOverlay implements VectorOverlay {
   }
 
   private static final Font defaultFont =
-      SwingUtils.getANiceDefaultFont().deriveFont(11.0f);
+      SwingUtils.getANiceDefaultFont().deriveFont(13.0f);
 
   public static TextOverlay of(Component c, String... text) {
     return of(c, new Style(), Point.ORIGIN, Arrays.asList(text));
