@@ -2,6 +2,7 @@ package net.makholm.henning.mapwarper.gui.projection;
 
 import java.awt.geom.AffineTransform;
 import java.util.List;
+import java.util.function.IntPredicate;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
@@ -10,6 +11,7 @@ import net.makholm.henning.mapwarper.geometry.TransformHelper;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
+import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.util.AbortRendering;
 import net.makholm.henning.mapwarper.util.BadError;
 import net.makholm.henning.mapwarper.util.ListMapper;
@@ -140,6 +142,11 @@ public final class TurnedProjection extends Projection {
       var got = inner.createDifferential(local2next(local));
       got.preConcatenate(next2local);
       return got;
+    }
+
+    @Override
+    public IntPredicate makeBoundDiscarder(SegmentChain chain) {
+      return inner.makeBoundDiscarder(chain);
     }
   }
 
