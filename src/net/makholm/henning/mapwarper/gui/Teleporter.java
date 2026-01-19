@@ -52,7 +52,10 @@ public class Teleporter {
   Teleporter(MapView mapView, VectFile file, AxisRect globalTarget) {
     this.mapView = mapView;
     this.file = file;
-    tiles = mapView.tiles.tilesets.get("osm");
+    if( mapView.projection.base().isOrtho() )
+      tiles = mapView.mainTiles;
+    else
+      tiles = mapView.fallbackTiles;
 
     long width = mapView.visibleArea.width();
     long height = mapView.visibleArea.height();
