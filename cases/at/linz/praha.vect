@@ -1,6 +1,6 @@
 coords web-mercator 2^30
 usebounds bound.vect
-node 579478171::371984400
+node 579476844::371983632
   slew
 node 579491028::371963645
   straight
