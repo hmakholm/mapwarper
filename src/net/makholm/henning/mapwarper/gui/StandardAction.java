@@ -151,6 +151,11 @@ class StandardAction implements ProposedAction {
     return this;
   }
 
+  public StandardAction with(Cursor c) {
+    cursor = c;
+    return this;
+  }
+
   // -------------------------------------------------------------------------
 
   final Context cxt;
@@ -162,6 +167,7 @@ class StandardAction implements ProposedAction {
   TrackHighlight highlight;
   VectorOverlay overlay;
   TrackNode newNode;
+  Cursor cursor;
   boolean snapped;
   boolean preview;
   Runnable extraAction = () -> {};
@@ -177,7 +183,8 @@ class StandardAction implements ProposedAction {
 
   @Override
   public ToolResponse freeze() {
-    Cursor cursor = snapped ? Tool.loadCursor("snapCrosshairs.png") : null;
+    if( cursor == null && snapped )
+      cursor = Tool.loadCursor("snapCrosshairs.png");
     if( overlay == null && (highlight == null || newNode != null) )
       overlay = makeCircleCursor();
 

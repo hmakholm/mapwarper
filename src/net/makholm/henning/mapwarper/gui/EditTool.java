@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.gui;
 
+import java.awt.Cursor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -119,7 +120,8 @@ class EditTool extends GenericEditTool {
       // This is probably just a plain click. If you want to actually move
       // a node this little, zoom in first!
       var hl = new TrackHighlight(editingChain(), index, 0xFFFFFF);
-      return noopAction("!Don't move node").with(hl);
+      return noopAction("!Don't move node").with(hl)
+          .with(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
     } else {
       return actionForDraggingNode(index, mod1, p2, mod2);
     }
