@@ -1,6 +1,6 @@
 coords web-mercator 2^30
 usebounds bound/hb.vect
-node 562200665::375942686 16
+node 562201390::375942797
   straight
 node 562211564::375944211 16
   connect
@@ -37,13 +37,3 @@ node 562305201::375989191 16
 node 562307803::375990086 16
   straight
 node 562340729::376003196 16
-  break
-bounds
-node 562281014::375973890 16
-  local
-node 562308760::375985954 16
-  break
-bounds
-node 562278901::375982069 1
-  local
-node 562202652::375953021 1
