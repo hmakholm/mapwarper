@@ -132,6 +132,8 @@ public class MapView {
       toggleState &= ~Toggles.DARKEN_MAP.bit();
       if( tiles instanceof OpenStreetMap || tiles instanceof OpenTopoMap )
         toggleState |= Toggles.DARKEN_MAP.bit();
+      if( mainTiles == fallbackTiles )
+        toggleState |= Toggles.DOWNLOAD.bit();
 
       cancelLens();
       lensTiles = tiles;
