@@ -138,6 +138,12 @@ public final class TurnedProjection extends Projection {
     }
 
     @Override
+    public Point perhapsMoreInterestingLocal(Point local) {
+      var got = inner.perhapsMoreInterestingLocal(local2next(local));
+      return next2local(got);
+    }
+
+    @Override
     public AffineTransform createDifferential(Point local) {
       var got = inner.createDifferential(local2next(local));
       got.preConcatenate(next2local);

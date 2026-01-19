@@ -24,6 +24,10 @@ public interface ProjectionWorker {
 
   public abstract List<Bezier> global2local(Bezier global);
 
+  public default Point perhapsMoreInterestingLocal(Point local) {
+    return local;
+  }
+
   /**
    * Makes a linear transformation that makes a <em>global</em> delta at the given local
    * point into a <em>local</em> one. The constant part of the transformation is

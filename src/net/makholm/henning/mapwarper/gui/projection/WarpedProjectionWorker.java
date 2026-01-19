@@ -15,6 +15,7 @@ import net.makholm.henning.mapwarper.gui.FindClosest;
 import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.util.ListMapper;
+import net.makholm.henning.mapwarper.util.MathUtil;
 import net.makholm.henning.mapwarper.util.RootFinder;
 import net.makholm.henning.mapwarper.util.TreeList;
 
@@ -306,6 +307,21 @@ implements ProjectionWorker {
     double y = down.dot(v);
     double x = down.y*v.x - down.x*v.y;
     return Vector.of(x/xscale, y/yscale);
+  }
+
+  @Override
+  public Point perhapsMoreInterestingLocal(Point local) {
+    var x = MathUtil.clamp(0, local.x, warp.totalLength/xscale);
+    var margins = WarpMargins.get(warp);
+    var lefting = x*xscale;
+    var downing = local.y*yscale;
+    if( margins.leftMargin(this, lefting) <= downing &&
+        downing < margins.rightMargin(this,lefting) )
+      return Point.at(x, local.y);
+    else {
+      setLefting(lefting);
+      return Point.at(x, curves.segmentSlew(segment)/yscale);
+    }
   }
 
   @Override

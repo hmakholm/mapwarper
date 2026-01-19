@@ -477,9 +477,21 @@ public class MapView {
       Projection warped = makeScaledWarpedProjection(targetTiles);
       setMainTiles(targetTiles);
       setProjection(warped);
+      perhapsMoveToInterestingPoint();
     } catch( WarpedProjection.CannotWarp e ) {
       window.showErrorBox("Cannot create warped projection: %s", e.getMessage());
     }
+  }
+
+  private void perhapsMoveToInterestingPoint() {
+    Point adjusted = translator().perhapsMoreInterestingLocal(mouseLocal);
+    if( adjusted.is(mouseLocal) )
+      return;
+    var target = new AxisRect(visibleArea).grow(-50);
+    if( adjusted.x < target.xmin() || adjusted.x > target.xmax() )
+      positionX = (long)Math.round(adjusted.x) - visibleArea.width()/2;
+    if( adjusted.y < target.ymin() || adjusted.y > target.ymax() )
+      positionY = (long)Math.round(adjusted.y) - visibleArea.height()/2;
   }
 
   void lensCommand(Tileset targetTiles) {

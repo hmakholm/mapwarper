@@ -94,8 +94,12 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     renderQueue.startRenderThreads();
   }
 
-  public void readViewportRect() {
+  private void readViewportRect() {
     viewportRect = viewport.getViewRect();
+    updateLogicalViewportRect();
+  }
+
+  private void updateLogicalViewportRect() {
     logic.visibleArea.left = positionOffsetX + viewportRect.x;
     logic.visibleArea.right = logic.visibleArea.left + viewportRect.width;
     logic.visibleArea.top = positionOffsetY + viewportRect.y;
@@ -222,6 +226,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     int y = (getHeight() - viewportRect.height)/2;
     positionOffsetX = logic.positionX - x;
     positionOffsetY = logic.positionY - y;
+    updateLogicalViewportRect();
     setViewportPosition(x, y);
   }
 
@@ -229,6 +234,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     supersedeMapPainter();
     positionOffsetX = logic.positionX - viewportRect.x;
     positionOffsetY = logic.positionY - viewportRect.y;
+    updateLogicalViewportRect();
     refreshLogicalMousePosition();
     popupMousePosition = null;
   }
@@ -280,6 +286,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
         windowMousePosition.y + y - viewportRect.y);
     viewportRect.x = x;
     viewportRect.y = y;
+    updateLogicalViewportRect();
     refreshLogicalMousePosition();
     popupMousePosition = null;
     someBuffersMayBeInvisible = true;
@@ -288,6 +295,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   public void repaintFromScratch() {
     readViewportRect();
     recenterPosition();
+    updateLogicalViewportRect();
     repaint();
   }
 
