@@ -57,7 +57,7 @@ import net.makholm.henning.mapwarper.util.XyTree;
  *
  * Except otherwise noted, everything here happens in the UI thread.
  */
-public class MapView {
+public final class MapView {
 
   public final GuiMain window;
   public final SwingMapView swing;
@@ -84,6 +84,7 @@ public class MapView {
   public int lensZoom;
   public BoxOverlay lensRect;
 
+  public double rememberedSqueeze = 5;
   public boolean disableTempProjectionsOnShift;
 
   public SegmentChain clipboard;
@@ -468,7 +469,9 @@ public class MapView {
     var baseWarp = makeWarpedProjection();
 
     var aff = projection.getAffinoid();
-    aff.makeSqueezable(5);
+    aff.makeSqueezable(defaultSqueeze());
+    if( aff.squeeze < 1.5 )
+      aff.squeeze = rememberedSqueeze;
     aff.scaleAcross = Math.min(aff.scaleAcross,
         Coords.zoom2pixsize(tiles.guiTargetZoom()));
     return baseWarp.apply(aff);
@@ -522,6 +525,10 @@ public class MapView {
     };
   }
 
+  double defaultSqueeze() {
+    return 5;
+  }
+
   void squeezeCommand() {
     var aff = projection.getAffinoid();
     aff.squeeze = Math.round(aff.squeeze+1);
@@ -537,6 +544,17 @@ public class MapView {
       return () -> setProjection(projection.base().apply(aff));
     }
   };
+
+  void unsqueezeCommand() {
+    var aff = projection.getAffinoid();
+    if( aff.squeeze > 1.5 ) {
+      rememberedSqueeze = aff.squeeze;
+      aff.squeeze = 1;
+    } else {
+      aff.squeeze = rememberedSqueeze;
+    }
+    setProjection(projection.base().apply(aff));
+  }
 
   Runnable copyCommand() {
     if( editingChain == null ) return null;

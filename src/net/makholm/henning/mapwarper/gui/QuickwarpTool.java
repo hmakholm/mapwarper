@@ -45,7 +45,7 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
     }
 
     var aff = orig.getAffinoid();
-    aff.makeSqueezable(5);
+    aff.makeSqueezable(mapView().defaultSqueeze());
     Projection proj = base.makeQuickwarp(basePoint, altHeld(modifiers), aff);
 
     if( proj.equals(orig) )
@@ -73,7 +73,7 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
         Point b = translator.local2global(arrow.b);
         UnitVector dir = a.to(b).normalize();
         var aff = orig.getAffinoid();
-        aff.makeSqueezable(5);
+        aff.makeSqueezable(mapView().defaultSqueeze());
         var proj = new QuickWarp(a, dir).apply(aff);
         owner.mapView.setProjection(proj, midLocal);
       }

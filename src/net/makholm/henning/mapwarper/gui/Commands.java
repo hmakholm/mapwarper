@@ -105,6 +105,9 @@ public class Commands {
   private final Cmd stretch = check("stretch", "Decrease squeeze factor",
       self -> self.mapView.stretchCommand());
 
+  private final Cmd unsqueeze = simple("unsqueeze", "Flip between squeezed and not",
+      self -> self.mapView.unsqueezeCommand());
+
   private final Cmd lensPlus = check("lensPlus", "Increase lens resoltion",
       self -> self.lens.lensPlusCommand());
 
@@ -277,6 +280,7 @@ public class Commands {
     keymap.accept("`", newChain);
     keymap.accept("1", zoom100);
     keymap.accept("2", rotate);
+    keymap.accept("0", unsqueeze);
     keymap.accept("-", zoomOut);
     keymap.accept("+", zoomIn);
 
@@ -367,6 +371,7 @@ public class Commands {
     zoom.add(unzoom);
     zoom.add(squeeze);
     zoom.add(stretch);
+    zoom.add(unsqueeze);
     zoom.add(quickwarp);
     zoom.add(quickwarp.quickCircle());
     zoom.addSeparator();
