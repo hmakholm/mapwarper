@@ -125,7 +125,66 @@ Mapwarper v2, starting October 2024 (and didn't know it was version 2)
 
 Mapwarper v3, starting December 2024
 
-   This will be a GUI editor written in Java, sharing the *.vect file
+   This is a GUI editor written in Java, sharing the *.vect file
    format of v2, and also sharing some code where it makes sense, such
    as how to create cubic splines from a list of segments. Other parts
-   will be rewritten to apply learnings from the v2 effort).
+   are rewritten to apply learnings from the v2 effort).
+
+   I chose Swing as the GUI framework mainly because Java supports it
+   out of the box so I don't need to muck around with Maven or Gradle.
+   Time will tell whether I regret that decision, but I've tried to
+   isolate the more framework-dependent parts of the code in its own
+   package, and as of this writing (early 2026), about 80% of the
+   source code (by line count) should be reusable almost verbatim if I
+   end up porting to a different framework later -- say, to get the
+   thing to run on tablets.
+
+   When it had reached feature parity with v2, I uploaded it to GitHub
+   because why the heck not, although without fanfare because I don't
+   _really_ believe others will be all that interested.
+
+   After a few months of development I was more or less satisfied with
+   the functionality, and for most of 2025 I just returned to it
+   occasionally to add new warp definitions. Some scattered usage
+   observations, for once not all that painful:
+
+    - In Mapwarper v1, the curve to warp along was generally always a
+      particular _track_ on the map, since given the technical
+      restrictions that was the only way I had to make a smooth enough
+      curve that would align more or less with the layout.  The goal
+      then became to make THAT track absolutely straight in the warped
+      view.
+
+      After v2 I started occasionally experimenting with just warping
+      along the general tendency of an _entire_ track group, and a
+      compromise curve between several tracks in curvy areas.
+      But this because much more doable in v3, where the GUI gives
+      instantaneous feedback on what the curve does when one moves a
+      track node, and also just a second and a keypress to see how
+      the final warp results.
+
+    - On the other hand, the quick feedback of the GUI also makes it
+      much easier (with some experience) to get the curve to follow a
+      track _very_ neatly with fairly few nodes. Often that does seem
+      to produce a more understandable _overview_ than a broad-strokes
+      curve that shows more of the real-world geometry of the layout.
+
+    - Back in v1, for technical reasons the warp lines generally ended
+      up aligning with one _rail_ of the target track. From v2 my goal
+      was to align with the track _centerline_ -- that's why in high
+      zooms the v3 GUI surrounds the mouse position with a circle
+      calculated to have a diameter of 1435 mm, to make it easy to
+      point at the track center.
+
+      However, the few times where I've tried to follow a rail instead
+      of the centerline (mainly because I was revising a warp
+      definition originally imported from v1), that has actually felt
+      more precise. It is easier to _see_ small deviations from the
+      rail, and therefore correct them!
+
+Mapwarper v3.1, January 2026
+
+   In January 2026 I spent another several weeks refining the user
+   interface, with ideas collected from the previous year. We might
+   call the result version 3.1, though there is not really a clean
+   break, more of an incremental evolution.
