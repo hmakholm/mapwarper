@@ -1,10 +1,10 @@
 coords web-mercator 2^30
 usebounds bound/monza.vect
-usebounds bound/rogoredo.vect
-usebounds bound/cintura-s.vect
-node 564384520::384361622 1
+usebounds bound/cintura.vect
+node 564383810::384361662 86.3
+node 564386384::384361470
   straight
-node 564389094::384361224 1
+node 564388295::384361289
 node 564390930::384361088 1
   straight
 node 564395254::384360824 1

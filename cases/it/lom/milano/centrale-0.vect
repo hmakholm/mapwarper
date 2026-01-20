@@ -2,4 +2,4 @@ coords web-mercator 2^30
 usebounds bound/centrale.vect
 node 564321474::384196026 1
   straight
-node 564363979::384135113 1
+node 564363547::384135820

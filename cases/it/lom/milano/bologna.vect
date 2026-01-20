@@ -2,6 +2,7 @@ coords web-mercator 2^30
 usebounds bound/centrale.vect
 usebounds bound/rogoredo.vect
 usebounds bound/lodi.vect
+usebounds bound/cintura.vect
 node 564324179::384193930 1
   straight
 node 564335799::384177482 1

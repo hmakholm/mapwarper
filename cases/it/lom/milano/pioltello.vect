@@ -1,7 +1,7 @@
 coords web-mercator 2^30
 usebounds bound/rogoredo.vect
-usebounds bound/cintura-s.vect
 usebounds bound/treviglio.vect
+usebounds bound/cintura.vect
 node 564398219::384305462 1
   straight
 node 564407859::384305455 1
