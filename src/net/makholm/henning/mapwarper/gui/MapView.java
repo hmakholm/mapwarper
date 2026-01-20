@@ -29,7 +29,6 @@ import net.makholm.henning.mapwarper.gui.projection.TurnedProjection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection.CannotWarp;
 import net.makholm.henning.mapwarper.gui.swing.GuiMain;
-import net.makholm.henning.mapwarper.gui.swing.PokeReceiver;
 import net.makholm.henning.mapwarper.gui.swing.SwingMapView;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
@@ -47,6 +46,7 @@ import net.makholm.henning.mapwarper.track.VisibleTrackData;
 import net.makholm.henning.mapwarper.util.MathUtil;
 import net.makholm.henning.mapwarper.util.MutableLongRect;
 import net.makholm.henning.mapwarper.util.PokePublisher;
+import net.makholm.henning.mapwarper.util.PokeReceiver;
 import net.makholm.henning.mapwarper.util.XyTree;
 
 /**

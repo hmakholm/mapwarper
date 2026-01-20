@@ -1,4 +1,4 @@
-package net.makholm.henning.mapwarper.gui.swing;
+package net.makholm.henning.mapwarper.util;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.swing.SwingUtilities;
-
-import net.makholm.henning.mapwarper.util.PokePublisher;
 
 public class PokeReceiver {
 
