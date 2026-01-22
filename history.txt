@@ -182,6 +182,11 @@ Mapwarper v3, starting December 2024
       more precise. It is easier to _see_ small deviations from the
       rail, and therefore correct them!
 
+    - On the other hand, there's a real risk of getting tunnel vision
+      and spending much energy on matching artifacts of the map
+      provider's slant correction when it doesn't really help make
+      _neighboring_ tracks look neatuer.
+
 Mapwarper v3.1, January 2026
 
    In January 2026 I spent another several weeks refining the user

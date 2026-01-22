@@ -1,7 +1,6 @@
 /bin/
 /tilecache/
 /cases/junk/
-/cases/**/*.png
 *~
 *.pdf
 *.xcf.gz
