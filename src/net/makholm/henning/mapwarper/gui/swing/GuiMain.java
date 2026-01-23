@@ -1,6 +1,8 @@
 package net.makholm.henning.mapwarper.gui.swing;
 
 import java.awt.EventQueue;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
@@ -43,6 +45,8 @@ public class GuiMain extends JFrame {
   private final JSplitPane leftSplitter;
   private final JSplitPane rightSplitter;
 
+  boolean anyUserInputYet;
+
   /**
    * Used for short administrative actions that must be decoupled from the
    * calling context for reasons of deadlock avoidance.
@@ -78,8 +82,7 @@ public class GuiMain extends JFrame {
   private GuiMain(TileContext tiles, String filearg) {
     setMainIcon();
     setTitle("Mapwarper v3");
-    setSize(1850, 820);
-    setDefaultCloseOperation(EXIT_ON_CLOSE);
+    selectInitialSize();
 
     FSCache fileCache = new FSCache();
     mainLogic = new MapView(this, fileCache, filearg, tiles);
@@ -112,6 +115,8 @@ public class GuiMain extends JFrame {
 
     mainLogic.swing.repaintFromScratch();
 
+    addComponentListener(new ResizeListener());
+
     setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     addWindowListener(new WindowAdapter() {
       @Override
@@ -127,6 +132,46 @@ public class GuiMain extends JFrame {
     BackgroundThread.ERRORPOKE.subscribe(() -> {
       EventQueue.invokeLater(filePane::perhapsDeferredShutdown);
     });
+  }
+
+  private void selectInitialSize() {
+    String s = System.getProperty("mapwarper.geometry");
+    if( s != null ) {
+      var r = new Regexer(s);
+      if( r.match("([0-9]+)x([0-9]+)") ) {
+        setSize(r.igroup(1), r.igroup(2));
+        return;
+      }
+    }
+
+    // We want to start maximized, but the right splitter somehow won't
+    // initialize properly unless we start by setting at least a wild guess.
+    setSize(1000, 700);
+    setExtendedState(MAXIMIZED_BOTH);
+  }
+
+  /**
+   * Dismayingly, Swing tends to ask the map view to repaint itself
+   * <em>before</em> the initial size calculations have settled down.
+   * In order to get the initial content correctly centered and scaled,
+   * we have to repeat {@link MapView#setInitialPosition()} when we see
+   * the first resize event of the main frame.
+   *
+   * Just for belt-and-suspenders we'll suppress that if we don't get
+   * any initial resize event before either the user has started
+   * interacting or a few seconds have passed. Otherwise a random
+   * later resize could lead to an unexpected unzoom.
+   */
+  private class ResizeListener extends ComponentAdapter {
+    final long startedAt = System.nanoTime();
+    @Override
+    public void componentResized(ComponentEvent comp) {
+      removeComponentListener(this);
+      if( !anyUserInputYet &&
+          System.nanoTime() < startedAt + 5_000_000_000L ) {
+        mainLogic.setInitialPosition();
+      }
+    }
   }
 
   private void leftDividerMoved(PropertyChangeEvent e) {

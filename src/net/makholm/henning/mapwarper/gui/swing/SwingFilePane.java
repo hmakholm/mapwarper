@@ -69,6 +69,7 @@ public class SwingFilePane extends JComponent {
 
     @Override
     public void mousePressed(MouseEvent e) {
+      logic.window.anyUserInputYet = true;
       FilePane.Entry entry = locate(e);
       switch( e.getButton() ) {
       case 1:

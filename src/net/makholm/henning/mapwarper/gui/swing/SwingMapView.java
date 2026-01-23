@@ -82,7 +82,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     scrollPane.setWheelScrollingEnabled(false);
 
     viewport = scrollPane.getViewport();
-    viewportRect = viewport.getBounds();
+    viewportRect = viewport.getViewRect();
+    viewport.addChangeListener(e -> viewportChanged());
 
     setFocusable(true);
     setFocusTraversalKeysEnabled(false);
@@ -92,6 +93,16 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     addKeyListener(this);
 
     renderQueue.startRenderThreads();
+  }
+
+  private void viewportChanged() {
+    var prev = viewportRect;
+    readViewportRect();
+    var delta = Vector.of(viewportRect.x-prev.x, viewportRect.y-prev.y);
+    if( windowMousePosition != null ) {
+      windowMousePosition = windowMousePosition.plus(delta);
+      refreshLogicalMousePosition();
+    }
   }
 
   private void readViewportRect() {
@@ -281,13 +292,6 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
   private void setViewportPosition(int x, int y) {
     viewport.setViewPosition(new java.awt.Point(x,y));
-    windowMousePosition = Point.at(
-        windowMousePosition.x + x - viewportRect.x,
-        windowMousePosition.y + y - viewportRect.y);
-    viewportRect.x = x;
-    viewportRect.y = y;
-    updateLogicalViewportRect();
-    refreshLogicalMousePosition();
     popupMousePosition = null;
     someBuffersMayBeInvisible = true;
   }
@@ -356,6 +360,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     logic.mouseGlobal = logic.translator().local2global(logic.mouseLocal);
     renderQueue.offerMousePosition(logic.mouseLocal);
     logic.tiles.downloader.offerMousePosition(logic.mouseGlobal);
+    if( mousePosForTool != OUTSIDE_WINDOW )
+      mousePosForTool = logic.mouseLocal;
   }
 
   void whenInvokingCommand(boolean fromMenu) {
@@ -410,6 +416,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
   @Override
   public void mousePressed(MouseEvent e) {
+    logic.window.anyUserInputYet = true;
     popupMousePosition = null;
     cancelDrag();
     readMousePosition(e);
@@ -527,6 +534,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
   @Override
   public void keyPressed(KeyEvent e) {
+    logic.window.anyUserInputYet = true;
     modifierState = e.getModifiersEx();
     if( e.getKeyCode() == KeyEvent.VK_SHIFT ) {
       var tempProj = toolResponseTool.shiftDownProjectionSwitcher(

@@ -58,6 +58,7 @@ public class TilesetPane extends JPanel {
       addMouseListener(new MouseInputAdapter() {
         @Override
         public void mousePressed(MouseEvent e) {
+          window.anyUserInputYet = true;
           switch(e.getButton()) {
           case 1:
             window.mainLogic.defaultTilesetClickAction(tiles);
