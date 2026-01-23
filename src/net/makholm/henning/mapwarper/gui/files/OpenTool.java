@@ -246,10 +246,10 @@ public class OpenTool extends TrackHidingTool {
           if( altHeld(modifiers) ) {
             owner.files.setAsOnlyShownFile(found.vf());
             mapView().perhapsRewarpTo(found.vf());
-            activeFileChanged();
           } else {
             owner.files.openFile(found.vf());
           }
+          activeFileChanged();
         }
       };
     }

@@ -16,7 +16,10 @@ public abstract class TrackHidingTool extends Tool {
 
   @Override
   public void activeFileChanged() {
-    if( !(previousTool instanceof TrackHidingTool) && switchToPreviousTool() ) {
+    if( mapView().currentTool != this ) {
+      // Good!
+    } else if( !(previousTool instanceof TrackHidingTool) &&
+        switchToPreviousTool() ) {
       // Good
     } else if( editingChain() != null ) {
       if( editingChain().isTrack() )
