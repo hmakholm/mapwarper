@@ -193,3 +193,10 @@ Mapwarper v3.1, January 2026
    interface, with ideas collected from the previous year. We might
    call the result version 3.1, though there is not really a clean
    break, more of an incremental evolution.
+
+   One new feature in the data format is that the a node in a track
+   definition can now contain a _direction_ that the track is forced
+   to align with at the node.  This turned out to be less generally
+   useful than I had hoped -- usually inserting a piece of "strong"
+   track works better -- but there are special cases where it comes in
+   handy.

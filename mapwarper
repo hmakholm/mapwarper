@@ -1,4 +1,39 @@
 #! /bin/sh
 BASEDIR=$(dirname "$0")
-# For 4K displays add -Dsun.java2d.uiScale=2
-exec java -Xmx2500M -cp "$BASEDIR/bin" net.makholm.henning.mapwarper.Mapwarper "$BASEDIR" "$@"
+JVMOPTS=""
+
+# Adapt the following RAM option to what works for you.
+# The program _will_ fill up the entire heap it's given
+# with tiles before starting to rely on the disk cache.
+JVMOPTS="$JVMOPTS -xMx2500M"
+
+# For 4K displays, uncomment this line:
+# JVMOPTS="$JVMOPTS -Dsun.java2d.uiScale=2"
+
+# Now for trying to find or make the compiled code ...
+MAINCLS=net.makholm.henning.mapwarper.Mapwarper
+SLASHED=net/makholm/henning/mapwarper/Mapwarper
+
+if [ -e "$BASEDIR/bin/$SLASHED.class" ] ; then
+    # Prefer a bin directory if it exists, because that's probably
+    # because there's an IDE that keeps it up to data with respect
+    # to the source code.
+    CLASSPATH="$BASEDIR/bin"
+elif [ -e "$BASEDIR/mapwarper.jar" ] ; then
+    CLASSPATH="$BASEDIR/mapwarper.jar"
+elif [ -e "$BASEDIR/src/$SLASHED.java" ] ; then
+    echo Compiling Java source into mapwarper.jar
+    ( cd "$BASEDIR" ; ./buildjar.sh )
+    CLASSPATH="$BASEDIR/mapwarper.jar"
+else
+    echo Cannot find either compiled or source Mapwarper. Sorry.
+    exit 1
+fi
+
+# If no particular directory given on the command line,
+# start investigating the cases collection
+if [ -z "$1" -a -d "$BASEDIR/cases" ] ; then
+    set "$BASEDIR/cases"
+fi
+
+exec java $RAMOPT -cp "$CLASSPATH" $MAINCLS "$@"

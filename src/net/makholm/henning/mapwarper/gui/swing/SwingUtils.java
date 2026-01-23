@@ -11,6 +11,8 @@ import java.util.Optional;
 
 import javax.imageio.ImageIO;
 
+import net.makholm.henning.mapwarper.gui.Commands;
+
 public class SwingUtils {
 
   public static Graphics2D startPaint(Graphics g0) {
@@ -39,7 +41,7 @@ public class SwingUtils {
   }
 
   public static Optional<BufferedImage> loadBundledImage(String name) {
-    try( var imgStream = SwingUtils.class.getResourceAsStream("../"+name) ) {
+    try( var imgStream = Commands.class.getResourceAsStream(name) ) {
       if( imgStream == null ) {
         System.err.println("Cannot read "+name+" -- not found?");
         return Optional.empty();

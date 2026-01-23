@@ -61,26 +61,66 @@ the code to load an API key from a local configuration file and
 require the user to acquire one themself, but I so far I'm not
 bothering.
 
-## Installation and getting started
+## Installation
 
 Installation, what's that?
 
-Myself, I let Eclipse compile the Java code, populating a `bin/`
-directory; then the `mapwarper` script will launch the program in a
-JVM appropriately.
+If you're on Linux or MacOS and have a Java Development Kit installed
+(so there's a `javac` command on your path), you should be able to
+just check out the contents of this Git repository and run the
+`mapwarper` script.  It will compile the source code into a
+`mapwarper.jar` the first time it runs. If you pull new code changes
+from Github, delete the JAR file to provoke a recompilation.
+
+Or, if you're super ambitious, load the source tree into Eclipse or
+another IDE that will populate a `bin/` directory automatically. The
+`mapwarper` script will use that preferentially over a
+`mapwarper.jar`.
+
+On Windows you'll be more on your own with compiling the code. I don't
+have any opportunity to test a launcher script for Windows. If you
+know how to run a Java compiler at all, it should be straightforward
+-- there are _no_ dependencies beyond what comes with Java out of the
+box!
+
+From time to time (if people bug me for it) I might release a
+pre-built JAR for the benefit of people who only have a Java Runtime
+Environment installed. You'll still want to check out the source tree
+from Git in order to get my example warp definitions.
+
+Strictly speaking I don't _know_ the program will work on MacOS or
+Windows, but Swing claims to be cross-platform, so there's at least a
+fairly good chance that it should. If you try it, let me know how it
+goes!
+
+### Minor caveats
+
+The program starts by creating a cache directory for downloaded map
+tiles in an appropriate location. The default location can be
+overridden by giving a `--tilecache` argument. The program never
+itself deletes anything from this cache itself, so be sure to clear it
+out once you're done playing.
 
 With a 4K display you need to add a `-Dsun.java2d.uiScale=2` argument
 to the `java` command line, at least on Linux. (I haven't found a
 robust way to autodetect the need for this yet).
 
-To get started, navigate to a `*.vect` file in the `cases/`
-subdirectory, single click on it to load, and then press `W` followed
-by `U` to switch to warped view and locate the tracks.
+## Getting started
+
+Navigate to a `*.vect` file in the `cases/` subdirectory, single click
+on it to load, and then press `W` to switch to warped view and locate
+the tracks.  To get back to the graphical track picker the program
+starts up in, press `R` to get back to an ordinary unwarped map view,
+then `O`.
+
+Drag holding the middle mouse button to move the map. Or, if you don't
+have a working middle button, press `.` to select a tool where the
+first button will do it.
 
 Beyond that, play around. Most of the command keys are documented in
 the right-click menu in the map view.  For many tools, holding Shift
 down previews what the result of clicking would be. In the drawing
-tools, Ctrl-click deletes nodes or line segments.
+tools, Ctrl-click (or Ctrl-drag) deletes nodes.
 
 If you can read Danish, my original design notes in `gui.txt` may give
 you an idea how the UI is supposed to work. Otherwise you're on your

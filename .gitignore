@@ -1,9 +1,7 @@
 /bin/
-/tilecache/
 /cases/junk/
+/mapwarper.jar
+*.class
 *~
 *.pdf
 *.xcf.gz
-
-
-

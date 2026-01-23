@@ -1,12 +1,16 @@
 package net.makholm.henning.mapwarper;
 
+import java.io.IOException;
 import java.net.http.HttpClient;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -22,23 +26,22 @@ import net.makholm.henning.mapwarper.util.Regexer;
 
 public class Mapwarper {
 
-  public final Path basedir;
   public final TileContext tileContext;
 
   public Tileset wantedTiles;
   public Optional<Integer> wantedZoom = Optional.empty();
   public Optional<Path> wantedOutput = Optional.empty();
 
+  private String explicitTileCacheArg;
+  private Path tileCache;
+
   private final Command command;
   private final Deque<String> words = new ArrayDeque<>();
 
   private Mapwarper(String[] args) {
-    basedir = Paths.get(args[0]);
-    Path tileCache = basedir.resolve("tilecache");
-
     String verb = null;
     int dashDashPos = -1;
-    for( int i = 1; i<args.length; i++ ) {
+    for( int i = 0; i<args.length; i++ ) {
       Regexer arg = new Regexer(args[i]);
       if( dashDashPos == -1 && arg.find("^-[^0-9]") ) {
         if( arg.is("--") ) {
@@ -47,6 +50,10 @@ public class Mapwarper {
           wantedZoom = Optional.of(arg.igroup(1));
         } else if( arg.is("-o") ) {
           wantedOutput = Optional.of(Paths.get(args[++i]));
+        } else if( arg.is("--tilecache") ) {
+          explicitTileCacheArg = args[++i];
+        } else if( arg.match("--tilecache=(.+)") ) {
+          explicitTileCacheArg = arg.group(1);
         } else {
           throw NiceError.of("Unknown option: %s", arg);
         }
@@ -57,6 +64,9 @@ public class Mapwarper {
       }
     }
     if( dashDashPos == -1 ) dashDashPos = words.size();
+
+    if( !findTileCache() )
+      System.exit(1);
 
     var http = HttpClient.newBuilder();
     tileContext = new TileContext(tileCache, http.build());
@@ -75,6 +85,109 @@ public class Mapwarper {
         command.offerSpecialWord(new Regexer(words.getFirst())) ) {
       words.removeFirst();
       dashDashPos--;
+    }
+  }
+
+  private static final String[] xdgCacheAddress = { "mapwarper" };
+  private static final String[] macCacheAddress = { "net.makholm.henning.mapwarper" };
+  private static final String[] winCacheAddress = { "Mapwarper" };
+
+  private boolean findTileCache() {
+    if( explicitTileCacheArg != null )
+      return useOrCreateTileCache(Path.of(explicitTileCacheArg));
+
+    List<Path> deferred = new ArrayList<>();
+
+    if( tryCacheDir(System.getenv("XDG_CACHE_HOME"), xdgCacheAddress, null) )
+      return true;
+
+    if( tryCacheDir(System.getenv("LOCALAPPDATA"), winCacheAddress, null) )
+      return true;
+
+    String s = System.getProperty("user.home");
+    Path home = s == null || s.isEmpty() ? null : Path.of(s);
+    if( home != null ) {
+      // Try the Mac and Windows locations first -- it's more likely that one of
+      // those will have a spurious ~/.cache than the other way around.
+
+      // https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html
+      if( tryCacheDir(home.resolve("Library/Caches"), macCacheAddress, deferred) ) return true;
+
+      // Web rumors say this is the equivalent for Windows; untested!
+      if( tryCacheDir(home.resolve("AppData").resolve("Local"), winCacheAddress, deferred) ) return true;
+
+      if( tryCacheDir(home.resolve(".cache"), xdgCacheAddress, deferred) ) return true;
+    }
+
+    if( useTileCacheIfExists(Path.of("tilecache").toAbsolutePath()) )
+      return true;
+
+    for( var dp : deferred )
+      if( useOrCreateTileCache(dp) )
+        return true;
+    return false;
+  }
+
+  private boolean tryCacheDir(String s, String[] addr, List<Path> fallbacks) {
+    if( s != null && !s.isEmpty() )
+      return tryCacheDir(Path.of(s), addr, fallbacks);
+    else
+      return false;
+  }
+
+  /**
+   * @param fallbacks is null if we're so sure it's a good directory <em>name</em>
+   * that we'll create our cache directory there even if the enclosing directory
+   * doesn't exist yet.
+   */
+  private boolean tryCacheDir(Path cache, String[] addr, List<Path> fallbacks) {
+    Path p = cache;
+    for( var component : addr )
+      p = p.resolve(component);
+    p = p.resolve("tilecache");
+    if( useTileCacheIfExists(p) ) {
+      return true;
+    } else if( fallbacks == null ) {
+      return useOrCreateTileCache(p);
+    } else if( Files.exists(cache) ) {
+      fallbacks.add(p);
+      return false;
+    } else if( cache.getFileName().toString().equals(".cache") ) {
+      // Always be prepared to use ~/.cache as fallback
+      fallbacks.add(p);
+      return false;
+    } else {
+      return false;
+    }
+  }
+
+  private boolean useOrCreateTileCache(Path p) {
+    if( useTileCacheIfExists(p) ) {
+      return true;
+    } else if( Files.exists(p) ) {
+      System.err.println(p+" exists but is not a directory");
+      return false;
+    } else {
+      try {
+        Files.createDirectories(p);
+        System.err.println("Created new tile cache at "+p);
+        tileCache = p;
+        return true;
+      } catch( IOException e ) {
+        System.err.println("Cannot create tile cache at "+p+": "+e);
+        return false;
+      }
+    }
+  }
+
+  private boolean useTileCacheIfExists(Path p) {
+    if( Files.isDirectory(p) ) {
+      tileCache = p;
+      if( explicitTileCacheArg == null )
+        System.err.println("Using tile cache at "+p);
+      return true;
+    } else  {
+      return false;
     }
   }
 
