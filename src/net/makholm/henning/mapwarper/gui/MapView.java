@@ -366,6 +366,16 @@ public final class MapView {
     }
   }
 
+  void scrollByKey(int dx, int dy) {
+    positionX += dx*50;
+    positionY += dy*50;
+  }
+
+  void scrollShifted(int dx, int dy) {
+    positionX += dx*visibleArea.width()*2/3;
+    positionY += dy*visibleArea.height()*2/3;
+  }
+
   void escapePressed() {
     if( swing.cancelDrag() ) {
       // That's all

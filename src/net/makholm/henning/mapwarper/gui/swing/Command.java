@@ -30,7 +30,7 @@ public abstract class Command {
   public Command(Commands owner, String codename, String niceName) {
     this.owner = owner;
     this.codename = codename;
-    this.niceName = niceName;
+    this.niceName = niceName != null ? niceName : "("+codename+")";
 
     if( owner.commandRegistry.containsKey(codename) )
       throw BadError.of("Command '%s' seems to be registered twice.", codename);

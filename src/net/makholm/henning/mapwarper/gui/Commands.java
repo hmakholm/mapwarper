@@ -323,11 +323,16 @@ public class Commands {
 
     keymap.accept("Space", refresh);
 
-    keymap.accept("Up", files("fileUp...", f -> f.moveSelection(-1)));
-    keymap.accept("Down", files("fileDown...", f -> f.moveSelection(1)));
-    keymap.accept("Left", files("fileLeft...", FilePane::collapseTree));
-    keymap.accept("Right", files("fileRight...", FilePane::expandTree));
-    keymap.accept("Enter", files("fileEnter", FilePane::selectTree));
+    keymap.accept("Up", files("up...", f -> f.moveSelection(-1), v -> v.scrollByKey(0, -1)));
+    keymap.accept("Down", files("down...", f -> f.moveSelection(1), v -> v.scrollByKey(0, 1)));
+    keymap.accept("Left", files("left...", FilePane::collapseTree, v -> v.scrollByKey(-1, 0)));
+    keymap.accept("Right", files("right...", FilePane::expandTree, v -> v.scrollByKey(1, 0)));
+    keymap.accept("Enter", files("fileEnter", FilePane::selectTree, v -> {}));
+
+    keymap.accept("S-Up", simple("UP", null, self -> self.mapView.scrollShifted(0,-1)));
+    keymap.accept("S-Down", simple("DOWN", null, self -> self.mapView.scrollShifted(0,1)));
+    keymap.accept("S-Left", simple("LEFT", null, self -> self.mapView.scrollShifted(-1,0)));
+    keymap.accept("S-Right", simple("RIGHT", null, self -> self.mapView.scrollShifted(1,0)));
   }
 
   public void defineMenu(IMenu menu) {
@@ -454,11 +459,15 @@ public class Commands {
     }
   }
 
-  private Command files(String codename, Consumer<FilePane> action) {
-    return new Command(this, codename, "("+codename+")") {
+  private Command files(String codename,
+      Consumer<FilePane> fileAction, Consumer<MapView> nonfileAction) {
+    return new Command(this, codename, null) {
       @Override
       public void invoke() {
-        if( window.filePaneVisible() ) action.accept(files);
+        if( window.filePaneVisible() )
+          fileAction.accept(files);
+        else
+          nonfileAction.accept(mapView);
       }
     };
   }
