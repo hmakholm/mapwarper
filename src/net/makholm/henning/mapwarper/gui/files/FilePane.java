@@ -166,9 +166,10 @@ public class FilePane {
       break;
     case FILE:
       if( Tool.altHeld(modifiers) &&
-          setAsOnlyShownFile(cache.getFile(entry.path)) )
+          setAsOnlyShownFile(cache.getFile(entry.path)) ) {
+        mapView.perhapsRewarpTo(cache.getFile(entry.path));
         return;
-      else if( iconColumn ) {
+      } else if( iconColumn ) {
         toggleVisible(entry.path);
         pokeWhat = activeFilePokes;
       } else {

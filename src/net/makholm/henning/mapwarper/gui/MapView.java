@@ -310,7 +310,13 @@ public final class MapView {
   }
 
   public void switchToFile(VectFile newActive) {
-    new Teleporter(this).forOpening(newActive).apply();
+    if( newActive == files.activeFile() ) {
+      // Nothing to do
+    } else if( perhapsRewarpTo(newActive) ) {
+      files.setActiveFile(newActive);
+    } else {
+      new Teleporter(this).forOpening(newActive).apply();
+    }
   }
 
   private void teleport(Teleporter dest) {
@@ -418,6 +424,22 @@ public final class MapView {
           naturalLogPixsize + OrthoProjection.WEAK_SHRINK);
     }
     setProjection(OrthoProjection.ORTHO.withScaleAcross(1 << logPixsize));
+  }
+
+  public boolean perhapsRewarpTo(VectFile vf) {
+    if( projection.base() instanceof WarpedProjection &&
+        vf.content().numTrackChains == 1 ) {
+      try {
+        var aff = projection.getAffinoid();
+        var wp = new WarpedProjection(vf, files.cache);
+        setProjection(wp.apply(aff));
+        perhapsMoveToInterestingPoint();
+        return true;
+      } catch( CannotWarp e ) {
+        // Just ignore it and await an explicit command
+      }
+    }
+    return false;
   }
 
   WarpedProjection makeWarpedProjection() throws CannotWarp {
