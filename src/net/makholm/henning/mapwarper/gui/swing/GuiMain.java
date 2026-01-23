@@ -193,6 +193,7 @@ public class GuiMain extends JFrame {
   }
 
   public void setFilePaneVisible(boolean wantVisible) {
+    var savedMouse = mainLogic.swing.saveMousePosition();
     int curpos = leftSplitter.getDividerLocation();
     if( curpos > 10 ) {
       if( !wantVisible ) {
@@ -205,6 +206,7 @@ public class GuiMain extends JFrame {
         leftSplitter.setDividerLocation(pos);
       }
     }
+    mainLogic.swing.restoreMousePosition(savedMouse);
   }
 
   public boolean tilesetPaneVisible() {

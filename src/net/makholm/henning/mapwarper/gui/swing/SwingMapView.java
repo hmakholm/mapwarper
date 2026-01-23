@@ -296,6 +296,17 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     someBuffersMayBeInvisible = true;
   }
 
+  Point saveMousePosition() {
+    return windowMousePosition;
+  }
+
+  void restoreMousePosition(Point saved) {
+    if( saved != windowMousePosition ) {
+      windowMousePosition = saved;
+      refreshLogicalMousePosition();
+    }
+  }
+
   public void repaintFromScratch() {
     readViewportRect();
     recenterPosition();
