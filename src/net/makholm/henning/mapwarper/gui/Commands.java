@@ -277,12 +277,13 @@ public class Commands {
     keymap.accept("F11", Toggles.MAIN_TRACK.command(this));
     keymap.accept("F12", explore);
 
-    keymap.accept("`", newChain);
     keymap.accept("1", zoom100);
     keymap.accept("2", rotate);
     keymap.accept("0", unsqueeze);
     keymap.accept("-", zoomOut);
     keymap.accept("+", zoomIn);
+
+    keymap.accept("Insert", newChain);
 
     keymap.accept("Tab", toggleFilePane);
     keymap.accept("Q", quickwarp);
@@ -318,7 +319,7 @@ public class Commands {
     keymap.accept("M", measureTool);
     keymap.accept("<", squeeze);
     keymap.accept(">", stretch);
-    keymap.accept("/", move);
+    keymap.accept(".", move);
 
     keymap.accept("Space", refresh);
 
