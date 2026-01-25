@@ -95,6 +95,10 @@ goes!
 
 ### Minor caveats
 
+The program spams copious status output to the terminal -- mostly for
+debugging purposes -- so don't expect it to run quietly in the
+background.
+
 The program starts by creating a cache directory for downloaded map
 tiles in an appropriate location. The default location can be
 overridden by giving a `--tilecache` argument. The program never
