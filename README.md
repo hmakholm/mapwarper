@@ -70,7 +70,7 @@ If you're on Linux or MacOS and have a Java Development Kit installed
 just check out the contents of this Git repository and run the
 `mapwarper` script.  It will compile the source code into a
 `mapwarper.jar` the first time it runs. If you pull new code changes
-from Github, delete the JAR file to provoke a recompilation.
+from GitHub, delete the JAR file to provoke a recompilation.
 
 Or, if you're super ambitious, load the source tree into Eclipse or
 another IDE that will populate a `bin/` directory automatically. The
