@@ -40,6 +40,20 @@ public class TileBitmap {
     this.yrot = (byte)(logPixsize - logTilesize);
   }
 
+  public static TileBitmap blank(int rgb, Tile tile) {
+    return new TileBitmap(rgb, tile);
+  }
+
+  private TileBitmap(int rgb, Tile tile) {
+    this.numPixels = 1;
+    this.tile = tile;
+    this.shortcode = tile.shortcode;
+    this.pixdata = new int[] { rgb };
+    this.mask = 0;
+    this.xshift = 0;
+    this.yrot = 0;
+  }
+
   /** This works only for coordinates inside the tile. */
   public int pixelAt(long coords) {
     long m = coords & mask;

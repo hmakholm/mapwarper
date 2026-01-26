@@ -1,6 +1,5 @@
 package net.makholm.henning.mapwarper.tiles;
 
-import java.awt.image.BufferedImage;
 import java.util.List;
 
 import net.makholm.henning.mapwarper.georaster.Tile;
@@ -29,9 +28,7 @@ public class NomapTiles extends Tileset {
 
   @Override
   public TileBitmap loadTile(Tile tile, boolean allowDownload) {
-    var bitmap = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
-    bitmap.setRGB(0, 0, 0xFFAAAAAA);
-    return TileBitmap.of(bitmap, tile);
+    return TileBitmap.blank(0xFFAAAAAA, tile);
   }
 
 }

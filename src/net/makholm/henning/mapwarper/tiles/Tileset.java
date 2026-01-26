@@ -16,6 +16,7 @@ public abstract class Tileset {
     Google.defineIn(ctx);
     Bing.defineIn(ctx);
     OpenRailwayMap.defineIn(ctx);
+    GeoDanmark.defineIn(ctx);
   }
 
   public abstract int logPixsize2tilezoom(int logPixsize);

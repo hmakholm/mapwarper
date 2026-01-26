@@ -2,6 +2,7 @@ package net.makholm.henning.mapwarper.tiles;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
@@ -15,6 +16,7 @@ public abstract class HttpTileset extends DiskCachedTileset {
   protected HttpTileset(TileContext ctx, String name, String desc,
       String extension, String webUrlTemplate) {
     super(ctx, name, desc, extension, webUrlTemplate);
+    http = makeHttpClient(ctx);
   }
 
   public abstract String tileUrl(Tile tile);
@@ -22,6 +24,12 @@ public abstract class HttpTileset extends DiskCachedTileset {
   protected void finishRequest(HttpRequest.Builder request) {
     // Nothing by default
   }
+
+  protected HttpClient makeHttpClient(TileContext ctx) {
+    return ctx.http;
+  }
+
+  protected final HttpClient http;
 
   @Override
   public final void produceTileInFile(Tile tile, Path dest)
@@ -46,7 +54,7 @@ public abstract class HttpTileset extends DiskCachedTileset {
       }
     };
     try {
-      var response = context.http.send(request.build(), handler);
+      var response = http.send(request.build(), handler);
       if( response.statusCode() != 200 ) {
         throw new IOException("Tile fetching failed for "+url);
       }
