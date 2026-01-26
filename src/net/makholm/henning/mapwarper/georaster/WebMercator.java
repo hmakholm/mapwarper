@@ -36,14 +36,31 @@ public final class WebMercator {
     return new double[] { lat, lon };
   }
 
+  private static final double WGS84_A = 6_378_137.0;
+  private static final double WGS84_F = 1/298.257_223_563;
+
+  private static final double WGS84_EQCIRC = WGS84_A * 2 * Math.PI;
+
   public static double unitsPerMeter(double y) {
-    // This assumes a spherical earth. If we wanted to be precise
-    // we should be using weird formulas for the WGS 84 ellipsoid,
-    // but it's not used for anything particularly important...
     double ymerc = (1 - 2*y/Coords.EARTH_SIZE) * Math.PI;
+    // The cosine of the latitude value
     // cos(atan(sinh(y)) simplifies to 1/cosh(y)
-    // so we're after value at equator _times_ cosh(y).
-    return (Coords.EARTH_SIZE / 40_000_000.0) * Math.cosh(ymerc);
+    double cos = 1/Math.cosh(ymerc);
+
+    // Compute the (3d) radius of the latitude circle on the WGS84 ellipsoid
+    // in units of the semimajor axis.
+    double g = 1/(1-WGS84_F)-1;
+    double h = Math.sqrt(1 + (2*g+g*g)*cos*cos);
+    double rlatcirc = cos*(1+g)/h;
+    // (Just approximating rlatcirc as cos*(1+f*(1-cos^2)) would give a
+    // relative error less than F^2, but this is not on a hot path).
+
+    // Anyway, scaling this factor to the appropriate coordinate system gives
+    // the correct east-west scale. The web-Mercator projection is not
+    // strictly conformal; the north-sourth scale is larger by a relative
+    // factor of up to 2*WGS84_F, worst at the equator -- but the callers
+    // of this method don't care for such subtleties anyway.
+    return (Coords.EARTH_SIZE / WGS84_EQCIRC) / rlatcirc;
   }
 
   public static String[] signedRoundedDegrees(int zoom, long wrapped) {
