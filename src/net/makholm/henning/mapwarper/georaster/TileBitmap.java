@@ -8,9 +8,6 @@ public class TileBitmap {
 
   public final int numPixels;
 
-  public final Tile tile;
-  public final long shortcode;
-
   private int[] pixdata;
   private long mask;
   private byte xshift;
@@ -30,8 +27,6 @@ public class TileBitmap {
   private TileBitmap(BufferedImage img, Tile tile, int logTilesize, int logPixsize) {
     int side = 1 << logTilesize;
     this.numPixels = side * side;
-    this.tile = tile;
-    this.shortcode = tile.shortcode;
     this.pixdata = new int[numPixels];
     img.getRGB(0, 0, side, side, pixdata, 0, side);
     int onemask = (side-1) << logPixsize;
@@ -40,14 +35,12 @@ public class TileBitmap {
     this.yrot = (byte)(logPixsize - logTilesize);
   }
 
-  public static TileBitmap blank(int rgb, Tile tile) {
-    return new TileBitmap(rgb, tile);
+  public static TileBitmap blank(int rgb) {
+    return new TileBitmap(rgb);
   }
 
-  private TileBitmap(int rgb, Tile tile) {
+  private TileBitmap(int rgb) {
     this.numPixels = 1;
-    this.tile = tile;
-    this.shortcode = tile.shortcode;
     this.pixdata = new int[] { rgb };
     this.mask = 0;
     this.xshift = 0;

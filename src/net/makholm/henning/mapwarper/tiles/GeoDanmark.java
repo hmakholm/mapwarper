@@ -77,8 +77,7 @@ class GeoDanmark extends HttpTileset {
         tile.east < 560922560 ||
         tile.west > 575166809 ) {
       return TileBitmap.blank(
-          (tile.tilex ^ tile.tiley) % 2 == 0 ? 0xFFCCBBBB : 0xFFCCAAAA,
-              tile);
+          (tile.tilex ^ tile.tiley) % 2 == 0 ? 0xFFCCBBBB : 0xFFCCAAAA);
     } else
       return super.loadTile(tile, allowDownload);
   }
