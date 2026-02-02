@@ -44,7 +44,7 @@ public final class OrthoProjection extends BaseProjection {
     if( aff.squeeze == 1 ) {
       return aff.apply(this);
     } else {
-      UnitVector dir = UnitVector.withBearing(90-90*aff.quadrantsTurned);
+      UnitVector dir = UnitVector.withBearing(90+90*aff.quadrantsTurned);
       aff.squeezable = true;
       aff.quadrantsTurned = 0;
       return new QuickWarp(dir).apply(aff);
