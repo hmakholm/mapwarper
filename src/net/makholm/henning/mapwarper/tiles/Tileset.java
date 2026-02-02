@@ -27,10 +27,6 @@ public abstract class Tileset {
     return 16;
   }
 
-  public boolean isDiskCached(Tile tile) {
-    return false;
-  }
-
   /**
    * This should be thread safe with respect to producing <em>different</em>
    * tiles, but the caller must guard against calls to produce the

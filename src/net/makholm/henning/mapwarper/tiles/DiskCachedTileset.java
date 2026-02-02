@@ -87,11 +87,6 @@ public abstract class DiskCachedTileset extends Tileset {
             tile.tilex%100, tile.tiley%100, extension));
   }
 
-  @Override
-  public boolean isDiskCached(Tile tile) {
-    return Files.exists(fileForTile(tile));
-  }
-
   private static BufferedImage readFromFile(Path file) throws IOException {
     BufferedImage javaImage = ImageIO.read(file.toFile());
     if( javaImage == null )

@@ -66,7 +66,6 @@ public class Commands {
   public final Tool move = new MoveTool(this);
 
   private final Tool nearestNodeTool = new NearestNodeDebugTool(this);
-  private final Tool tilecacheDebugTool = new TilecacheDebugTool(this);
 
   private final Tool weakTrackTool = new TrackEditTool(this, SegKind.WEAK);
   public final Tool trackTool = new TrackEditTool(this, SegKind.TRACK);
@@ -267,7 +266,6 @@ public class Commands {
     // Without Ctrl, but possibly shifted, in QUERTY order
     keymap.accept("S-F2", forceGC);
     keymap.accept("S-F3", nearestNodeTool);
-    keymap.accept("S-F4", tilecacheDebugTool);
     keymap.accept("F5", Toggles.DOWNLOAD.command(this));
     keymap.accept("F6", Toggles.SUPERSAMPLE.command(this));
     keymap.accept("F7", Toggles.DARKEN_MAP.command(this));
@@ -417,7 +415,6 @@ public class Commands {
     var debug = menu.addSubmenu("Debug");
     debug.add(forceGC);
     debug.add(nearestNodeTool);
-    debug.add(tilecacheDebugTool);
   }
 
   public void defineTilesetMenu(Tileset tiles, IMenu menu) {

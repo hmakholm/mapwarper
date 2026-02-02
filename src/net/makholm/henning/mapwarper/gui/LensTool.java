@@ -36,14 +36,9 @@ public class LensTool extends Tool {
     }
   }
 
-  private boolean zoomMattersAnyway() {
-    return mapView().currentTool instanceof TilecacheDebugTool;
-  }
-
   public Runnable lensPlusCommand() {
     if( (mapView().lensRect == null ||
-        mapView().lensZoom >= mapView().naturalLensZoom())
-        && !zoomMattersAnyway() )
+        mapView().lensZoom >= mapView().naturalLensZoom()) )
       return null;
     else if( mapView().lensZoom >= 20 )
       return SwingUtils::beep;
@@ -66,7 +61,7 @@ public class LensTool extends Tool {
   }
 
   public Runnable lensMinusCommand() {
-    if( mapView().lensZoom <= 10 && !zoomMattersAnyway() )
+    if( mapView().lensZoom <= 10 )
       return null;
     else
       return () -> {

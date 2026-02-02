@@ -1,6 +1,5 @@
 package net.makholm.henning.mapwarper.georaster;
 
-import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.util.BadError;
 import net.makholm.henning.mapwarper.util.LyngHash;
 
@@ -68,10 +67,6 @@ public final class Tile extends GeoRect {
     long twoEarths = Coords.EARTH_SIZE * Coords.ONE_ONE;
     long mask = twoEarths - (twoEarths >> zoom);
     return (pos & mask) + (twoEarths >> (zoom+1));
-  }
-
-  public Point nwcorner() {
-    return Point.at(shortcode - Coords.ONE_ONE * Long.lowestOneBit(shortcode));
   }
 
   @Override
