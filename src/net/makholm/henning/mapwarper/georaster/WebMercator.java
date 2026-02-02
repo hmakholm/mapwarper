@@ -27,8 +27,12 @@ public final class WebMercator {
   }
 
   public static double[] toLatlon(long wrapped) {
-    double xfrac = (double)Coords.x(wrapped) / Coords.EARTH_SIZE;
-    double yfrac = (double)Coords.y(wrapped) / Coords.EARTH_SIZE;
+    return toLatlon(Point.at(wrapped));
+  }
+
+  public static double[] toLatlon(Point p) {
+    double xfrac = p.x / Coords.EARTH_SIZE;
+    double yfrac = p.y / Coords.EARTH_SIZE;
     double lon = xfrac * 360 - 180;
     double ymerc = (1 - 2*yfrac) * Math.PI;
     double latrad = Math.atan(Math.sinh(ymerc));
@@ -65,10 +69,6 @@ public final class WebMercator {
 
   public static String[] signedRoundedDegrees(int zoom, long wrapped) {
     return Coords.signedRoundedDegrees(zoom, toLatlon(wrapped));
-  }
-
-  public static String showpos(int zoom, long wrapped) {
-    return Coords.roundedDMS(zoom, toLatlon(wrapped));
   }
 
   public static String showlength(double dist, Point refpoint) {

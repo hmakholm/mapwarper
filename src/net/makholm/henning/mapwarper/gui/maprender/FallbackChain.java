@@ -1,6 +1,7 @@
 package net.makholm.henning.mapwarper.gui.maprender;
 
 import net.makholm.henning.mapwarper.georaster.Coords;
+import net.makholm.henning.mapwarper.georaster.PixelAddresser;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 import net.makholm.henning.mapwarper.util.MathUtil;
 
@@ -14,21 +15,29 @@ public class FallbackChain {
 
   public static final int ATTEMPT_MASK = (1 << BITS_PER_ATTEMPT)-1;
 
+  public static int addresserIndex(int maskedAttempt) {
+    return maskedAttempt >> 1;
+  }
+
   /**
-   * Combine the lowest bits in each word of {@code shiftedShortcode},
-   * with low-order bits from the zoom level as well at the fallback
-   * bit to create a set index for the local cache in CommonRenderer.
+   * Combine the index lowest bits in {@code shortcode} (see {@link
+   * PixelAddresser#locate(double, double)}) with low-order bits from
+   * the zoom level as well at the fallback bit to create a set index
+   * for the local cache in CommonRenderer.
    */
-  public static int cacheSetOf64(int maskedAttempt, long shiftedShortcode) {
+  public static int cacheSetOf64(int maskedAttempt, long shortcode) {
     // It's assumed that we won't have a fallback chain where the zoom
     // levels differ by more than 8!
-    // The positions of the output bits are chosen just to simplify
-    // the bit fiddling.
-    return maskedAttempt & 0x1E // fallback bit and 3 bits of zoom
-        | (int)shiftedShortcode & 1 // low-order X bit
-        | (int)(shiftedShortcode >> (32-5)) & 0x20; // low-order Y-bit
+    return ((int)shortcode & 3) // low-order bits
+        | ((maskedAttempt & 0x1E) << 1); // fallback bit and 3 bits of zoom
+  }
 
+  public static long cacheTag(int maskedAttempt, long shortcode) {
+    return (shortcode & ~3L) + (maskedAttempt & 3);
+  }
 
+  public static long downloadifyCacheTag(long cacheTag) {
+    return cacheTag | DOWNLOAD_BIT;
   }
 
   // -------------------------------------------------------------------------

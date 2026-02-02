@@ -5,7 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Deque;
 
-import net.makholm.henning.mapwarper.georaster.Tile;
+import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.tiles.DiskCachedTileset;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 import net.makholm.henning.mapwarper.tiles.TryDownloadLater;
@@ -21,9 +21,9 @@ public class DownloadtileCommand extends Mapwarper.Command {
   protected void run(Deque<String> words) {
     Tileset tileset0 = common.tilesWithDefault(null);
     if( tileset0 instanceof DiskCachedTileset tileset ) {
-      long pos = common.parsePoint(words);
+      var pos = Point.at(common.parsePoint(words));
       int zoom = common.wantedZoom.orElse(12);
-      Tile tile = Tile.containing(pos, zoom);
+      var tile = tileset.makeAddresser(zoom, pos).locate(pos);
 
       Path outname = Paths.get("downloaded"+tileset.extension);
       System.err.println(tileset.tilename(tile)+" --> "+outname);

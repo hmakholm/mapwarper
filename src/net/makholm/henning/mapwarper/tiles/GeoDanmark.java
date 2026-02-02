@@ -10,8 +10,10 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import net.makholm.henning.mapwarper.georaster.Tile;
+import net.makholm.henning.mapwarper.geometry.AxisRect;
+import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
+import net.makholm.henning.mapwarper.georaster.WebMercatorAddresser;
 
 /**
  * Orthophotos from GeoDenmark, covering Denmark only.
@@ -19,7 +21,7 @@ import net.makholm.henning.mapwarper.georaster.TileBitmap;
  * https://datafordeler.dk/dataoversigt/geodanmark-ortofoto/ortofoto-foraar-web-mercator-wmts/
  * says it's going to be discontinued in mid 2026, unfortunately.
  */
-class GeoDanmark extends HttpTileset {
+class GeoDanmark extends CommonWebTileset {
 
   /**
    * https://confluence.sdfi.dk/pages/viewpage.action?pageId=13665234
@@ -39,15 +41,15 @@ class GeoDanmark extends HttpTileset {
 
   protected GeoDanmark(TileContext ctx) {
     super(ctx, "geodanmark", "GeoDanmark orthophotos", ".jpg",
-        "https://https://www.geodanmark.dk/home/vejledninger/vilkaar-for-data-anvendelse/");
+        "https://www.geodanmark.dk/home/vejledninger/vilkaar-for-data-anvendelse/");
   }
 
   @Override
-  public String tileUrl(Tile tile) {
+  public String tileUrl(int zoom, int tilex, int tiley) {
     return "https://services.datafordeler.dk/GeoDanmarkOrto/"+
         "orto_foraar_webm/1.0.0/WMTS/" +
         "orto_foraar_webm/default/DFD_GoogleMapsCompatible/" +
-        tile.zoom + "/" + tile.tiley + "/" + tile.tilex + ".jpg" +
+        zoom + "/" + tiley + "/" + tilex + ".jpg" +
         "?username=" + USER + "&password=" + PWD + "&";
   }
 
@@ -66,18 +68,23 @@ class GeoDanmark extends HttpTileset {
     new GeoDanmark(ctx);
   }
 
+  /**
+   * A hardcoded bounding box based on what the dataset actually contains
+   * photos of.
+   */
+  private static final AxisRect DENMARK = new AxisRect(
+      Point.at(560922560, 324748672),
+      Point.at(575166809, 341940864));
+
   @Override
-  public TileBitmap loadTile(Tile tile, boolean allowDownload)
+  public TileBitmap loadTile(long tile, boolean allowDownload)
       throws TryDownloadLater {
     // Don't even try to download tiles that don't overlap with
-    // Denmark (without Bornholm). Hardcoded coordinate limits based
-    // on what the dataset actually contains.
-    if( tile.south < 324748672 ||
-        tile.north > 341940864 ||
-        tile.east < 560922560 ||
-        tile.west > 575166809 ) {
-      return TileBitmap.blank(
-          (tile.tilex ^ tile.tiley) % 2 == 0 ? 0xFFCCBBBB : 0xFFCCAAAA);
+    // Denmark (without Bornholm).
+    if( !DENMARK.intersects(WebMercatorAddresser.rectOf(tile)) ) {
+      int tilex = WebMercatorAddresser.tilex(tile);
+      int tiley = WebMercatorAddresser.tiley(tile);
+      return TileBitmap.blank((tilex^tiley) % 2 == 0 ? 0xFFCCBBBB : 0xFFCCAAAA);
     } else
       return super.loadTile(tile, allowDownload);
   }

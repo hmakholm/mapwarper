@@ -1,6 +1,5 @@
 package net.makholm.henning.mapwarper.tiles;
 
-import net.makholm.henning.mapwarper.georaster.Tile;
 import net.makholm.henning.mapwarper.util.LongHashed;
 
 public class TileSpec extends LongHashed {
@@ -11,10 +10,6 @@ public class TileSpec extends LongHashed {
   public TileSpec(Tileset tileset, long shortcode) {
     this.tileset = tileset;
     this.shortcode = shortcode;
-  }
-
-  public Tile tile() {
-    return Tile.of(shortcode);
   }
 
   @Override
@@ -34,7 +29,7 @@ public class TileSpec extends LongHashed {
 
   @Override
   public final String toString() {
-    return tileset.name + ":" + tile();
+    return tileset.tilename(shortcode);
   }
 
 }

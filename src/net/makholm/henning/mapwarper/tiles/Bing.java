@@ -2,9 +2,7 @@ package net.makholm.henning.mapwarper.tiles;
 
 import java.util.List;
 
-import net.makholm.henning.mapwarper.georaster.Tile;
-
-class Bing extends HttpTileset {
+class Bing extends CommonWebTileset {
 
   private static final String WEBURL =
       "https://www.bing.com/maps?v=2&cp=[LAT]%7E[LON]&style=l&lvl=[Z]";
@@ -16,14 +14,14 @@ class Bing extends HttpTileset {
   }
 
   @Override
-  public String tileUrl(Tile tile) {
+  public String tileUrl(int zoom, int tilex, int tiley) {
     // The parameter is a "quadkey", as described on
     // https://learn.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system
-    char[] quadkey = new char[tile.zoom];
+    char[] quadkey = new char[zoom];
     for( int i=0; i<quadkey.length; i++ ) {
-      int shift = tile.zoom - i - 1;
-      int xbit = (tile.tilex >> shift) & 1;
-      int ybit = (tile.tiley >> shift) & 1;
+      int shift = zoom - i - 1;
+      int xbit = (tilex >> shift) & 1;
+      int ybit = (tiley >> shift) & 1;
       quadkey[i] = (char)('0' + 2*ybit + xbit);
     }
     return TILEURL.replace("*", new String(quadkey));

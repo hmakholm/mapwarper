@@ -1,6 +1,7 @@
 
 package net.makholm.henning.mapwarper.georaster;
 
+import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.util.Regexer;
 
 public class CoordsParser extends Regexer {
@@ -52,12 +53,13 @@ public class CoordsParser extends Regexer {
     // Map center of a file in the tilecache
     if( match(".*tilecache/[a-z]+/"+cNat+"/"+cNat+","+cNat+
         "/(\\d\\d),(\\d\\d)(\\.[a-z]+)?") ) {
-      Tile t = Tile.at(igroup(1),
+      var zoom = igroup(1);
+      long t = WebMercatorAddresser.makeShortcode(zoom,
           igroup(2)*100 + igroup(4),
           igroup(3)*100 + igroup(5));
-      System.err.println(t);
-      var ll = WebMercator.toLatlon(t.midpoint());
-      return new double[] { ll[0], ll[1], t.zoom };
+      Point center = WebMercatorAddresser.rectOf(t).center();
+      var ll = WebMercator.toLatlon(center);
+      return new double[] { ll[0], ll[1], zoom };
     }
 
     return null;

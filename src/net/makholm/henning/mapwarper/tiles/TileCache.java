@@ -57,7 +57,7 @@ public final class TileCache {
       if( e.achievedLocal >= howFarToLook )
         return e.bitmap;
       boolean allowDownload = howFarToLook >= DOWNLOAD;
-      result = e.spec.tileset.loadTile(e.spec.tile(), allowDownload);
+      result = e.spec.tileset.loadTile(e.spec.shortcode, allowDownload);
       if( result != null ) {
         e.bitmap = result;
         howFarToLook = Byte.MAX_VALUE;

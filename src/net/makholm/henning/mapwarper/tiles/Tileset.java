@@ -2,7 +2,8 @@ package net.makholm.henning.mapwarper.tiles;
 
 import java.util.List;
 
-import net.makholm.henning.mapwarper.georaster.Tile;
+import net.makholm.henning.mapwarper.geometry.Point;
+import net.makholm.henning.mapwarper.georaster.PixelAddresser;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
 
@@ -28,11 +29,45 @@ public abstract class Tileset {
   }
 
   /**
+   * Create a pixel addresser for a particular resolution and area.
+   *
+   * The default implementation here must be overridden by tilesets that
+   * don't use the usual OpenStreetMap-like tile structure.
+   *
+   * @param zoom indicates the resolution of the pixels we request. For pixel
+   * sources whose underlying raster is in a roughly Mercator-like projection,
+   * this indicates that there are 2^(zoom+8) pixels along any circle of latitude.
+   * For other sources, the resolution should be the one among the available
+   * ones whose scale is closest to one pixel per 2^(18-zoom)/3 meters
+   * (These two definitions coincide at latitudes of about 56 degrees).
+   *
+   * @param globalRefpoint indicates a (global) that the addresser will be
+   * used near. Some sources (in particular ones whose underlying raster is
+   * already aligned with our global Web-Mercator coordinates) ignore this
+   * parameter and produce an addresser that works correctly everywhere.
+   * On the other hand, it may also precompute a transformation approximation
+   * that may start producing imprecisions when we get far enough away from
+   * the source point.
+   *
+   * (The rough guideline for imprecision is that at a distance of 4,000
+   * source pixels from the reference point, the error should be less than
+   * about 1/200 of the distance to the reference point. This standard is
+   * selected such that rendering 256x256 tiles with squeezes of up to 32
+   * should not produce visible jumps between tiles.)
+   */
+  public abstract PixelAddresser makeAddresser(int zoom, Point globalRefpoint);
+
+  /**
    * This should be thread safe with respect to producing <em>different</em>
    * tiles, but the caller must guard against calls to produce the
    * <em>same</em> tile happening in parallel.
+   *
+   * @param tile as returned by {@link PixelAddresser#locate(double, double)}
+   * of the addressing objects created by {@link #makeAddresser(int, Point)}.
    */
-  public abstract TileBitmap loadTile(Tile tile, boolean allowDownload) throws TryDownloadLater;
+  public abstract TileBitmap loadTile(long tile, boolean allowDownload) throws TryDownloadLater;
+
+  public abstract String tilename(long tile);
 
   public abstract List<String> getCopyrightBlurb();
 
@@ -69,10 +104,6 @@ public abstract class Tileset {
     this.webUrlTemplate = webUrlTemplate;
 
     context.tilesets.put(name, this);
-  }
-
-  public final String tilename(Tile tile) {
-    return name+":"+tile;
   }
 
 }

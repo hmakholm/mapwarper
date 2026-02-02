@@ -13,7 +13,6 @@ import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.georaster.Coords;
-import net.makholm.henning.mapwarper.georaster.Tile;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
@@ -549,8 +548,9 @@ public final class MapView {
       return null;
     } else return () -> {
       cancelLens();
-      long coords = Coords.point2pixcoord(mouseGlobal);
-      long shortcode = Tile.codedContaining(coords, mainTiles.guiTargetZoom());
+      int zoom = mainTiles.guiTargetZoom();
+      var addresser = mainTiles.makeAddresser(zoom, mouseGlobal);
+      long shortcode = addresser.locate(mouseGlobal);
       cancelLastGetTile.run();
       cancelLastGetTile = mainTiles.context.downloader.request(
           new TileSpec(mainTiles, shortcode), dummyDownloadConsumer);

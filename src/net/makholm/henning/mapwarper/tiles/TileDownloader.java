@@ -7,10 +7,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import net.makholm.henning.mapwarper.geometry.Point;
-import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.util.BackgroundThread;
-import net.makholm.henning.mapwarper.util.MathUtil;
 
 public class TileDownloader {
 
@@ -43,6 +41,7 @@ public class TileDownloader {
 
   private class DownloadThread extends BackgroundThread {
     final TileCache cache ;
+    final Tileset tileset;
 
     final Map<TileSpec, Set<Consumer<TileBitmap>>> queue =
         new LinkedHashMap<>();
@@ -51,6 +50,7 @@ public class TileDownloader {
 
     DownloadThread(Tileset tileset) {
       super("Tile downloader "+tileset.name);
+      this.tileset = tileset;
       this.cache = tileset.context.ramCache;
       start();
     }
@@ -88,18 +88,15 @@ public class TileDownloader {
               return;
             }
           }
-          int bestSize = -1;
-          double bestSqdist = -1;
+          long best = Long.MAX_VALUE;
           Point focus = TileDownloader.this.focus;
+          var addrr = tileset.makeAddresser(tileset.guiTargetZoom(), focus);
+          addrr.locate(focus);
           for( TileSpec spec : queue.keySet() ) {
-            int size = Long.numberOfTrailingZeros(spec.shortcode);
-            double sqdist =
-                MathUtil.sqr(Coords.x(spec.shortcode) - focus.x) +
-                MathUtil.sqr(Coords.y(spec.shortcode) - focus.y);
-            if( size > bestSize || size == bestSize && sqdist < bestSqdist ) {
+            long priority = addrr.getDownloadPriority(spec.shortcode);
+            if( priority <= best ) {
               toDownload = spec;
-              bestSize = size;
-              bestSqdist = sqdist;
+              best = priority;
             }
           }
           if( queue.get(toDownload).isEmpty() ) {
@@ -108,7 +105,7 @@ public class TileDownloader {
           }
         }
 
-        // Make sure we try to load from disk first; otherwise other a render
+        // Make sure we try to load from disk first; otherwise another render
         // thread that just wanted to check the disk risks blocking on _this_
         // thread actually downloading.
         // (There's still a race where this can happen, unfortunately,

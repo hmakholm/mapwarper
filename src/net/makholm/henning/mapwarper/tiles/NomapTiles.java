@@ -2,8 +2,10 @@ package net.makholm.henning.mapwarper.tiles;
 
 import java.util.List;
 
-import net.makholm.henning.mapwarper.georaster.Tile;
+import net.makholm.henning.mapwarper.geometry.Point;
+import net.makholm.henning.mapwarper.georaster.PixelAddresser;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
+import net.makholm.henning.mapwarper.georaster.WebMercatorAddresser;
 
 public class NomapTiles extends Tileset {
 
@@ -27,8 +29,21 @@ public class NomapTiles extends Tileset {
   }
 
   @Override
-  public TileBitmap loadTile(Tile tile, boolean allowDownload) {
+  public PixelAddresser makeAddresser(int zoom, Point p) {
+    // Always use a WebMercatorAddresser in order to make virtual dispatch
+    // easier on the JIT, as long as the user _doesn't_ request weird
+    // tilesets.
+    return new WebMercatorAddresser(0, 0);
+  }
+
+  @Override
+  public TileBitmap loadTile(long tile, boolean allowDownload) {
     return TileBitmap.blank(0xFFAAAAAA);
+  }
+
+  @Override
+  public String tilename(long tile) {
+    return "nomap:0x"+Long.toHexString(tile);
   }
 
 }

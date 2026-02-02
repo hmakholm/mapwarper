@@ -9,8 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import net.makholm.henning.mapwarper.georaster.Tile;
-
 public abstract class HttpTileset extends DiskCachedTileset {
 
   protected HttpTileset(TileContext ctx, String name, String desc,
@@ -19,7 +17,7 @@ public abstract class HttpTileset extends DiskCachedTileset {
     http = makeHttpClient(ctx);
   }
 
-  public abstract String tileUrl(Tile tile);
+  public abstract String tileUrl(long tile);
 
   protected void finishRequest(HttpRequest.Builder request) {
     // Nothing by default
@@ -32,9 +30,9 @@ public abstract class HttpTileset extends DiskCachedTileset {
   protected final HttpClient http;
 
   @Override
-  public final void produceTileInFile(Tile tile, Path dest)
+  public final void produceTileInFile(long tile, Path dest)
       throws IOException, TryDownloadLater {
-    System.err.println(" (download "+name+":"+tile+")");
+    System.err.println(" (download "+tilename(tile)+")");
     String url = tileUrl(tile);
     var uri = URI.create(url);
     var request = HttpRequest.newBuilder(uri);

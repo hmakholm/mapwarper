@@ -2,8 +2,6 @@ package net.makholm.henning.mapwarper.georaster;
 
 import java.util.Locale;
 
-import net.makholm.henning.mapwarper.geometry.Point;
-
 /**
  * Fixed-point representation of a global coordinate system according to
  * https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
@@ -63,33 +61,6 @@ public final class Coords {
     return ((long)x << 32) + (y & 0xFFFFFFFFL);
   }
 
-  public static long point2pixcoord(Point p) {
-    return point2pixcoord(p.x, p.y);
-  }
-
-  public static long point2pixcoord(double x, double y) {
-    // This is in the map renderer hot loop, so performance matters.
-
-    // For the most principled behavior we should use floors, but that only
-    // differs from the standard long-to-double conversion for negative
-    // coordinates, which are not even meaningful in the global coordinate
-    // system.
-
-    // So we actually use the default round-towards-zero conversion and also
-    // forgo masking -- this just means that the phantom copies of the Earth
-    // to the north and west of the main coordinates will be shifted by a
-    // small distance (a few dozen millimeters) especially in the x direction
-    // that the sign bits of the y coordinates bleed into. But nobody really
-    // cares about that anyway.
-
-    // Sufficiently new processors (which support embedded rounding control
-    // in FP operations; search for "EVEX prefix") should actually be able
-    // to do a true double-to-long _floor_ in a single instruction, but I
-    // don't think HotSpot uses that possibility.
-    return ((long)x << 32) + (long)y;
-  }
-
-
   public static int x(long wrapped) {
     return (int)(wrapped >> 32);
   }
@@ -100,10 +71,6 @@ public final class Coords {
 
   public static String wprint(long wrapped) {
     return x(wrapped) + "::" + y(wrapped);
-  }
-
-  public static long midpoint(long a, long b) {
-    return ((a+b)>>>1) & 0x7FFF_FFFF_7FFF_FFFFL;
   }
 
   // --------------------------------------------------

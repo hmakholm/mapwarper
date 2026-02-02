@@ -2,7 +2,7 @@ package net.makholm.henning.mapwarper;
 
 import java.util.Deque;
 
-import net.makholm.henning.mapwarper.georaster.Tile;
+import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.tiles.HttpTileset;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 
@@ -14,9 +14,9 @@ final class TileurlCommand extends Mapwarper.Command {
 
   @Override
   protected void run(Deque<String> words) {
-    long pos = common.parsePoint(words);
+    var pos = Point.at(common.parsePoint(words));
     int zoom = common.wantedZoom.orElse(12);
-    Tile tile = Tile.containing(pos, zoom);
+    long tile = common.wantedTiles.makeAddresser(zoom, pos).locate(pos);
 
     if( common.wantedTiles instanceof HttpTileset hts ) {
       System.out.println(hts.tileUrl(tile));

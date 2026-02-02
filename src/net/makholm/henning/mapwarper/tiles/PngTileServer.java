@@ -1,12 +1,10 @@
 package net.makholm.henning.mapwarper.tiles;
 
-import net.makholm.henning.mapwarper.georaster.Tile;
-
 /**
  * Common root class for tile services that construct their URLs
  * with the same parameter structure as OpenStreetMap does.
  */
-public abstract class PngTileServer extends HttpTileset {
+public abstract class PngTileServer extends CommonWebTileset {
 
   public final String urlBase;
   public final String urlTail;
@@ -25,8 +23,8 @@ public abstract class PngTileServer extends HttpTileset {
   }
 
   @Override
-  public final String tileUrl(Tile tile) {
-    return urlBase+tile.zoom+"/"+tile.tilex+"/"+tile.tiley+urlTail;
+  protected final String tileUrl(int zoom, int tilex, int tiley) {
+    return urlBase+zoom+"/"+tilex+"/"+tiley+urlTail;
   }
 
 }

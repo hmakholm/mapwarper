@@ -2,9 +2,7 @@ package net.makholm.henning.mapwarper.tiles;
 
 import java.util.List;
 
-import net.makholm.henning.mapwarper.georaster.Tile;
-
-class Google extends HttpTileset {
+class Google extends CommonWebTileset {
 
   /**
    * https://stackoverflow.com/questions/32806084/google-map-zoom-parameter-in-url-not-working
@@ -18,13 +16,13 @@ class Google extends HttpTileset {
   }
 
   @Override
-  public String tileUrl(Tile tile) {
+  public String tileUrl(int zoom, int tilex, int tiley) {
     // The 'v' parameter is apparently not a protocol version but something
     // they bump when they update the photo collection. It appears to
     // change in lockstep from time to time; I haven't figured if it's
     // on a schedule or just whenever.
     return "https://khms0.google.com/kh/v=1005?x="
-    + tile.tilex + "&y=" + tile.tiley + "&z=" + tile.zoom;
+    + tilex + "&y=" + tiley + "&z=" + zoom;
   }
 
   @Override

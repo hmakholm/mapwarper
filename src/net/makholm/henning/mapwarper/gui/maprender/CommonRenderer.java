@@ -1,11 +1,15 @@
 package net.makholm.henning.mapwarper.gui.maprender;
 
+
 import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.ATTEMPT_MASK;
 import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.BITS_PER_ATTEMPT;
 import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.DOWNLOAD_BIT;
 import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.FALLBACK_BIT;
 import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.ZOOM_SHIFT;
+import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.addresserIndex;
 import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.cacheSetOf64;
+import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.cacheTag;
+import static net.makholm.henning.mapwarper.gui.maprender.FallbackChain.downloadifyCacheTag;
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -13,8 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import net.makholm.henning.mapwarper.geometry.Point;
-import net.makholm.henning.mapwarper.georaster.Coords;
-import net.makholm.henning.mapwarper.georaster.Tile;
+import net.makholm.henning.mapwarper.georaster.PixelAddresser;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.rgb.RGB;
@@ -23,6 +26,7 @@ import net.makholm.henning.mapwarper.tiles.TileSpec;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 import net.makholm.henning.mapwarper.tiles.TryDownloadLater;
 import net.makholm.henning.mapwarper.util.AbortRendering;
+import net.makholm.henning.mapwarper.util.BadError;
 
 abstract class CommonRenderer implements RenderWorker {
 
@@ -30,10 +34,12 @@ abstract class CommonRenderer implements RenderWorker {
   protected final double xscale;
   protected final double yscale;
   protected final RenderTarget target;
-  protected final int tilegridMask;
+  protected final boolean tilegrid;
 
   private final Tileset mainTiles;
   private final Tileset fallbackTiles;
+
+  private final Point globalMidpoint;
 
   private final int ncols;
   private final ColsToRenderNow colsToRenderNow = new ColsToRenderNow();
@@ -47,12 +53,15 @@ abstract class CommonRenderer implements RenderWorker {
     this.target = target;
     mainTiles = spec.mainTiles();
     fallbackTiles = spec.fallbackTiles();
-    tilegridMask = Toggles.TILEGRID.setIn(spec.flags()) ?
-        (Coords.EARTH_SIZE >> 18) : 0;
+    tilegrid = Toggles.TILEGRID.setIn(spec.flags());
 
     ncols = target.columns();
     dirtyColumns = new BitSet(ncols);
     dirtyColumns.set(0, ncols);
+
+    globalMidpoint = spec.projection().createWorker().local2global(
+        Point.at(target.left()+target.columns()/2,
+            target.top()+target.rows()/2));
 
     this.cacheLookupLevel =
         target.eagerDownload() ? TileCache.DOWNLOAD : TileCache.DISK;
@@ -119,14 +128,11 @@ abstract class CommonRenderer implements RenderWorker {
   protected byte cacheLookupLevel = TileCache.DISK;
 
   protected final int getPixel(Point p, long fallbackSpec) {
-    return getPixel(Coords.point2pixcoord(p), fallbackSpec);
+    return getPixel(p.x, p.y, fallbackSpec);
   }
 
   protected final int getPixel(double x, double y, long fallbackSpec) {
-    return getPixel(Coords.point2pixcoord(x, y), fallbackSpec);
-  }
-
-  protected final int getPixel(long coords, long fallbackSpec) {
+    Boolean gridcode = null;
     for(int attempt = 0;; attempt++) {
       int aspec =
           (int)(fallbackSpec >> attempt * BITS_PER_ATTEMPT) & ATTEMPT_MASK;
@@ -135,18 +141,26 @@ abstract class CommonRenderer implements RenderWorker {
       int zoom = (int)(aspec >> ZOOM_SHIFT);
       if( zoom == 0 ) continue;
 
+      PixelAddresser addresser = addressers[addresserIndex(aspec)];
+      if( addresser == null ) {
+        addresser = tilesetFor(aspec).makeAddresser(zoom, globalMidpoint);
+        if( addresser == null ) throw BadError.of("addresser was null");
+        addressers[addresserIndex(aspec)] = addresser;
+      }
+
+      long shortcode = addresser.locate(x,y);
+      if( tilegrid && gridcode == null )
+        gridcode = addresser.isOddDownloadTile(shortcode);
+
       TileBitmap bitmap;
-      long shortcode = Tile.codedContaining(coords, zoom);
-      int lci = cacheSetOf64(aspec, coords >> (Coords.BITS - zoom));
+      int lci = cacheSetOf64(aspec, shortcode);
+      long wantTag = cacheTag(aspec, shortcode);
       long lciTag = localCacheIndex[lci];
-      if( lciTag == (shortcode | aspec) ||
-          lciTag == (shortcode | aspec | DOWNLOAD_BIT) ) {
+      if( lciTag == wantTag || lciTag == downloadifyCacheTag(wantTag) ) {
         bitmap = localCache[lci];
       } else {
-        NeededTile nt = new NeededTile(
-            (aspec & FALLBACK_BIT) != 0 ? fallbackTiles : mainTiles,
-                shortcode);
-        nt = tileDict.computeIfAbsent(nt, x->x);
+        NeededTile nt = new NeededTile(tilesetFor(aspec), shortcode);
+        nt = tileDict.computeIfAbsent(nt, o->o);
         if( nt.checkedCache ) {
           bitmap = nt.midcache;
         } else {
@@ -163,7 +177,7 @@ abstract class CommonRenderer implements RenderWorker {
           if( currentColumn < nt.xmin ) nt.xmin = currentColumn;
           if( (aspec & DOWNLOAD_BIT) != 0 &&
               cacheLookupLevel == TileCache.DISK &&
-              !onTileEdge(coords, nt) ) {
+              !addresser.onTileEdge() ) {
             nt.requestDownload();
           } else {
             aspec &= ~DOWNLOAD_BIT;
@@ -171,13 +185,13 @@ abstract class CommonRenderer implements RenderWorker {
           }
         }
         localCache[lci] = bitmap;
-        localCacheIndex[lci] = shortcode | aspec;
+        localCacheIndex[lci] = cacheTag(aspec, shortcode);
       }
       if( bitmap != null ) {
-        int rgb = bitmap.pixelAt(coords);
-        if( tilegridMask != 0 ) {
+        int rgb = addresser.getPixel(bitmap);
+        if( gridcode != null ) {
           rgb -= (rgb >> 2) & 0x3F3F3F;
-          if( ((coords ^ (coords >> 32)) & tilegridMask) != 0 )
+          if( gridcode )
             rgb += 0x3F3F3F;
         }
         return rgb;
@@ -185,17 +199,8 @@ abstract class CommonRenderer implements RenderWorker {
     }
   }
 
-  /**
-   * We don't trigger download if the only pixels we need from a tile
-   * are right on its edge.
-   */
-  private static boolean onTileEdge(long coords, TileSpec ts) {
-    int tilesize = Integer.lowestOneBit((int)ts.shortcode) << 1;
-    int pixsize = tilesize >> ts.tileset.logTilesize();
-    int xmasked = Coords.x(coords) & (tilesize-1);
-    int ymasked = Coords.y(coords) & (tilesize-1);
-    return xmasked < pixsize || xmasked >= tilesize-pixsize ||
-        ymasked < pixsize || ymasked >= tilesize-pixsize;
+  private Tileset tilesetFor(int aspec) {
+    return (aspec & FALLBACK_BIT) != 0 ? fallbackTiles : mainTiles;
   }
 
   @Override
@@ -205,15 +210,17 @@ abstract class CommonRenderer implements RenderWorker {
 
   // -------------------------------------------------------------------------
 
+  private final PixelAddresser[] addressers = new PixelAddresser[48];
+
   private static final int LCACHESIZE = 64;
 
   private final TileBitmap[] localCache = new TileBitmap[LCACHESIZE];
   /**
    * In order to allow different fallback chains in different parts of
-   * the download target, the values here are tile shortcodes ORed with
-   * the attempt specification bits! An attempt specification is only 7
-   * bits, which means it is shorter than than the distance between any
-   * shortcodes, so this does not lose information.
+   * the download target, the values here are tile shortcodes with the
+   * two bottom bit replaced with the bottom bits of the attempt
+   * specfification. These two bits are explicitly specified to be
+   * redundant in a tile shortcode.
    */
   private final long[] localCacheIndex = new long[LCACHESIZE];
 
