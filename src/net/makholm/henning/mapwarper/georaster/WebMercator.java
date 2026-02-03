@@ -3,6 +3,7 @@ package net.makholm.henning.mapwarper.georaster;
 import java.util.Locale;
 
 import net.makholm.henning.mapwarper.geometry.Point;
+import net.makholm.henning.mapwarper.util.ValWithPartials;
 
 public final class WebMercator {
 
@@ -31,13 +32,29 @@ public final class WebMercator {
   }
 
   public static double[] toLatlon(Point p) {
-    double xfrac = p.x / Coords.EARTH_SIZE;
-    double yfrac = p.y / Coords.EARTH_SIZE;
-    double lon = xfrac * 360 - 180;
-    double ymerc = (1 - 2*yfrac) * Math.PI;
-    double latrad = Math.atan(Math.sinh(ymerc));
-    double lat = latrad / Coords.DEGREE;
-    return new double[] { lat, lon };
+    var lat = new ValWithPartials();
+    var lon = new ValWithPartials();
+    toLatlon(p, lat, lon);
+    return new double[] { lat.v, lon.v };
+  }
+
+  /**
+   * Destructively update the two lon and lat objects.
+   */
+  public static void toLatlon(Point p,
+      ValWithPartials lat, ValWithPartials lon) {
+    lon.setRawX(p.x);
+    lon.scale(360.0/Coords.EARTH_SIZE);
+    lon.add(-180);
+
+    lat.setRawY(p.y);
+    lat.scale(-2.0*Math.PI/Coords.EARTH_SIZE);
+    lat.add(Math.PI);
+    // lat is now the y component of the canonical "mercator" scaling
+
+    lat.sinh(null);
+    lat.atan();
+    lat.scale(180.0 / Math.PI);
   }
 
   private static final double WGS84_A = 6_378_137.0;
