@@ -98,14 +98,14 @@ public class Commands {
   private final Cmd rotate = simple("rotate", "Rotate 90°",
       self -> self.mapView.rotateCommand());
 
-  private final Cmd squeeze = simple("squeeze", "Increase squeeze factor",
-      self -> self.mapView.squeezeCommand());
+  private final Cmd squeeze = check("squeeze", "Increase squeeze factor",
+      self -> self.mapView.squeeze.stepCommand(+1));
 
   private final Cmd stretch = check("stretch", "Decrease squeeze factor",
-      self -> self.mapView.stretchCommand());
+      self -> self.mapView.squeeze.stepCommand(-1));
 
   private final Cmd unsqueeze = simple("unsqueeze", "Flip between squeezed and not",
-      self -> self.mapView.unsqueezeCommand());
+      self -> self.mapView.squeeze.unsqueezeCommand());
 
   private final Cmd lensPlus = check("lensPlus", "Increase lens resoltion",
       self -> self.lens.lensPlusCommand());

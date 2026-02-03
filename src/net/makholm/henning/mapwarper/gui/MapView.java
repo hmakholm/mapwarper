@@ -63,6 +63,8 @@ public final class MapView {
   public final FilePane files;
   public final TileContext tiles;
 
+  public final Squeezing squeeze;
+
   public final UndoList undoList = new UndoList(this);
 
   // Data that defines what _should_ be shown on the screen.
@@ -83,7 +85,6 @@ public final class MapView {
   public int lensZoom;
   public BoxOverlay lensRect;
 
-  public double rememberedSqueeze = 5;
   public boolean disableTempProjectionsOnShift;
 
   public SegmentChain clipboard;
@@ -112,6 +113,7 @@ public final class MapView {
     this.projection = OrthoProjection.ORTHO.withScaleAcross(pixsize);
 
     this.files = new FilePane(this, files, filearg);
+    this.squeeze = new Squeezing(this);
 
     setMainTiles(tiles.tilesets.get("osm"));
     this.fallbackTiles = tiles.tilesets.get("osm");
@@ -500,9 +502,7 @@ public final class MapView {
     var baseWarp = makeWarpedProjection();
 
     var aff = projection.getAffinoid();
-    aff.makeSqueezable(defaultSqueeze());
-    if( aff.squeeze < 1.5 )
-      aff.squeeze = rememberedSqueeze;
+    squeeze.setSqueeze(aff, false);
     aff.scaleAcross = Math.min(aff.scaleAcross,
         Coords.zoom2pixsize(tiles.guiTargetZoom()));
     return baseWarp.apply(aff);
@@ -555,37 +555,6 @@ public final class MapView {
       cancelLastGetTile = mainTiles.context.downloader.request(
           new TileSpec(mainTiles, shortcode), dummyDownloadConsumer);
     };
-  }
-
-  double defaultSqueeze() {
-    return 5;
-  }
-
-  void squeezeCommand() {
-    var aff = projection.getAffinoid();
-    aff.squeeze = Math.round(aff.squeeze+1);
-    setProjection(projection.base().apply(aff));
-  }
-
-  Runnable stretchCommand() {
-    var aff = projection.getAffinoid();
-    if( aff.squeeze <= 1 )
-      return null;
-    else {
-      aff.squeeze = Math.max(1, Math.round(aff.squeeze-1));
-      return () -> setProjection(projection.base().apply(aff));
-    }
-  };
-
-  void unsqueezeCommand() {
-    var aff = projection.getAffinoid();
-    if( aff.squeeze > 1.5 ) {
-      rememberedSqueeze = aff.squeeze;
-      aff.squeeze = 1;
-    } else {
-      aff.squeeze = rememberedSqueeze;
-    }
-    setProjection(projection.base().apply(aff));
   }
 
   Runnable copyCommand() {
