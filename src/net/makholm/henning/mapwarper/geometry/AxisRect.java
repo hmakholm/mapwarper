@@ -107,7 +107,19 @@ public class AxisRect {
   }
 
   public boolean contains(Point p) {
-    return p.x >= xmin && p.x <= xmax && p.y >= ymin && p.y <= ymax;
+    return contains(p.x, p.y);
+  }
+
+  public boolean contains(double x, double y) {
+    return x >= xmin && x <= xmax && y >= ymin && y <= ymax;
+  }
+
+  public Point clamp(Point p) {
+    if( contains(p) )
+      return p;
+    else
+      return Point.at(MathUtil.clamp(xmin, p.x, xmax),
+          MathUtil.clamp(ymin, p.y, ymax));
   }
 
   public boolean contains(AxisRect other) {

@@ -18,6 +18,7 @@ public abstract class Tileset {
     Bing.defineIn(ctx);
     OpenRailwayMap.defineIn(ctx);
     GeoDanmark.defineIn(ctx);
+    GeoDk2.defineIn(ctx);
   }
 
   public int guiTargetZoom() {

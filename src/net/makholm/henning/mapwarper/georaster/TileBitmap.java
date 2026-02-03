@@ -12,6 +12,11 @@ public class TileBitmap {
     return new TileBitmap(img);
   }
 
+  public TileBitmap(int[] pixdata) {
+    this.pixdata = pixdata;
+    this.numPixels = pixdata.length;
+  }
+
   private TileBitmap(BufferedImage img) {
     int height = img.getHeight();
     int width = img.getWidth();
