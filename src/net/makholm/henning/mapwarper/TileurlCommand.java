@@ -15,18 +15,25 @@ final class TileurlCommand extends Mapwarper.Command {
   @Override
   protected void run(Deque<String> words) {
     var pos = Point.at(common.parsePoint(words));
-    int zoom = common.wantedZoom.orElse(12);
-    long tile = common.wantedTiles.makeAddresser(zoom, pos).locate(pos);
-
     if( common.wantedTiles instanceof HttpTileset hts ) {
-      System.out.println(hts.tileUrl(tile));
+      attempt(hts, pos);
     } else {
       for( Tileset ts : common.tileContext.tilesets.values() ) {
         if( ts instanceof HttpTileset hts ) {
-          String url = hts.tileUrl(tile);
-          System.out.println(ts.name+": "+url);
+          attempt(hts, pos);
         }
       }
+    }
+  }
+
+  private void attempt(HttpTileset tiles, Point pos) {
+    int zoom = common.wantedZoom.orElse(12);
+    long tile = tiles.makeAddresser(zoom, pos).locate(pos);
+    if( tile == 0 ) {
+      System.out.println("No "+tiles.name+" tile at "+pos);
+    } else {
+      String url = tiles.tileUrl(tile);
+      System.out.println(tiles.name+": "+url);
     }
   }
 

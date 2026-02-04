@@ -21,6 +21,22 @@ public class WebMercatorAddresser implements PixelAddresser {
     this.pixelmask = (1 << logTilesize) - 1;
   }
 
+  /**
+   * This instance always returns "no tile", for a layer/zoom that
+   * doesn't exist. It's a {@link WebMercatorAddresser} such that if
+   * it't the <em>only</em> kind of addresser we'll ever use, virtual
+   * dispatch will be easy on the JIT.
+   */
+  public static PixelAddresser BLANK = new WebMercatorAddresser();
+
+  private WebMercatorAddresser() {
+    this.shiftForTile = 31;
+    this.shortcodeBase = 0;
+    this.logTilesize = 0;
+    this.shiftForPixel = 0;
+    this.pixelmask = 0;
+  }
+
   private long makeShortcode(int tilex, int tiley) {
     return (tiley & 1) + // index bit for local hashing
         ((tilex & 1) << 1) + // index bit for local hashing

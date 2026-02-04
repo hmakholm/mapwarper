@@ -21,6 +21,9 @@ public interface PixelAddresser {
    * meet in a corner; (b) no shortcodes for the tileset differ only
    * in those two bits; (c) 0L, 1L, 2L, 3L are not valid shortcodes.
    * <p>
+   * Returns 0 exactly for a position where there no tile and won't
+   * ever be.
+   * <p>
    * The object should store the address <em>within</em> the tile
    * in an appropriate format internally, such that an RGB value
    * can later be extracted with {@link #getPixel(TileBitmap)}.
@@ -48,7 +51,7 @@ public interface PixelAddresser {
   /**
    * Return a smaller number for tiles that should be downloaded first,
    * based on the size and distance to the position given by the last
-   * call to {@link #locate(Point)}.
+   * successful call to {@link #locate(Point)}.
    */
   public long getDownloadPriority(long shortcode);
 

@@ -149,6 +149,7 @@ abstract class CommonRenderer implements RenderWorker {
       }
 
       long shortcode = addresser.locate(x,y);
+      if( shortcode == 0 ) continue;
       if( tilegrid && gridcode == null )
         gridcode = addresser.isOddDownloadTile(shortcode);
 

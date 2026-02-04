@@ -551,9 +551,13 @@ public final class MapView {
       int zoom = mainTiles.guiTargetZoom();
       var addresser = mainTiles.makeAddresser(zoom, mouseGlobal);
       long shortcode = addresser.locate(mouseGlobal);
-      cancelLastGetTile.run();
-      cancelLastGetTile = mainTiles.context.downloader.request(
-          new TileSpec(mainTiles, shortcode), dummyDownloadConsumer);
+      if( shortcode == 0 ) {
+        SwingUtils.beep();
+      } else {
+        cancelLastGetTile.run();
+        cancelLastGetTile = mainTiles.context.downloader.request(
+            new TileSpec(mainTiles, shortcode), dummyDownloadConsumer);
+      }
     };
   }
 

@@ -24,6 +24,8 @@ public class DownloadtileCommand extends Mapwarper.Command {
       var pos = Point.at(common.parsePoint(words));
       int zoom = common.wantedZoom.orElse(12);
       var tile = tileset.makeAddresser(zoom, pos).locate(pos);
+      if( tile == 0 )
+        throw NiceError.of("No tile at that position");
 
       Path outname = Paths.get("downloaded"+tileset.extension);
       System.err.println(tileset.tilename(tile)+" --> "+outname);
