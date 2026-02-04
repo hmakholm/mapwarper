@@ -7,16 +7,12 @@ public class OpenRailwayMap extends PngTileServer {
   private OpenRailwayMap(TileContext ctx) {
     super(ctx, "openrail", "OpenRailwayMap",
         "https://a.tiles.openrailwaymap.org/standard/*.png", null);
-  }
-
-  @Override
-  public int logTilesize() {
-    return 9;
+    logTilesize = 9;
   }
 
   @Override
   public int guiTargetZoom() {
-    return 19;
+    return 20;
   }
 
   @Override

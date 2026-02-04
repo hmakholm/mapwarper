@@ -7,34 +7,21 @@ import java.nio.file.Path;
 
 import javax.imageio.ImageIO;
 
-import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.util.NiceError;
 
 public abstract class DiskCachedTileset extends Tileset {
-
-  public final int logTilesize;
-  public final int tilesize;
 
   protected DiskCachedTileset(TileContext ctx, String name, String desc,
       String extension, String webUrlTemplate) {
     super(ctx, name, desc, webUrlTemplate);
     this.cacheRoot = ctx.tileCache.resolve(name);
     this.extension = extension;
-
-    this.logTilesize = logTilesize();
-    this.tilesize = 1 << logTilesize;
   }
 
   /** Most providers use 256-pixel tiles, but this can be overridden. */
-  @Override
-  public int logTilesize() {
-    return 8;
-  }
-
-  @Override
-  public final int logPixsize2tilezoom(int logPixsize) {
-    return Coords.BITS - logPixsize - logTilesize;
+  protected int tilesize(long shortcode) {
+    return 256;
   }
 
   /**
@@ -104,6 +91,7 @@ public abstract class DiskCachedTileset extends Tileset {
   public TileBitmap loadTile(long tile, boolean allowDownload) throws TryDownloadLater {
     var rawBitmap = produceTileInRam(tile, allowDownload);
     if( rawBitmap == null ) return null;
+    var tilesize = tilesize(tile);
     if( rawBitmap.getWidth() != tilesize || rawBitmap.getHeight() != tilesize )
       throw NiceError.of("Tile provider '%s' made %dx%d tile for %s; expected %dx%d",
           name, rawBitmap.getWidth(), rawBitmap.getHeight(), tile, tilesize, tilesize);

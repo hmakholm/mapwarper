@@ -20,10 +20,6 @@ public abstract class Tileset {
     GeoDanmark.defineIn(ctx);
   }
 
-  public abstract int logPixsize2tilezoom(int logPixsize);
-
-  public abstract int logTilesize();
-
   public int guiTargetZoom() {
     return 16;
   }

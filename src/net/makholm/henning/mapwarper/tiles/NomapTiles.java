@@ -14,16 +14,6 @@ public class NomapTiles extends Tileset {
   }
 
   @Override
-  public int logPixsize2tilezoom(int logPixsize) {
-    return 0;
-  }
-
-  @Override
-  public int logTilesize() {
-    return 0;
-  }
-
-  @Override
   public List<String> getCopyrightBlurb() {
     return List.of();
   }

@@ -78,8 +78,7 @@ public class WindowTitle {
       int zoom = tiles.guiTargetZoom();
       if( baseproj.isOrtho() ) {
         int natzoom = FallbackChain.naturalZoom(aff.scaleAcross, tiles);
-        int natlogsize = Coords.BITS - natzoom - tiles.logTilesize();
-        zoom = Math.min(zoom, Coords.logPixsize2zoom(natlogsize));
+        zoom = Math.min(zoom, natzoom);
       }
       sb.append(tiles.name);
       if( baseproj.usesDownloadFlag() && !Toggles.DOWNLOAD.setIn(flagBits) )

@@ -9,13 +9,20 @@ import net.makholm.henning.mapwarper.georaster.WebMercatorAddresser;
 
 public abstract class CommonWebTileset extends HttpTileset {
 
+  protected int logTilesize = 8;
+
   protected CommonWebTileset(TileContext ctx, String name, String desc, String extension, String webUrlTemplate) {
     super(ctx, name, desc, extension, webUrlTemplate);
   }
 
   @Override
   public PixelAddresser makeAddresser(int zoom, Point refpoint) {
-    return new WebMercatorAddresser(zoom, logTilesize());
+    return new WebMercatorAddresser(zoom - (logTilesize-8), logTilesize);
+  }
+
+  @Override
+  protected final int tilesize(long tile) {
+    return 1 << logTilesize;
   }
 
   /**

@@ -84,7 +84,7 @@ public class FallbackChain {
       // fallbackMinUse is when we have zoomed so far out that a fallback
       // pixel stretches for more than 20 UI pixels in the Y direction
       fallbackMinUse = clampZoom((int)MathUtil.log2(
-          Coords.EARTH_SIZE / (pixsizey * 20)) - fallbackTiles.logTilesize());
+          Coords.EARTH_SIZE / (pixsizey * 20)) - 8);
 
       // fallbackTooCloseZoom is when we have zoomed so far in that there
       // are more fallback pixels than there are pixels to display
@@ -224,7 +224,7 @@ public class FallbackChain {
     // map pixels that are slightly smaller than display pixels than
     // the other way around.
     int logPixsize = Math.getExponent(pixsize);
-    int zoom = tiles.logPixsize2tilezoom(logPixsize);
+    int zoom = Coords.logPixsize2zoom(logPixsize);
     return clampZoom(zoom);
   }
 
