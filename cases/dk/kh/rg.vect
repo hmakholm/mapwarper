@@ -2,7 +2,7 @@ comment udkørsel mod Ringsted, fokus på tilkørslen til spor 5-8
 coords web-mercator 2^30
 usebounds bound/syv.vect
 usebounds bound/kh.vect
-node 574049744::336137433
+node 574053320::336137560
   slew
 node 574075384::336138522
   straight
