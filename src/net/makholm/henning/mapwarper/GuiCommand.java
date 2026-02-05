@@ -18,9 +18,11 @@ public class GuiCommand extends Mapwarper.Command {
 
   @Override
   protected void run(Deque<String> words) {
+    var plaf = common.tileContext.config.string("swing", "lookAndFeel");
     List<String> args = new ArrayList<>(words);
     try {
-      UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+      if( plaf != null )
+        UIManager.setLookAndFeel(plaf);
     } catch (Exception e) {
       e.printStackTrace();
     }

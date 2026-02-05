@@ -23,25 +23,18 @@ import net.makholm.henning.mapwarper.georaster.WebMercatorAddresser;
  */
 class GeoDanmark extends CommonWebTileset {
 
-  /**
-   * https://confluence.sdfi.dk/pages/viewpage.action?pageId=13665234
-   *
-   * BEMÆRK
-   *
-   * Via WebGIS er det muligt at se brugernavn/adgangskode for tjenestebrugere
-   * ved hjælp af udviklerværktøjerne i en browser. Da det er offentlige frie
-   * data, så betyder det ikke rettighedsmæssigt noget, at brugernavn og
-   * adgangskode for tjenestebrugeren bliver vist.
-   *
-   * Brug en unik eller en autogenereret adgangskode til hver tjenestebruger.
-   * Du skal ikke genbruge adgangskoder fra andre systemer eller enheder.
-   */
-  private static final String PWD = "6qKAh-QH364c";
-  private static final String USER = "IBJZYUIBGO";
+  private final String PWD, USER;
 
   protected GeoDanmark(TileContext ctx) {
     super(ctx, "geodanmark", "GeoDanmark orthophotos", ".jpg",
         "https://www.geodanmark.dk/home/vejledninger/vilkaar-for-data-anvendelse/");
+    USER = ctx.config.string("apiKey", name, "username");
+    PWD = ctx.config.string("apiKey", name, "password");
+  }
+
+  @Override
+  protected boolean okayToUse() {
+    return USER != null && PWD != null;
   }
 
   @Override

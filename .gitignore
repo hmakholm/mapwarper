@@ -1,6 +1,7 @@
 /bin/
 /cases/junk/
 /mapwarper.jar
+/config/mapwarper-local.*
 *.class
 *~
 *.pdf

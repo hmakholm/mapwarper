@@ -15,7 +15,6 @@ public abstract class DiskCachedTileset extends Tileset {
   protected DiskCachedTileset(TileContext ctx, String name, String desc,
       String extension, String webUrlTemplate) {
     super(ctx, name, desc, webUrlTemplate);
-    this.cacheRoot = ctx.tileCache.resolve(name);
     this.extension = extension;
   }
 
@@ -32,7 +31,6 @@ public abstract class DiskCachedTileset extends Tileset {
   public abstract void produceTileInFile(long tile, Path dest)
       throws IOException, TryDownloadLater;
 
-  protected final Path cacheRoot;
   public final String extension;
 
   /**

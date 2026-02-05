@@ -7,9 +7,6 @@ JVMOPTS=""
 # with tiles before starting to rely on the disk cache.
 JVMOPTS="$JVMOPTS -xMx2500M"
 
-# For 4K displays, uncomment this line:
-# JVMOPTS="$JVMOPTS -Dsun.java2d.uiScale=2"
-
 # Now for trying to find or make the compiled code ...
 MAINCLS=net.makholm.henning.mapwarper.Mapwarper
 SLASHED=net/makholm/henning/mapwarper/Mapwarper

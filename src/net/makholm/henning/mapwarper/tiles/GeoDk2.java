@@ -18,11 +18,8 @@ import net.makholm.henning.mapwarper.util.NiceError;
 
 public class GeoDk2 extends Tileset {
 
-  private final Path cacheRoot;
-
   protected GeoDk2(TileContext ctx) {
     super(ctx, "geodk", "GeoDanmark orthophotos", null);
-    cacheRoot = ctx.tileCache.resolve(name);
   }
 
   @Override

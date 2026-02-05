@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.tiles;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import net.makholm.henning.mapwarper.geometry.Point;
@@ -10,6 +11,7 @@ import net.makholm.henning.mapwarper.georaster.WebMercator;
 public abstract class Tileset {
 
   public final TileContext context;
+  protected final Path cacheRoot;
 
   public static void defineStandardTilesets(TileContext ctx) {
     OpenStreetMap.defineIn(ctx);
@@ -19,6 +21,10 @@ public abstract class Tileset {
     OpenRailwayMap.defineIn(ctx);
     GeoDanmark.defineIn(ctx);
     GeoDk2.defineIn(ctx);
+  }
+
+  protected boolean okayToUse() {
+    return true;
   }
 
   public int guiTargetZoom() {
@@ -99,6 +105,7 @@ public abstract class Tileset {
     this.name = name;
     this.desc = desc;
     this.webUrlTemplate = webUrlTemplate;
+    this.cacheRoot = ctx.caches.forTileset(this);
 
     context.tilesets.put(name, this);
   }

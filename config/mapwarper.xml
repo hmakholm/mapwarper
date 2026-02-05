@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+<!--
+    Yes, this is XML. Sorry. That's just because Java comes with XML
+    parsers out of the box, and doesn't for YAML.
+
+    The configuration values in this file can be extended/overridden
+    by a neighbor file called mapwarper-local.yml (which is in .gitignore,
+    so more convenient for personal preferences), as well as in
+    ~/.config/mapwarper/config.yml and several other locations
+    appropriate for various platforms.
+-->
+
+<!--
+    Change this to 2 for a for a 4K display. I haven't found a
+    reliable way to autodetect this situation, sorry.
+-->
+<systemProperty name="sun.java2d.uiScale" value="1"/>
+
+<apiKey name="geodanmark"
+        username="IBJZYUIBGO" password="6qKAh-QH364c">
+  <!-- https://confluence.sdfi.dk/pages/viewpage.action?pageId=13665234
+
+       Via WebGIS er det muligt at se brugernavn/adgangskode for
+       tjenestebrugere ved hjælp af udviklerværktøjerne i en browser.
+       Da det er offentlige frie data, så betyder det ikke
+       rettighedsmæssigt noget, at brugernavn og adgangskode for
+       tjenestebrugeren bliver vist.
+
+       Brug en unik eller en autogenereret adgangskode til hver tjenestebruger.
+       Du skal ikke genbruge adgangskoder fra andre systemer eller
+       enheder.
+  -->
+</apiKey>
+
+<swing name="lookAndFeel" value="javax.swing.plaf.nimbus.NimbusLookAndFeel"/>
+
+</config>
