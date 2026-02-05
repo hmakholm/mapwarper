@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.LongConsumer;
 
 import javax.imageio.ImageIO;
 
@@ -13,6 +14,10 @@ import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.util.KeyedLock;
 import net.makholm.henning.mapwarper.util.NiceError;
 
+/**
+ * These are "ordinary" tilesets that represent each tile as a single
+ * file in the disk cache.
+ */
 public abstract class DiskCachedTileset extends Tileset {
 
   public final String extension;
@@ -90,7 +95,8 @@ public abstract class DiskCachedTileset extends Tileset {
   }
 
   @Override
-  public void downloadTile(long tile) throws IOException, TryDownloadLater {
+  public void downloadTile(long tile, LongConsumer callback)
+      throws IOException, TryDownloadLater {
     Path file = fileForTile(tile);
     try( var locked = downloadLock.takeWriter(file) ) {
       file.getParent().toFile().mkdirs();

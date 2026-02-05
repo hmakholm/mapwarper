@@ -122,11 +122,16 @@
 </tileset>
 
 <tileset name="geodk" type="geodk"
-         desc="GeoDanmark orthophotos"
+         desc="GeoDanmark orthophotos (1&#x00D7;1 km tiles)"
+         tileurl="https://api.datafordeler.dk/FileDownloads/GetRasterMultipleFiles?MinX=~X~001&amp;MaxX=~X~999&amp;MinY=~Y~001&amp;MaxY=~Y~999&amp;Register=GeoDKO&amp;DataSetName=GeoDKO12,5cm&amp;Version=1&amp;apiKey=[APIKEY]"
          disableHttpsValidation="true"
+         extension=".zip"
          guiTargetZoom="18">
+  <!-- there's also a GetRasterFile API getting a single file, but I
+       cannot figure out how to get it to deliver the 12.5 cm
+       resolution. -->
   <blurb>Aerophotos cover Denmark only</blurb>
-  <blurb>EXPERIMENTAL; cannot actually download yet</blurb>
+  <blurb>From www.geodanmark.dk -- CC-BY-4.0</blurb>
   <boundingBox>560922560::324748672</boundingBox>
   <boundingBox>575166809::341940864</boundingBox>
 </tileset>

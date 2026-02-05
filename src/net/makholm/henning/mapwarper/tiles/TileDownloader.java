@@ -97,7 +97,7 @@ class TileDownloader extends BackgroundThread {
       TileBitmap got = cache.getTile(toDownload, true);
       if( got == null ) {
         try {
-          tileset.downloadTile(toDownload.shortcode);
+          tileset.downloadTile(toDownload.shortcode, this::downloadCallback);
         } catch( IOException e ) {
           scheduleAbort(e, null);
           return;
@@ -116,6 +116,10 @@ class TileDownloader extends BackgroundThread {
             return;
           }
         }
+        // Note: perhaps we've already scheduled a loading of this particular
+        // tile in the parallel loading thread, but that's okay. Invalidating
+        // twice is not a problem, because the invalidation only takes effect
+        // if the tile _cannot_ be loaded.
         got = cache.invalidateMissingAndGet(toDownload, true);
         if( got == null )
           throw BadError.of("Failed to load %s even after downloading",
@@ -124,6 +128,20 @@ class TileDownloader extends BackgroundThread {
       }
       deliverToSubscribers(toDownload, got);
     }
+  }
+
+  private void downloadCallback(long tile) {
+    System.err.println("    (received "+tileset.tilename(tile)+")");
+    context.progressiveLoader.execute(() -> {
+      var spec = new TileSpec(tileset, tile);
+      boolean anySubscribers;
+      synchronized(this) {
+        anySubscribers = queue.containsKey(spec) || watchers.containsKey(spec);
+      }
+      var got = cache.invalidateMissingAndGet(spec, anySubscribers);
+      if( got != null )
+        deliverToSubscribers(spec, got);
+    });
   }
 
   private void deliverToSubscribers(TileSpec spec, TileBitmap finalGot) {

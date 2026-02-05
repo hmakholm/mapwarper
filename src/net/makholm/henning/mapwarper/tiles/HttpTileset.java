@@ -33,7 +33,7 @@ public abstract class HttpTileset extends DiskCachedTileset {
     String url = tileUrl(tile);
     var uri = URI.create(url);
     var request = HttpRequest.newBuilder(uri);
-    request.header("User-Agent", "Mapwarper/0.1");
+    request.header("User-Agent", "Mapwarper/3.1");
     request.GET();
     finishRequest(request);
 

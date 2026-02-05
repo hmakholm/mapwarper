@@ -8,6 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.LongConsumer;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -95,8 +96,13 @@ public abstract class Tileset {
    *
    * Currently there's only ever one thread doing downloads for a single
    * tileset.
+   *
+   * @paral callback The method may call this callback if tiles
+   * other than the requested one become loadable <em>during</em> the
+   * down (or if the requested tile becomes loadable before the
+   * download itself has completed).
    */
-  protected abstract void downloadTile(long tile)
+  protected abstract void downloadTile(long tile, LongConsumer callback)
       throws IOException, TryDownloadLater;
 
   public abstract String tilename(long tile);
@@ -200,6 +206,12 @@ public abstract class Tileset {
       return defval;
     else
       return xmldef.getAttribute(attr);
+  }
+
+  protected String stringAttr(String attr) {
+    if( !xmldef.hasAttribute(attr) )
+      throw NiceError.of("tileset parameter %s.%s is missing", name, attr);
+    return xmldef.getAttribute(attr);
   }
 
   protected int intAttr(String attr, int defval) {

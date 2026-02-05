@@ -1,10 +1,22 @@
 package net.makholm.henning.mapwarper.util;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 public abstract class BackgroundThread extends Thread {
 
   public BackgroundThread(String name) {
     super(name);
     setDaemon(true);
+  }
+
+  public static Executor executor(String name) {
+    return Executors.newSingleThreadExecutor(r -> new BackgroundThread(name) {
+      @Override
+      public void run() {
+        r.run();
+      }
+    });
   }
 
   @Override

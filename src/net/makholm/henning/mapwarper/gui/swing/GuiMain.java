@@ -9,7 +9,6 @@ import java.beans.PropertyChangeEvent;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import javax.swing.Action;
 import javax.swing.InputMap;
@@ -52,11 +51,7 @@ public class GuiMain extends JFrame {
    * calling context for reasons of deadlock avoidance.
    */
   public final Executor miscAsyncWork =
-      Executors.newSingleThreadExecutor(r -> {
-        var thread = new Thread(r, "MiscAsyncWork");
-        thread.setDaemon(true);
-        return thread;
-      });
+      BackgroundThread.executor("MiscAsyncWork");
 
   public static void main(TileContext tiles, List<String> args) {
     System.out.print("Starting GUI ...");

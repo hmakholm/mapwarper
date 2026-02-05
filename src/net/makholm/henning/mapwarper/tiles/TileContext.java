@@ -3,11 +3,13 @@ package net.makholm.henning.mapwarper.tiles;
 import java.net.http.HttpClient;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.Coords;
+import net.makholm.henning.mapwarper.util.BackgroundThread;
 import net.makholm.henning.mapwarper.util.XmlConfig;
 
 public class TileContext {
@@ -26,6 +28,9 @@ public class TileContext {
   public final TileCache ramCache = new TileCache();
 
   public volatile Point downloadFocus = Point.at(Coords.EARTH_SIZE/2, Coords.EARTH_SIZE/2);
+
+  public final Executor progressiveLoader =
+      BackgroundThread.executor("Progressive tile loader");
 
   public TileContext(XmlConfig config, HttpClient http) {
     this.config = config;

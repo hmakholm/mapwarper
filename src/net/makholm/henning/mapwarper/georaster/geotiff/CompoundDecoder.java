@@ -1,9 +1,18 @@
 package net.makholm.henning.mapwarper.georaster.geotiff;
 
+import static net.makholm.henning.mapwarper.georaster.CompoundShortcode.maxisize;
+import static net.makholm.henning.mapwarper.georaster.CompoundShortcode.minisPerMaxi;
+import static net.makholm.henning.mapwarper.georaster.CompoundShortcode.minisize;
+import static net.makholm.henning.mapwarper.georaster.CompoundShortcode.minix;
+import static net.makholm.henning.mapwarper.georaster.CompoundShortcode.miniy;
+import static net.makholm.henning.mapwarper.georaster.CompoundShortcode.tilex;
+import static net.makholm.henning.mapwarper.georaster.CompoundShortcode.tiley;
+
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 import java.io.IOException;
+import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -12,12 +21,19 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Flow.Subscription;
+import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageInputStreamImpl;
 
+import net.makholm.henning.mapwarper.georaster.CompoundShortcode;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.util.MemoryMapped;
 import net.makholm.henning.mapwarper.util.NiceError;
@@ -70,7 +86,7 @@ public class CompoundDecoder {
       return TileBitmap.blank(TRUNCATED);
     validateToplevelIFD(tiff, tilespec);
 
-    int maxisize = CompoundAddresser.maxisize(tilespec);
+    int maxisize = maxisize(tilespec);
     while(true) {
       if( tiff.numberIs(Tiff.IMAGE_WIDTH, maxisize) &&
           tiff.numberIs(Tiff.IMAGE_HEIGHT, maxisize) &&
@@ -93,7 +109,7 @@ public class CompoundDecoder {
   }
 
   public TileBitmap decodeRightSized(Tiff tiff, long tilespec) {
-    int minisize = CompoundAddresser.minisize(tilespec);
+    int minisize = minisize(tilespec);
     tiff.assertValue(Tiff.TILE_WIDTH, minisize);
     tiff.assertValue(Tiff.TILE_HEIGHT, minisize);
     tiff.assertValue(Tiff.PHOTOMETRIC, Tiff.PHOTOMETRIC_RGB);
@@ -101,9 +117,9 @@ public class CompoundDecoder {
     tiff.assertValueIfPresent(Tiff.PLANAR_CONFIG,
         Tiff.PLANAR_CONFIG_INTERLEAVED);
 
-    int minix = CompoundAddresser.minix(tilespec);
-    int miniy = CompoundAddresser.miniy(tilespec);
-    int minicount = CompoundAddresser.minisPerMaxi(tilespec);
+    int minix = minix(tilespec);
+    int miniy = miniy(tilespec);
+    int minicount = minisPerMaxi(tilespec);
     int mininum = miniy*minicount + minix;
 
     int offset = tiff.getNumber(Tiff.TILE_OFFSETS, mininum, -1).intValue();
@@ -181,10 +197,10 @@ public class CompoundDecoder {
 
   public TileBitmap decodeJpeg(ImageInputStream istream, long tilespec)
       throws IOException {
-    int minisize = CompoundAddresser.minisize(tilespec);
+    int minisize = minisize(tilespec);
 
     ImageReader reader = ImageIO.getImageReadersByMIMEType("image/jpeg").next();
-    reader.setInput(istream, false,  true);
+    reader.setInput(istream, false, true);
     int width = reader.getWidth(0);
     int height = reader.getHeight(0);
     if( width != minisize || height != minisize )
@@ -217,6 +233,127 @@ public class CompoundDecoder {
       throw NiceError.of("Data buffer was a %s, not a DataBufferByte",
           buffer.getClass().getTypeName());
     }
+  }
+
+  // =====================================================================
+  // Code to watch a download in progress and signal when each minitile
+  // it can produce has been received.
+
+  private static record Milestone(int bytes, long tilespec) { }
+
+  public class DownloadSnooper implements Consumer<ByteBuffer> {
+    private final long tilespec;
+    private final LongConsumer callback;
+
+    private static final int HEADLEN = 10_000;
+    private int bytesSeen;
+    private ByteBuffer headBuffer;
+    private PriorityQueue<Milestone> milestones = new PriorityQueue<>(
+        (a,b) -> Integer.compare(a.bytes(), b.bytes()));
+
+    public DownloadSnooper(long tilespec, LongConsumer callback) {
+      this.tilespec = tilespec;
+      this.callback = callback;
+    }
+
+    @Override
+    public void accept(ByteBuffer buffer) {
+      justSnoop(buffer);
+      flush();
+    }
+
+    public void justSnoop(ByteBuffer buffer) {
+      int length = buffer.remaining();
+      if( length == 0 ) return;
+
+      if( bytesSeen == 0 ) {
+        headBuffer = ByteBuffer.allocate(HEADLEN);
+      } else if( headBuffer == null || bytesSeen >= HEADLEN ) {
+        bytesSeen += length;
+        return;
+      }
+
+      int toCopy = Math.min(length, HEADLEN-bytesSeen);
+      headBuffer.put(bytesSeen, buffer, buffer.position(), toCopy);
+      bytesSeen += length;
+    }
+
+    public void flush() {
+      if( bytesSeen < HEADLEN ) return;
+      if( headBuffer != null ) {
+        headBuffer.position(0);
+        headBuffer.limit(HEADLEN);
+        analyzeHead(headBuffer);
+        headBuffer = null;
+      }
+      while( !milestones.isEmpty() &&
+          bytesSeen >= milestones.peek().bytes() )
+        callback.accept(milestones.remove().tilespec());
+    }
+
+    private void analyzeHead(ByteBuffer buf) {
+      int origLen = buf.capacity();
+      buf = TrivialZip.unpack(buf);
+      if( buf == null ) return;
+      int zipHeader = buf.capacity()-origLen;
+      Tiff tiff = Tiff.create(buf);
+      if( tiff == null )
+        throw NiceError.of("The TIFF is not head-heavy");
+      int tilex = tilex(tilespec);
+      int tiley = tiley(tilespec);
+      for( int idtCount=0; ; tiff = tiff.next(), idtCount++ ) {
+        if( tiff == null )
+          throw NiceError.of("TIFF is truncated after "+idtCount+" images");
+        int width = tiff.getNumber(Tiff.IMAGE_WIDTH, 0).intValue();
+        int height = tiff.getNumber(Tiff.IMAGE_HEIGHT, 0).intValue();
+        if( width == height && width > 0 && width < 65535 &&
+            otherwiseGoodLayer(tiff) ) {
+          int twidth = tiff.getNumber(Tiff.TILE_WIDTH, 0).intValue();
+          int theight = tiff.getNumber(Tiff.TILE_HEIGHT, 0).intValue();
+          int log2tsize = Integer.numberOfTrailingZeros(twidth);
+          if( log2tsize >= 0 && log2tsize < 16 &&
+              twidth == (1 << log2tsize) && theight == (1 << log2tsize) ) {
+            int ntiles = (width+twidth-1)/twidth;
+            var codemaker = new CompoundShortcode(width, twidth);
+            for( int y=0; y<ntiles; y++ )
+              for( int x=0; x<ntiles; x++ ) {
+                int tidx = y*ntiles + x;
+                int endOffset =
+                    zipHeader +
+                    tiff.getNumber(Tiff.TILE_OFFSETS, tidx, 0).intValue() +
+                    tiff.getNumber(Tiff.TILE_BYTE_COUNTS, tidx, 0).intValue();
+                long tspec = codemaker.makeShortcode(tilex, tiley, x, y);
+                milestones.add(new Milestone(endOffset, tspec));
+              }
+          }
+        }
+        if( !tiff.hasNext() )
+          return;
+      }
+    }
+  }
+
+  public class HttpDownloadSnooper<T> extends DownloadSnooper
+  implements HttpResponse.BodySubscriber<T> {
+    final HttpResponse.BodySubscriber<T> next;
+
+    public HttpDownloadSnooper(HttpResponse.BodySubscriber<T> next,
+        long tilespec, LongConsumer callback) {
+      super(tilespec, callback);
+      this.next = next;
+    }
+
+    @Override
+    public void onNext(List<ByteBuffer> list) {
+      list.forEach(this::justSnoop);
+      next.onNext(list);
+      flush();
+    }
+
+    @Override public void onSubscribe(Subscription s) { next.onSubscribe(s); }
+    @Override public void onComplete() { next.onComplete(); }
+    @Override public void onError(Throwable t) { next.onError(t); }
+    @Override public CompletionStage<T> getBody() { return next.getBody(); }
   }
 
 }

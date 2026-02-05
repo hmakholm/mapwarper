@@ -1,11 +1,16 @@
 package net.makholm.henning.mapwarper.georaster.geotiff;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.zip.ZipOutputStream;
 
 import net.makholm.henning.mapwarper.util.NiceError;
 
-class TrivialZip {
+public class TrivialZip {
 
   /**
    * Return a slice of the ByteBuffer containing the content of a
@@ -116,6 +121,14 @@ class TrivialZip {
         throw NiceError.of("The file claims to have nevative length");
     }
     return input.slice(headerlength, contentlength);
+  }
+
+  public static void writeEmptyZip(Path dest) throws IOException {
+    Files.createDirectories(dest.getParent());
+    try( var fos = new FileOutputStream(dest.toFile());
+        var zos = new ZipOutputStream(fos) ) {
+      zos.finish();
+    }
   }
 
 }
