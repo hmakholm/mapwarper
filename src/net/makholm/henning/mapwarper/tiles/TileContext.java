@@ -14,7 +14,6 @@ public class TileContext {
   public final CacheDirLocator caches;
   public final HttpClient http;
 
-  public boolean includeIffyTilesets;
   public final Map<String, Tileset> tilesets = new LinkedHashMap<>();
   public final Tileset nomapTileset;
 
