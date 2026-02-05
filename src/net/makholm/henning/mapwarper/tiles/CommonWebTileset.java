@@ -3,16 +3,31 @@ package net.makholm.henning.mapwarper.tiles;
 import java.nio.file.Path;
 import java.util.Locale;
 
+import org.w3c.dom.Element;
+
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.PixelAddresser;
+import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.georaster.WebMercatorAddresser;
+import net.makholm.henning.mapwarper.util.NiceError;
 
-public abstract class CommonWebTileset extends HttpTileset {
+public class CommonWebTileset extends HttpTileset {
 
-  protected int logTilesize = 8;
+  protected final int logTilesize;
+  protected final String urlTemplate;
 
-  protected CommonWebTileset(TileContext ctx, String name, String desc, String extension, String webUrlTemplate) {
-    super(ctx, name, desc, extension, webUrlTemplate);
+  protected CommonWebTileset(TileContext ctx, String name, Element xml) {
+    super(ctx, name, xml);
+
+    urlTemplate = withApikey(xml.getAttribute("tileurl"));
+    if( urlTemplate == null )
+      throw NiceError.of("No tile URL defined for tileset %s", name);
+
+    int tilesize = intAttr("tilesize", 256);
+    logTilesize = Integer.numberOfTrailingZeros(tilesize);
+    if( tilesize != (1 << logTilesize) )
+      throw NiceError.of("Tile size %d for %s is not a power of 2",
+          tilesize, name);
   }
 
   @Override
@@ -66,7 +81,20 @@ public abstract class CommonWebTileset extends HttpTileset {
             tilex%100, tiley%100, extension));
   }
 
-  protected abstract String tileUrl(int zoom, int tilex, int tiley);
+  protected String tileUrl(int zoom, int tilex, int tiley) {
+    int i = urlTemplate.indexOf('*');
+    if( i >= 0 ) {
+      return urlTemplate.substring(0,i) +
+          zoom + "/" + tilex + "/" + tiley +
+          urlTemplate.substring(i+1);
+    } else {
+      String s = urlTemplate;
+      s = s.replace("[Z]", ""+zoom);
+      s = s.replace("[X]", ""+tilex);
+      s = s.replace("[Y]", ""+tiley);
+      return s;
+    }
+  }
 
   @Override
   public final String tileUrl(long tile) {
@@ -81,6 +109,19 @@ public abstract class CommonWebTileset extends HttpTileset {
         WebMercatorAddresser.zoom(tile)+"/"+
         WebMercatorAddresser.tilex(tile)+"/"+
         WebMercatorAddresser.tiley(tile);
+  }
+
+  @Override
+  public TileBitmap loadTile(long tile, boolean allowDownload)
+      throws TryDownloadLater {
+    if( boundingBox != null &&
+        !boundingBox.intersects(WebMercatorAddresser.rectOf(tile)) ) {
+      int tilex = WebMercatorAddresser.tilex(tile);
+      int tiley = WebMercatorAddresser.tiley(tile);
+      return TileBitmap.blank((tilex^tiley) % 2 == 0 ? 0xFFCCBBBB : 0xFFCCAAAA);
+    } else {
+      return super.loadTile(tile, allowDownload);
+    }
   }
 
 }

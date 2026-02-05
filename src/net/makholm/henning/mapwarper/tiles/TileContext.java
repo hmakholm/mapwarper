@@ -29,14 +29,7 @@ public class TileContext {
     this.caches = new CacheDirLocator(config);
     this.http = http;
     this.nomapTileset = new NomapTiles(this);
-  }
-
-  public void forgetUnusableTilesets() {
-    for( var it = tilesets.values().iterator(); it.hasNext(); ) {
-      var tiles = it.next();
-      if( !tiles.okayToUse() )
-        it.remove();
-    }
+    tilesets.put(nomapTileset.name, nomapTileset);
   }
 
 }

@@ -29,14 +29,13 @@ public class Mapwarper {
   public Optional<Integer> wantedZoom = Optional.empty();
   public Optional<Path> wantedOutput = Optional.empty();
 
-  private String explicitTileCacheArg;
-
   private final Command command;
   private final Deque<String> words = new ArrayDeque<>();
 
   private Mapwarper(String[] args) {
     String verb = null;
     int dashDashPos = -1;
+    String explicitTileCacheArg = null;
     for( int i = 0; i<args.length; i++ ) {
       Regexer arg = new Regexer(args[i]);
       if( dashDashPos == -1 && arg.find("^-[^0-9]") ) {
@@ -72,7 +71,6 @@ public class Mapwarper {
     if( explicitTileCacheArg == null )
       System.err.println("Using tile cache at "+tileContext.caches.root);
     Tileset.defineStandardTilesets(tileContext);
-    tileContext.forgetUnusableTilesets();
 
     if( verb == null ) {
       command = new GuiCommand(this);

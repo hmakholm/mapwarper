@@ -1,35 +1,43 @@
 package net.makholm.henning.mapwarper.tiles;
 
+import java.net.http.HttpClient;
 import java.nio.file.Path;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import org.w3c.dom.Element;
+
+import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
+import net.makholm.henning.mapwarper.georaster.CoordsParser;
 import net.makholm.henning.mapwarper.georaster.PixelAddresser;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
+import net.makholm.henning.mapwarper.util.NiceError;
 
 public abstract class Tileset {
 
   public final TileContext context;
+  public final Element xmldef;
+
+  public final String name;
+  public final String desc;
+  public final List<String> blurb = new ArrayList<>();
+
+  public final int guiTargetZoom;
+  public final boolean isOverlayMap;
+  public final boolean darkenMap;
+  public final AxisRect boundingBox;
+
   protected final Path cacheRoot;
-
-  public static void defineStandardTilesets(TileContext ctx) {
-    OpenStreetMap.defineIn(ctx);
-    OpenTopoMap.defineIn(ctx);
-    Google.defineIn(ctx);
-    Bing.defineIn(ctx);
-    OpenRailwayMap.defineIn(ctx);
-    GeoDanmark.defineIn(ctx);
-    GeoDk2.defineIn(ctx);
-  }
-
-  protected boolean okayToUse() {
-    return true;
-  }
-
-  public int guiTargetZoom() {
-    return 16;
-  }
+  protected final String webUrlTemplate;
 
   /**
    * Create a pixel addresser for a particular resolution and area.
@@ -72,12 +80,6 @@ public abstract class Tileset {
 
   public abstract String tilename(long tile);
 
-  public abstract List<String> getCopyrightBlurb();
-
-  public boolean isOverlayMap() {
-    return false;
-  }
-
   /**
    * This default implementation supports generating a web url by
    * substitutions. It can be overridden for map sources that need
@@ -95,19 +97,138 @@ public abstract class Tileset {
 
   // -----------------------------------------------------
 
-  public final String name;
-  public final String desc;
-  protected final String webUrlTemplate;
+  public static Tileset create(TileContext ctx, String name, Element xml) {
+    String type = xml.getAttribute("type");
+    switch(type) {
+    case "": return new CommonWebTileset(ctx, name, xml);
+    case "bing": return new Bing(ctx, name, xml);
+    case "geodk": return new GeoDanmark(ctx, name, xml);
+    default: throw new DontUseThisTileset("Unknown tilset type '"+type+"'");
+    }
+  }
 
-  protected Tileset(TileContext ctx,
-      String name, String desc, String webUrlTemplate) {
+  public static void defineStandardTilesets(TileContext ctx) {
+    ctx.config.tagmap("tileset").forEach((name, xml) -> {
+      try {
+        Tileset tiles = create(ctx, name, xml);
+        if( tiles != null )
+          ctx.tilesets.put(name, tiles);
+      } catch( DontUseThisTileset e ) {
+        if( ctx.config.verbose )
+          System.err.println("Cannot construct tileset "+name+
+              ": "+e.getMessage());
+      }
+    });
+  }
+
+  @SuppressWarnings("serial")
+  protected static class DontUseThisTileset extends RuntimeException {
+    DontUseThisTileset(String msg) {
+      super(msg);
+    }
+  }
+
+  protected Tileset(TileContext ctx, String name, Element xml) {
     this.context = ctx;
+    this.xmldef = xml;
     this.name = name;
-    this.desc = desc;
-    this.webUrlTemplate = webUrlTemplate;
+    this.desc = xml.getAttribute("desc");
+    if( desc.isEmpty() ) throw new DontUseThisTileset("no desciption in XML");
+
+    this.webUrlTemplate = stringAttr("weburl", null);
     this.cacheRoot = ctx.caches.forTileset(this);
 
-    context.tilesets.put(name, this);
+    this.guiTargetZoom = intAttr("guiTargetZoom", 16);
+    this.isOverlayMap = "true".equals(xml.getAttribute("lensOnly"));
+    this.darkenMap = "true".equals(xml.getAttribute("darkenMap"));
+
+    AxisRect bbox = null;
+    var content = xml.getChildNodes();
+    for( int i=0; i<content.getLength(); i++ ) {
+      if( content.item(i) instanceof Element child ) {
+        switch( child.getTagName() ) {
+        case "blurb":
+          blurb.add(child.getTextContent());
+          break;
+        case "boundingBox":
+          var re = new CoordsParser(child.getTextContent().strip());
+          if( re.match("([0-9]+)::([0-9]+)") ) {
+            bbox = AxisRect.extend(bbox, Point.at(re.igroup(1), re.igroup(2)));
+          } else {
+            double[] geo = re.parseGeoreference();
+            if( geo != null ) {
+              var p = Point.at(WebMercator.fromLatlon(geo));
+              bbox = AxisRect.extend(bbox, p);
+            } else {
+              System.err.println("Ignoring unrecognized boundingbox point for "
+                  +name+": "+re.full);
+            }
+          }
+          break;
+        default:
+          break;
+        }
+      }
+    }
+    boundingBox = bbox;
+  }
+
+  protected String stringAttr(String attr, String defval) {
+    if( !xmldef.hasAttribute(attr) )
+      return defval;
+    else
+      return xmldef.getAttribute(attr);
+  }
+
+  protected int intAttr(String attr, int defval) {
+    if( !xmldef.hasAttribute(attr) )
+      return defval;
+    String s = xmldef.getAttribute(attr);
+    try {
+      return Integer.parseInt(s);
+    } catch( NumberFormatException e ) {
+      throw NiceError.of("tileset parameter %s.%s is not an integer: '%s'",
+          name, attr, s);
+    }
+  }
+
+  protected String withApikey(String template) {
+    if( template == null ) return template;
+    int i = template.indexOf("[APIKEY]");
+    if( i < 0 ) return template;
+    String key = context.config.string("apiKey", name);
+    if( key == null )
+      throw new DontUseThisTileset("Missing API key");
+    else
+      return template.substring(0,i)+key+template.substring(i+8);
+  }
+
+  protected HttpClient makeHttpClient() {
+    if( "true".equals(xmldef.getAttribute("disableHttpsValidation")) ) {
+      var builder = HttpClient.newBuilder();
+      TrustManager[] alwaysTrustAll = new TrustManager[] {
+          new X509TrustManager() {
+            @Override
+            public X509Certificate[] getAcceptedIssuers() { return null; }
+            @Override
+            public void checkClientTrusted(X509Certificate[] certs,
+                String authType) { }
+            @Override
+            public void checkServerTrusted(X509Certificate[] certs,
+                String authType) { }
+          }
+      };
+      try {
+        var sc = SSLContext.getInstance("SSL");
+        sc.init(null, alwaysTrustAll, null);
+        builder = builder.sslContext(sc);
+      } catch (NoSuchAlgorithmException | KeyManagementException e) {
+        e.printStackTrace();
+      }
+      return builder.build();
+    } else {
+      return context.http;
+    }
   }
 
 }

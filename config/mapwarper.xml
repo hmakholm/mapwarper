@@ -17,8 +17,7 @@
 -->
 <systemProperty name="sun.java2d.uiScale" value="1"/>
 
-<apiKey name="geodanmark"
-        username="IBJZYUIBGO" password="6qKAh-QH364c">
+<apiKey name="geodanmark" value="username=IBJZYUIBGO&amp;password=6qKAh-QH364c">
   <!-- https://confluence.sdfi.dk/pages/viewpage.action?pageId=13665234
 
        Via WebGIS er det muligt at se brugernavn/adgangskode for
@@ -34,5 +33,102 @@
 </apiKey>
 
 <swing name="lookAndFeel" value="javax.swing.plaf.nimbus.NimbusLookAndFeel"/>
+
+<!-- ============ T I L E S E T    D E F I N I T I O N S =================== -->
+
+<tileset name="osm"
+         desc="OpnStreetmap - Standard"
+         weburl="https://openstreetmap.org/?mlat=[LAT]&amp;mlon=[LON]&amp;zoom=[Z]"
+         tileurl="https://tile.openstreetmap.org/*.png"
+         darkenMap="true">
+  <blurb>&#x00A9; OpenStreetMap contributors</blurb>
+</tileset>
+
+<tileset name="osmhot"
+         desc="OpnStreetmap - Humanitarian"
+         weburl="https://openstreetmap.org/?mlat=[LAT]&amp;mlon=[LON]&amp;zoom=[Z]&amp;layers=H"
+         tileurl="https://a.tile.openstreetmap.fr/hot/*.png"
+         darkenMap="true">
+  <blurb>&#x00A9; OpenStreetMap contributors</blurb>
+  <!-- This might not be particularly useful - railways are not
+       especially visible in this rendering - but it is included to
+       help demonstrate tile provider agility. -->
+</tileset>
+
+<tileset name="transport"
+         desc="OpnStreetmap - Transport Map"
+         weburl="https://openstreetmap.org/?mlat=[LAT]&amp;mlon=[LON]&amp;zoom=[Z]&amp;layers=T"
+         tileurl="https://a.tile.thunderforest.com/transport/*.png?apikey=[APIKEY]"
+         darkenMap="true">
+  <blurb>&#x00A9; OpenStreetMap contributors</blurb>
+  <!-- One can get the API key without much subterfuge by inspecting
+       the web requests made by the slippy map viewer at
+       openstreeetmap.org, but I'd better not put it in the GitHub
+       repo anyway. You can put keys in your local config file if you
+       want. -->
+  <!-- The Transport layer at openstreetmap.org used to be one's best
+       option for clearly showing railways, but nowadays the default
+       style has been updated to use darker colors for railways, so
+       it's not as needed these days. -->
+</tileset>
+
+<tileset name="topo"
+         desc="OpenTopoMap"
+         weburl="https://opentopomap.org/#marker=[Z]/[LAT]/[LON]"
+         tileurl="https://a.tile.top-o-map.de/*.png"
+         guiTargetZoom="15"
+         darkenMap="true">
+  <blurb>&#x00A9; OpenStreetMap contributors</blurb>
+  <blurb>Map rendering &#x00A9; OpenTopoMap.org (CC-BY-SA)</blurb>
+</tileset>
+
+<tileset name="google"
+         desc="Google Maps aerophotos"
+         weburl="https://maps.google.com/?q=[LAT],[LON]&amp;ll=[LAT],[LON]&amp;z=[Z]"
+         tileurl="https://khms0.google.com/kh/v=1005?x=[X]&amp;y=[Y]&amp;z=[Z]"
+         extension=".jpg"
+         guiTargetZoom="18">
+  <blurb>&#x00A9; Google, I suppose...</blurb>
+  <!-- https://stackoverflow.com/questions/32806084/google-map-zoom-parameter-in-url-not-working -->
+</tileset>
+
+<tileset name="bing" type="bing"
+         desc="Bing Maps aerophotos"
+         weburl="https://www.bing.com/maps?v=2&amp;cp=[LAT]%7E[LON]&amp;style=l&amp;lvl=[Z]"
+         tileurl="https://t.ssl.ak.tiles.virtualearth.net/tiles/a*.jpeg?g=14736&amp;n=z&amp;prx=1"
+         extension=".jpg"
+         guiTargetZoom="18">
+  <blurb>&#x00A9; Microsoft, I suppose...</blurb>
+</tileset>
+
+<tileset name="openrail"
+         desc="OpenRailwayMap"
+         tileurl="https://a.tiles.openrailwaymap.org/standard/*.png"
+         tilesize="512" guiTargetZoom="20"
+         lensOnly="true">
+  <blurb>&#x00A9; OpenStreetMap contributors</blurb>
+  <blurb>Style: CC-BY-SA 2.0, OpenRailwayMap.org</blurb>
+</tileset>
+
+<tileset name="geodanmark"
+         desc="GeoDanmark orthophotos"
+         tileurl="https://services.datafordeler.dk/GeoDanmarkOrto/orto_foraar_webm/1.0.0/WMTS/orto_foraar_webm/default/DFD_GoogleMapsCompatible/[Z]/[Y]/[X].jpg?[APIKEY]"
+         disableHttpsValidation="true"
+         guiTargetZoom="18">
+  <blurb>Aerophotos cover Denmark only</blurb>
+  <blurb>From www.geodanmark.dk -- CC-BY-4.0</blurb>
+  <boundingBox>560922560::324748672</boundingBox>
+  <boundingBox>575166809::341940864</boundingBox>
+</tileset>
+
+<tileset name="geodk" type="geodk"
+         desc="GeoDanmark orthophotos"
+         disableHttpsValidation="true"
+         guiTargetZoom="18">
+  <blurb>Aerophotos cover Denmark only</blurb>
+  <blurb>EXPERIMENTAL; cannot actually download yet</blurb>
+  <boundingBox>560922560::324748672</boundingBox>
+  <boundingBox>575166809::341940864</boundingBox>
+</tileset>
 
 </config>

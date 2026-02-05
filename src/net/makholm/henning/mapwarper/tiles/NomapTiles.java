@@ -1,22 +1,26 @@
 package net.makholm.henning.mapwarper.tiles;
 
-import java.util.List;
+import org.w3c.dom.Element;
 
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.PixelAddresser;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.georaster.WebMercatorAddresser;
+import net.makholm.henning.mapwarper.util.XmlConfig;
 
 public class NomapTiles extends Tileset {
 
   protected NomapTiles(TileContext ctx) {
-    super(ctx, "nomap", "Uniform grey background map", null);
+    super(ctx, "nomap", syntheticXml());
   }
 
-  @Override
-  public List<String> getCopyrightBlurb() {
-    return List.of();
+  private static Element syntheticXml() {
+    Element elt = XmlConfig.freshElement("tileset");
+    elt.setAttribute("name", "nomap");
+    elt.setAttribute("desc", "Uniform grey background map");
+    return elt;
   }
+
 
   @Override
   public PixelAddresser makeAddresser(int zoom, Point p) {

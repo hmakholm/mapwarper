@@ -7,15 +7,28 @@ import java.nio.file.Path;
 
 import javax.imageio.ImageIO;
 
+import org.w3c.dom.Element;
+
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.util.NiceError;
 
 public abstract class DiskCachedTileset extends Tileset {
 
-  protected DiskCachedTileset(TileContext ctx, String name, String desc,
-      String extension, String webUrlTemplate) {
-    super(ctx, name, desc, webUrlTemplate);
-    this.extension = extension;
+  protected DiskCachedTileset(TileContext ctx, String name, Element xml) {
+    super(ctx, name, xml);
+    if( xml.hasAttribute("extension") ) {
+      extension = xml.getAttribute("extension");
+    } else {
+      String s = xml.getAttribute("tileurl");
+      if( s == null ) s = "(missing)";
+      int i = s.indexOf('?');
+      if( i < 0 ) i = s.length();
+      int j = s.lastIndexOf('.', i);
+      if( j < 0 )
+        throw NiceError.of("Cannot derive extension for %s from '%s'",
+            name, s);
+      extension = s.substring(j, i);
+    }
   }
 
   /** Most providers use 256-pixel tiles, but this can be overridden. */

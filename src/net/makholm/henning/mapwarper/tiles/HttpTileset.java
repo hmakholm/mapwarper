@@ -9,22 +9,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.w3c.dom.Element;
+
 public abstract class HttpTileset extends DiskCachedTileset {
 
-  protected HttpTileset(TileContext ctx, String name, String desc,
-      String extension, String webUrlTemplate) {
-    super(ctx, name, desc, extension, webUrlTemplate);
-    http = makeHttpClient(ctx);
+  protected HttpTileset(TileContext ctx, String name, Element xml) {
+    super(ctx, name, xml);
+    http = makeHttpClient();
   }
 
   public abstract String tileUrl(long tile);
 
   protected void finishRequest(HttpRequest.Builder request) {
     // Nothing by default
-  }
-
-  protected HttpClient makeHttpClient(TileContext ctx) {
-    return ctx.http;
   }
 
   protected final HttpClient http;

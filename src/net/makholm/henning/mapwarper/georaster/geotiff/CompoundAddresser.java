@@ -54,7 +54,7 @@ public abstract class CompoundAddresser implements PixelAddresser {
         int maxipixels, int minipixels, Point refpoint0) {
       super(maxipixels, minipixels);
       this.validity = validity;
-      this.refpoint = validity.clamp(refpoint0);
+      this.refpoint = validity == null ? refpoint0 : validity.clamp(refpoint0);
       utm.toUTM(refpoint0, E,  N);
       E.scale(1/maximeter);
       N.scale(1/maximeter);
@@ -63,7 +63,7 @@ public abstract class CompoundAddresser implements PixelAddresser {
 
     @Override
     public long locate(double x, double y) {
-      if( !validity.contains(x, y) )
+      if( validity != null && !validity.contains(x, y) )
         return 0;
 
       x -= refpoint.x;

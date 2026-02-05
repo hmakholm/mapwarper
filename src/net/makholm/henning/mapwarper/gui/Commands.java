@@ -169,7 +169,7 @@ public class Commands {
     TilesetCommands(String name) {
       Tileset tiles = mapView.tiles.tilesets.get(name);
       if( tiles != null ) {
-        if( tiles.isOverlayMap() )
+        if( tiles.isOverlayMap )
           just = ortho = weakOrtho = warp = null;
         else {
           just = new TilesetCommand("just", "Use in current projection",

@@ -73,7 +73,7 @@ public class FallbackChain {
       fallbackTooCloseZoom = 2;
     } else {
       fallbackEqualsMain = fallbackTiles == mainTiles;
-      fallbackNaturalZoom = Math.min(fallbackTiles.guiTargetZoom(),
+      fallbackNaturalZoom = Math.min(fallbackTiles.guiTargetZoom,
           naturalZoom(pixsizey, fallbackTiles));
 
       // fallbackMinDownload is when we have zoomed so far out that the

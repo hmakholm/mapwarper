@@ -35,11 +35,9 @@ public class XmlConfig {
   public String string(String tag, String name, String attr) {
     var elt = element(tag, name);
     if( elt == null ) return null;
-    var s = elt.getAttribute(attr);
-    if( s != null ) return s;
-    s = elt.getAttribute("value");
-    if( s != null ) return s;
-    s = elt.getTextContent().trim();
+    if( elt.hasAttribute(attr) ) return elt.getAttribute(attr);
+    if( elt.hasAttribute("value") ) return elt.getAttribute("value");
+    var s = elt.getTextContent().trim();
     if( !s.isEmpty() ) return s;
     return null;
   }
@@ -54,16 +52,20 @@ public class XmlConfig {
   }
 
   public void override(String tag, String name, String value) {
+    Element elt = freshElement(tag);
+    elt.setAttribute("name", name);
+    elt.setAttribute("value",  value);
+    makeTagmap(tag).put(name, elt);
+  }
+
+  public static Element freshElement(String tag) {
     try {
-      Element elt = DocumentBuilderFactory
+      return DocumentBuilderFactory
           .newInstance()
           .newDocumentBuilder()
           .newDocument()
           .createElement(tag);
-      elt.setAttribute("name", name);
-      elt.setAttribute("value",  value);
-      makeTagmap(tag).put(name, elt);
-    } catch (Exception e) {
+    } catch( ParserConfigurationException e) {
       e.printStackTrace();
       throw BadError.of("%s", e);
     }
@@ -150,8 +152,6 @@ public class XmlConfig {
       var node = nodes.item(i);
       if( node instanceof Element elt ) {
         String name = elt.getAttribute("name");
-        if( name == null )
-          name = "";
         makeTagmap(elt.getTagName()).putIfAbsent(name, elt);
       }
     }

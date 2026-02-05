@@ -75,7 +75,7 @@ public class WindowTitle {
         appendNumber(sb, "\u00d7", aff.squeeze, " ");
       }
 
-      int zoom = tiles.guiTargetZoom();
+      int zoom = tiles.guiTargetZoom;
       if( baseproj.isOrtho() ) {
         int natzoom = FallbackChain.naturalZoom(aff.scaleAcross, tiles);
         zoom = Math.min(zoom, natzoom);

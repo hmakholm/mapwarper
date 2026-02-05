@@ -32,8 +32,6 @@ import net.makholm.henning.mapwarper.gui.swing.SwingMapView;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.tiles.NomapTiles;
-import net.makholm.henning.mapwarper.tiles.OpenStreetMap;
-import net.makholm.henning.mapwarper.tiles.OpenTopoMap;
 import net.makholm.henning.mapwarper.tiles.TileContext;
 import net.makholm.henning.mapwarper.tiles.TileSpec;
 import net.makholm.henning.mapwarper.tiles.Tileset;
@@ -132,7 +130,7 @@ public final class MapView {
     if( mainTiles != tiles ) {
       mainTiles = tiles;
       toggleState &= ~Toggles.DARKEN_MAP.bit();
-      if( tiles instanceof OpenStreetMap || tiles instanceof OpenTopoMap )
+      if( tiles.darkenMap )
         toggleState |= Toggles.DARKEN_MAP.bit();
       if( mainTiles == fallbackTiles )
         toggleState |= Toggles.DOWNLOAD.bit();
@@ -217,7 +215,7 @@ public final class MapView {
   void setLens(BoxOverlay box) {
     lensRect = box;
     lensZoom = Math.min(naturalLensZoom(),
-        dynamicLensSpec.mainTiles().guiTargetZoom());
+        dynamicLensSpec.mainTiles().guiTargetZoom);
   }
 
   void cancelLens() {
@@ -249,7 +247,7 @@ public final class MapView {
   public final LayerSpec dynamicMapLayerSpec = new LayerSpec() {
     @Override public Projection projection() { return projection; }
     @Override public Tileset mainTiles() { return mainTiles; }
-    @Override public int targetZoom() { return mainTiles.guiTargetZoom(); }
+    @Override public int targetZoom() { return mainTiles.guiTargetZoom; }
     @Override public Tileset fallbackTiles() { return fallbackTiles; }
     @Override public DoubleSupplier windowDiagonal() { return globalWindowDiagonal; }
 
@@ -408,15 +406,15 @@ public final class MapView {
   public void defaultTilesetClickAction(Tileset targetTiles) {
     if( lensRect != null ) {
       lensTiles = targetTiles;
-      lensZoom = targetTiles.guiTargetZoom();
-    } else if( targetTiles.isOverlayMap() ) {
+      lensZoom = targetTiles.guiTargetZoom;
+    } else if( targetTiles.isOverlayMap ) {
       SwingUtils.beep();
     } else
       setMainTiles(targetTiles);
   }
 
   void orthoCommand(Tileset targetTiles, boolean downloading) {
-    int logPixsize = Coords.zoom2logPixsize(targetTiles.guiTargetZoom());
+    int logPixsize = Coords.zoom2logPixsize(targetTiles.guiTargetZoom);
     int naturalLogPixsize = logPixsize;
     double log2along = MathUtil.log2(projection.scaleAlong());
     double log2across = MathUtil.log2(projection.scaleAlong());
@@ -504,7 +502,7 @@ public final class MapView {
     var aff = projection.getAffinoid();
     squeeze.setSqueeze(aff, false);
     aff.scaleAcross = Math.min(aff.scaleAcross,
-        Coords.zoom2pixsize(tiles.guiTargetZoom()));
+        Coords.zoom2pixsize(tiles.guiTargetZoom));
     return baseWarp.apply(aff);
   }
 
@@ -548,7 +546,7 @@ public final class MapView {
       return null;
     } else return () -> {
       cancelLens();
-      int zoom = mainTiles.guiTargetZoom();
+      int zoom = mainTiles.guiTargetZoom;
       var addresser = mainTiles.makeAddresser(zoom, mouseGlobal);
       long shortcode = addresser.locate(mouseGlobal);
       if( shortcode == 0 ) {

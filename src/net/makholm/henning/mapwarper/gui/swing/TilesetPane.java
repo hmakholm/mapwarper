@@ -42,7 +42,7 @@ public class TilesetPane extends JPanel {
       add(label);
 
       font = font.deriveFont(font.getSize()*0.75f);
-      for( String annotation : tiles.getCopyrightBlurb() ) {
+      for( String annotation : tiles.blurb ) {
         label = new JLabel(annotation);
         label.setFont(font);
         add(label);

@@ -346,7 +346,7 @@ class MapPainter {
       this.flags = spec.flags();
       this.alphaBits = Toggles.LENS_MAP.setIn(flags) ? 0 : RGB.OPAQUE;
       if( Toggles.LENS_MAP.setIn(flags) &&
-          spec.targetZoom() <= spec.mainTiles().guiTargetZoom() ) {
+          spec.targetZoom() <= spec.mainTiles().guiTargetZoom ) {
         darkenShift = 3;
         darkenMask = 0x0000001F;
       } else if( Toggles.DARKEN_MAP.setIn(flags) ) {

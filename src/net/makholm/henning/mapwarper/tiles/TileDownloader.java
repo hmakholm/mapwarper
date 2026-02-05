@@ -90,7 +90,7 @@ public class TileDownloader {
           }
           long best = Long.MAX_VALUE;
           Point focus = TileDownloader.this.focus;
-          var addrr = tileset.makeAddresser(tileset.guiTargetZoom(), focus);
+          var addrr = tileset.makeAddresser(tileset.guiTargetZoom, focus);
           addrr.locate(focus);
           for( TileSpec spec : queue.keySet() ) {
             long priority = addrr.getDownloadPriority(spec.shortcode);

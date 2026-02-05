@@ -65,7 +65,7 @@ public class Teleporter {
     double invScale = Math.min(invXscale, invYscale);
     // convert to an actual pixsize while also rounding to a power of 1
     double scale = Math.scalb(1, -Math.getExponent(invScale));
-    int naturalScale = Coords.zoom2pixsize(tiles.guiTargetZoom());
+    int naturalScale = Coords.zoom2pixsize(tiles.guiTargetZoom);
     scale = Math.max(scale, naturalScale);
     projection = OrthoProjection.ORTHO.withScaleAcross(scale);
     translator = projection.createWorker();
