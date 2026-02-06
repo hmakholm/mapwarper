@@ -85,7 +85,7 @@
 <tileset name="google"
          desc="Google Maps aerophotos"
          weburl="https://maps.google.com/?q=[LAT],[LON]&amp;ll=[LAT],[LON]&amp;z=[Z]"
-         tileurl="https://khms0.google.com/kh/v=1005?x=[X]&amp;y=[Y]&amp;z=[Z]"
+         tileurl="https://khms0.google.com/kh/v=1008?x=[X]&amp;y=[Y]&amp;z=[Z]"
          extension=".jpg"
          guiTargetZoom="18">
   <blurb>&#x00A9; Google, I suppose...</blurb>
