@@ -239,6 +239,19 @@ public class CompoundDecoder {
   // Code to watch a download in progress and signal when each minitile
   // it can produce has been received.
 
+  /**
+   * If this is overridden to sometimes return false, the snooper may
+   * throw {@code GotEverythingWanted} when it has seen all of the
+   * wanted tiles.
+   */
+  protected boolean isOtherMinitileWanted(long wantedTile,
+      long foundTile, int endOffset) {
+    return true;
+  }
+
+  @SuppressWarnings("serial")
+  public static class GotEverythingWanted extends RuntimeException {}
+
   private static record Milestone(int bytes, long tilespec) { }
 
   public class DownloadSnooper implements Consumer<ByteBuffer> {
@@ -250,6 +263,7 @@ public class CompoundDecoder {
     private ByteBuffer headBuffer;
     private PriorityQueue<Milestone> milestones = new PriorityQueue<>(
         (a,b) -> Integer.compare(a.bytes(), b.bytes()));
+    private int bytesWanted = Integer.MAX_VALUE;
 
     public DownloadSnooper(long tilespec, LongConsumer callback) {
       this.tilespec = tilespec;
@@ -289,6 +303,10 @@ public class CompoundDecoder {
       while( !milestones.isEmpty() &&
           bytesSeen >= milestones.peek().bytes() )
         callback.accept(milestones.remove().tilespec());
+      if( bytesSeen >= bytesWanted ) {
+        System.err.println("We have "+bytesSeen+" bytes, more than the "+bytesWanted+" we want.");
+        throw new GotEverythingWanted();
+      }
     }
 
     private void analyzeHead(ByteBuffer buf) {
@@ -301,6 +319,9 @@ public class CompoundDecoder {
         throw NiceError.of("The TIFF is not head-heavy");
       int tilex = tilex(tilespec);
       int tiley = tiley(tilespec);
+      int maxEndOffset = 0;
+      int maxWanted = 0;
+      boolean anyUnwanted = false;
       for( int idtCount=0; ; tiff = tiff.next(), idtCount++ ) {
         if( tiff == null )
           throw NiceError.of("TIFF is truncated after "+idtCount+" images");
@@ -324,11 +345,23 @@ public class CompoundDecoder {
                     tiff.getNumber(Tiff.TILE_BYTE_COUNTS, tidx, 0).intValue();
                 long tspec = codemaker.makeShortcode(tilex, tiley, x, y);
                 milestones.add(new Milestone(endOffset, tspec));
+
+                if( endOffset > maxEndOffset ) maxEndOffset = endOffset;
+                if( tspec == this.tilespec ||
+                    isOtherMinitileWanted(this.tilespec, tspec, endOffset) ) {
+                  if( endOffset > maxWanted ) maxWanted = endOffset;
+                } else {
+                  anyUnwanted = true;
+                }
               }
           }
         }
         if( !tiff.hasNext() )
-          return;
+          break;
+      }
+      // Only cut the download short if we can save at least 1/8 of the work
+      if( anyUnwanted && maxWanted < maxEndOffset - (maxEndOffset>>3) ) {
+        bytesWanted = maxWanted;
       }
     }
   }

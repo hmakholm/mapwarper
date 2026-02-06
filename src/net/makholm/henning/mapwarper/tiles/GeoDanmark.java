@@ -15,6 +15,7 @@ import org.w3c.dom.Element;
 
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.CompoundAddresser;
+import net.makholm.henning.mapwarper.georaster.CompoundShortcode;
 import net.makholm.henning.mapwarper.georaster.PixelAddresser;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.georaster.UTM;
@@ -72,7 +73,16 @@ public class GeoDanmark extends Tileset {
     return s;
   }
 
-  private static final CompoundDecoder decoder = new CompoundDecoder();
+  private static final CompoundDecoder decoder = new CompoundDecoder() {
+    @Override
+    protected boolean isOtherMinitileWanted(long wantedTile,
+        long foundTile, int endOffset) {
+      int wantSize = CompoundShortcode.maxisize(wantedTile);
+      int foundSize = CompoundShortcode.maxisize(foundTile);
+      return foundSize <= wantSize || foundSize <= 1000 ||
+          endOffset <= 1048576;
+    }
+  };
 
   @Override
   protected TileBitmap loadTile(long tile) throws IOException {
@@ -151,14 +161,18 @@ public class GeoDanmark extends Tileset {
     } catch( InterruptedException e ) {
       throw new RuntimeException("This shouldn't happen", e);
     } catch( IOException e ) {
-      Files.deleteIfExists(dest);
-      String msg = e.getMessage();
-      if( msg != null ) {
-        if( msg.indexOf("Connection reset") >= 0 ) {
-          throw new TryDownloadLater(e);
+      if( e.getCause() instanceof CompoundDecoder.GotEverythingWanted ) {
+        // Very well.
+      } else {
+        Files.deleteIfExists(dest);
+        String msg = e.getMessage();
+        if( msg != null ) {
+          if( msg.indexOf("Connection reset") >= 0 ) {
+            throw new TryDownloadLater(e);
+          }
         }
+        throw e;
       }
-      throw e;
     }
     var seconds = (System.nanoTime()-starttime)/1e9;
     System.err.printf(Locale.ROOT,"  (got %s with %d bytes in %.1f seconds)\n",
