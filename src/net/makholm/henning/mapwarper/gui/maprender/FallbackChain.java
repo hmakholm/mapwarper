@@ -122,6 +122,7 @@ public class FallbackChain {
         addAttempt(mainZoomToUse, false, true);
         result = accumulatedBits;
         accumulatedBits = 0;
+        numAttempts = 0;
         addAttempt(mainZoomToUse, false, false);
       } else {
         addAttempt(mainZoomToUse, false, false);
@@ -148,6 +149,8 @@ public class FallbackChain {
     boolean stopDownloading = false;
     while( numAttempts < MAX_ATTEMPTS &&
         fallbackZoom >= 1 ) {
+      if( numAttempts == MAX_ATTEMPTS-1 && fallbackZoom % 2 == 0 )
+        fallbackZoom--;
       boolean download =
           !stopDownloading &&
           fallbackZoom <= fallbackNaturalZoom-2 &&
@@ -194,6 +197,7 @@ public class FallbackChain {
   }
 
   public long getChain() {
+    // System.out.println("Created chain: "+toString(accumulatedBits));
     return accumulatedBits;
   }
 

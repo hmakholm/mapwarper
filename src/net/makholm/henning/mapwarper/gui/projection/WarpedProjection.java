@@ -182,7 +182,7 @@ public final class WarpedProjection extends BaseProjection {
           xscale, yscale, target, recipe);
     } else {
       supersamplingChain = fallback.supersampleMain(true);
-      fallback.attemptFallbacks(0);
+      fallback.attemptFallbacks(3);
       fallbackChain = fallback.getChain();
       long marginChain =
           FallbackChain.neverDownload(supersamplingChain) | fallbackChain;

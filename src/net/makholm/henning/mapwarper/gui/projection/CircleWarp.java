@@ -181,7 +181,7 @@ public class CircleWarp extends BaseProjection {
       fallbackChain = 0;
     } else {
       supersamplingChain = fallback.supersampleMain(false);
-      fallback.attemptFallbacks(0);
+      fallback.attemptFallbacks(3);
       fallbackChain = fallback.getChain();
     }
 

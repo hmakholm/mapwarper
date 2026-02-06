@@ -74,7 +74,7 @@ public final class OrthoProjection extends BaseProjection {
       chain = fallback.lensChain();
     } else if( Toggles.DOWNLOAD.setIn(spec.flags())) {
       fallback.attemptMain();
-      fallback.attemptFallbacks(2);
+      fallback.attemptFallbacks(3);
       chain = fallback.getChain();
     } else {
       chain = fallback.weakChain(WEAK_SHRINK);
