@@ -13,24 +13,9 @@
 
 <!--
     Change this to 2 for a for a 4K display. I haven't found a
-    reliable way to autodetect this situation, sorry.
+    reliable way to autodetect the need for this, sorry.
 -->
 <systemProperty name="sun.java2d.uiScale" value="1"/>
-
-<apiKey name="geodanmark" value="username=IBJZYUIBGO&amp;password=6qKAh-QH364c">
-  <!-- https://confluence.sdfi.dk/pages/viewpage.action?pageId=13665234
-
-       Via WebGIS er det muligt at se brugernavn/adgangskode for
-       tjenestebrugere ved hjælp af udviklerværktøjerne i en browser.
-       Da det er offentlige frie data, så betyder det ikke
-       rettighedsmæssigt noget, at brugernavn og adgangskode for
-       tjenestebrugeren bliver vist.
-
-       Brug en unik eller en autogenereret adgangskode til hver tjenestebruger.
-       Du skal ikke genbruge adgangskoder fra andre systemer eller
-       enheder.
-  -->
-</apiKey>
 
 <swing name="lookAndFeel" value="javax.swing.plaf.nimbus.NimbusLookAndFeel"/>
 
@@ -61,15 +46,6 @@
          tileurl="https://a.tile.thunderforest.com/transport/*.png?apikey=[APIKEY]"
          darkenMap="true">
   <blurb>&#x00A9; OpenStreetMap contributors</blurb>
-  <!-- One can get the API key without much subterfuge by inspecting
-       the web requests made by the slippy map viewer at
-       openstreeetmap.org, but I'd better not put it in the GitHub
-       repo anyway. You can put keys in your local config file if you
-       want. -->
-  <!-- The Transport layer at openstreetmap.org used to be one's best
-       option for clearly showing railways, but nowadays the default
-       style has been updated to use darker colors for railways, so
-       it's not as needed these days. -->
 </tileset>
 
 <tileset name="topo"
@@ -90,6 +66,11 @@
          guiTargetZoom="18">
   <blurb>&#x00A9; Google, I suppose...</blurb>
   <!-- https://stackoverflow.com/questions/32806084/google-map-zoom-parameter-in-url-not-working -->
+  <!-- The `v` parameter in the URL increases from time to time, but
+       in lockstep globally. It seems to refer to a generation of the
+       aerophoto dataset: successive v numbers give different photos
+       in _some_ locations, but not everywhere. I bump it to whatever
+       google.com/maps uses when I remember to check. -->
 </tileset>
 
 <tileset name="bing" type="bing"
@@ -115,11 +96,29 @@
          tileurl="https://services.datafordeler.dk/GeoDanmarkOrto/orto_foraar_webm/1.0.0/WMTS/orto_foraar_webm/default/DFD_GoogleMapsCompatible/[Z]/[Y]/[X].jpg?[APIKEY]"
          disableHttpsValidation="true"
          guiTargetZoom="18">
+  <!-- Beware: this tileset is scheduled to go away in mid-2026. After
+       that you'll need to use the definition below instead.
+       Unfortunately there's more red tape _and_ more downloading
+       involved there. -->
   <blurb>Aerophotos cover Denmark only</blurb>
   <blurb>From www.geodanmark.dk -- CC-BY-4.0</blurb>
   <boundingBox>560922560::324748672</boundingBox>
   <boundingBox>575166809::341940864</boundingBox>
 </tileset>
+<apiKey name="geodanmark" value="username=IBJZYUIBGO&amp;password=6qKAh-QH364c">
+  <!-- https://confluence.sdfi.dk/pages/viewpage.action?pageId=13665234
+
+       Via WebGIS er det muligt at se brugernavn/adgangskode for
+       tjenestebrugere ved hjælp af udviklerværktøjerne i en browser.
+       Da det er offentlige frie data, så betyder det ikke
+       rettighedsmæssigt noget, at brugernavn og adgangskode for
+       tjenestebrugeren bliver vist.
+
+       Brug en unik eller en autogenereret adgangskode til hver tjenestebruger.
+       Du skal ikke genbruge adgangskoder fra andre systemer eller
+       enheder.
+  -->
+</apiKey>
 
 <tileset name="geodk" type="geodk"
          desc="GeoDanmark orthophotos (1&#x00D7;1 km tiles)"

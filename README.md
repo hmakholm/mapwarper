@@ -38,7 +38,7 @@ useful because it contains track numbers in many locations
    Style: [CC-BY-SA 2.0](http://creativecommons.org/licenses/by-sa/2.0/)
    [OpenRailwayMap](http://www.openrailwaymap.org/).
 
-### Aerophotos
+### Global aerophoto services
 
 The aerophoto views use orthophoto tiles from
 [Google Maps](https://www.google.com/maps)
@@ -60,6 +60,17 @@ If either provider actively complains to me, I suppose I can rewrite
 the code to load an API key from a local configuration file and
 require the user to acquire one themself, but I so far I'm not
 bothering.
+
+### National areophoto collections
+
+#### Denmark
+
+The national mapping agency
+[@geodanmark](https://www.geodanmark.dk/home/vejledninger/vilkaar-for-data-anvendelse/)
+provides excellent orthophotos licensed as CC-BY-4.0.  Getting them
+from their web server is slightly clunky, though -- you may need to
+create and configure an API key to use it with Mapwarper. See
+`apikeys.md` for details.
 
 ## Installation
 
@@ -86,7 +97,8 @@ box!
 From time to time (if people bug me for it) I might release a
 pre-built JAR for the benefit of people who only have a Java Runtime
 Environment installed. You'll still want to check out the source tree
-from Git in order to get my example warp definitions.
+from Git in order to get the XML config file that defines tileset
+sources, and my example warp definitions.
 
 Strictly speaking I don't _know_ the program will work on MacOS or
 Windows, but Swing claims to be cross-platform, so there's at least a
@@ -107,7 +119,8 @@ out once you're done playing.
 
 With a 4K display you need to add a `-Dsun.java2d.uiScale=2` argument
 to the `java` command line, at least on Linux. (I haven't found a
-robust way to autodetect the need for this yet).
+robust way to autodetect the need for this yet). You can also specify
+this in the program's XML config file.
 
 ## Getting started
 
