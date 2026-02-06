@@ -370,7 +370,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     logic.mouseLocal = windowMousePosition.plus(offsetAsVector());
     logic.mouseGlobal = logic.translator().local2global(logic.mouseLocal);
     renderQueue.offerMousePosition(logic.mouseLocal);
-    logic.tiles.downloader.offerMousePosition(logic.mouseGlobal);
+    logic.tiles.downloadFocus = logic.mouseGlobal;
     if( mousePosForTool != OUTSIDE_WINDOW )
       mousePosForTool = logic.mouseLocal;
   }

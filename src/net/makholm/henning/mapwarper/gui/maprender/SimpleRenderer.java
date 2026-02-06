@@ -3,7 +3,6 @@ package net.makholm.henning.mapwarper.gui.maprender;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.rgb.RGB;
-import net.makholm.henning.mapwarper.tiles.TileCache;
 import net.makholm.henning.mapwarper.util.AbortRendering;
 
 /**
@@ -27,12 +26,14 @@ public abstract class SimpleRenderer extends CommonRenderer {
 
   @Override
   public final void doSomeWork() throws AbortRendering {
-    if( cacheLookupLevel == TileCache.DOWNLOAD ) {
+    if( cacheLookupLevel == LookupLevel.DOWNLOAD ) {
       // Keep it like that
     } else if( renderPassesCompleted == 0 )
-      cacheLookupLevel = TileCache.RAM;
+      cacheLookupLevel = LookupLevel.RAM;
+    else if( renderPassesCompleted == renderPassesWanted-1 )
+      cacheLookupLevel = LookupLevel.DOWNLOAD;
     else
-      cacheLookupLevel = TileCache.DISK;
+      cacheLookupLevel = LookupLevel.DISK;
     oneRenderPass();
     renderPassesCompleted++;
     if( renderPassesCompleted < renderPassesWanted ) {

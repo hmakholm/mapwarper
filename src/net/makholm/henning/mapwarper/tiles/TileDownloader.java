@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.tiles;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -9,115 +10,97 @@ import java.util.function.Consumer;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.util.BackgroundThread;
+import net.makholm.henning.mapwarper.util.BadError;
 
-public class TileDownloader {
+class TileDownloader extends BackgroundThread {
 
-  private final Map<Tileset, DownloadThread> threads = new LinkedHashMap<>();
+  final Tileset tileset;
+  final TileContext context;
+  final TileCache cache;
 
-  private volatile Point focus;
+  private boolean startedYet;
+  private final Map<TileSpec, Set<Consumer<TileBitmap>>> queue =
+      new LinkedHashMap<>();
+  private final Map<TileSpec, Set<Consumer<TileBitmap>>> watchers =
+      new LinkedHashMap<>();
 
-  public void offerMousePosition(Point global) {
-    focus = global;
+  TileDownloader(Tileset tileset) {
+    super("Tile downloader "+tileset.name);
+    this.tileset = tileset;
+    this.context = tileset.context;
+    this.cache = context.ramCache;
   }
 
-  /**
-   * @return a {@link Runnable} that will cancel the request
-   */
-  public Runnable request(TileSpec spec, Consumer<TileBitmap> whenDone) {
-    DownloadThread dt;
-    synchronized(threads) {
-      dt = threads.computeIfAbsent(spec.tileset, DownloadThread::new);
-    }
-    return dt.subscribe(dt.queue, spec, whenDone);
-  }
-
-  public Runnable watch(TileSpec spec, Consumer<TileBitmap> whenDone) {
-    DownloadThread dt;
-    synchronized(threads) {
-      dt = threads.computeIfAbsent(spec.tileset, DownloadThread::new);
-    }
-    return dt.subscribe(dt.watchers, spec, whenDone);
-  }
-
-  private class DownloadThread extends BackgroundThread {
-    final TileCache cache ;
-    final Tileset tileset;
-
-    final Map<TileSpec, Set<Consumer<TileBitmap>>> queue =
-        new LinkedHashMap<>();
-    final Map<TileSpec, Set<Consumer<TileBitmap>>> watchers =
-        new LinkedHashMap<>();
-
-    DownloadThread(Tileset tileset) {
-      super("Tile downloader "+tileset.name);
-      this.tileset = tileset;
-      this.cache = tileset.context.ramCache;
-      start();
-    }
-
-    private Runnable subscribe(Map<TileSpec, Set<Consumer<TileBitmap>>> map,
-        TileSpec spec, Consumer<TileBitmap> whenDone) {
-      synchronized( this ) {
-        Set<Consumer<TileBitmap>> subscribers =
-            map.computeIfAbsent(spec, spec0 -> new LinkedHashSet<>());
-        subscribers.add(whenDone);
-        if( map == queue ) notify();
+  public Runnable subscribe(boolean eager,
+      TileSpec spec, Consumer<TileBitmap> whenDone) {
+    if( spec.tileset != tileset )
+      throw BadError.of("Tileset mismatch, %s vs %s", spec.tileset, tileset);
+    var map = eager ? queue : watchers;
+    synchronized( this ) {
+      Set<Consumer<TileBitmap>> subscribers =
+          map.computeIfAbsent(spec, spec0 -> new LinkedHashSet<>());
+      subscribers.add(whenDone);
+      if( eager ) {
+        if( startedYet ) {
+          notify();
+        } else {
+          System.out.println("Starting "+this+" for "+spec);
+          start();
+          startedYet = true;
+        }
       }
-      return () -> {
-        synchronized( DownloadThread.this ) {
-          Set<Consumer<TileBitmap>> subscribers = map.get(spec);
-          if( subscribers != null ) {
-            subscribers.remove(whenDone);
-            if( subscribers.isEmpty() ) map.remove(spec);
-          }
-        }
-      };
     }
+    return () -> {
+      synchronized( TileDownloader.this ) {
+        Set<Consumer<TileBitmap>> subscribers = map.get(spec);
+        if( subscribers != null ) {
+          subscribers.remove(whenDone);
+          if( subscribers.isEmpty() ) map.remove(spec);
+        }
+      }
+    };
+  }
 
-    @Override
-    public void run() {
-      int backoffSecs = 0;
-      for(;;) {
-        TileSpec toDownload = null;
-        synchronized(this) {
-          while( queue.isEmpty() ) {
-            try {
-              wait();
-            } catch (InterruptedException e) {
-              scheduleAbort(e, null);
-              return;
-            }
-          }
-          long best = Long.MAX_VALUE;
-          Point focus = TileDownloader.this.focus;
-          var addrr = tileset.makeAddresser(tileset.guiTargetZoom, focus);
-          addrr.locate(focus);
-          for( TileSpec spec : queue.keySet() ) {
-            long priority = addrr.getDownloadPriority(spec.shortcode);
-            if( priority <= best ) {
-              toDownload = spec;
-              best = priority;
-            }
-          }
-          if( queue.get(toDownload).isEmpty() ) {
-            queue.remove(toDownload);
-            continue;
+  @Override
+  public void run() {
+    int backoffSecs = 0;
+    for(;;) {
+      TileSpec toDownload = null;
+      synchronized(this) {
+        while( queue.isEmpty() ) {
+          try {
+            wait();
+          } catch (InterruptedException e) {
+            scheduleAbort(e, null);
+            return;
           }
         }
-
-        // Make sure we try to load from disk first; otherwise another render
-        // thread that just wanted to check the disk risks blocking on _this_
-        // thread actually downloading.
-        // (There's still a race where this can happen, unfortunately,
-        // but hopefully it's rare).
-        TileBitmap got;
-        try {
-          got = cache.getTile(toDownload, TileCache.DISK);
-          if( got == null ) {
-            got = cache.getTile(toDownload, TileCache.DOWNLOAD);
-            if( got != null )
-              backoffSecs = backoffSecs / 2;
+        long best = Long.MAX_VALUE;
+        Point focus = context.downloadFocus;
+        var addrr = tileset.makeAddresser(tileset.guiTargetZoom, focus);
+        addrr.locate(focus);
+        for( TileSpec spec : queue.keySet() ) {
+          long priority = addrr.getDownloadPriority(spec.shortcode);
+          if( priority <= best ) {
+            toDownload = spec;
+            best = priority;
           }
+        }
+        if( queue.get(toDownload).isEmpty() ) {
+          queue.remove(toDownload);
+          continue;
+        }
+      }
+
+      // It's possible that it's become possible to simply _load_ the tile
+      // while it was waiting in the queue, so try that first.
+      TileBitmap got = cache.getTile(toDownload, true);
+      if( got == null ) {
+        try {
+          tileset.downloadTile(toDownload.shortcode);
+        } catch( IOException e ) {
+          scheduleAbort(e, null);
+          return;
         } catch( TryDownloadLater e ) {
           backoffSecs = Math.max(1, backoffSecs * 2);
           backoffSecs = Math.min(3600, backoffSecs);
@@ -133,20 +116,26 @@ public class TileDownloader {
             return;
           }
         }
-
-        Set<Consumer<TileBitmap>> toCall1, toCall2;
-        synchronized(this) {
-          toCall1 = queue.remove(toDownload);
-          toCall2 = watchers.remove(toDownload);
-        }
-        var finalGot = got;
-        if( toCall1 != null )
-          toCall1.forEach(c -> c.accept(finalGot));
-        if( toCall2 != null )
-          toCall2.forEach(c -> c.accept(finalGot));
+        got = cache.invalidateMissingAndGet(toDownload, true);
+        if( got == null )
+          throw BadError.of("Failed to load %s even after downloading",
+              tileset.tilename(toDownload.shortcode));
+        backoffSecs = backoffSecs / 2;
       }
+      deliverToSubscribers(toDownload, got);
     }
+  }
 
+  private void deliverToSubscribers(TileSpec spec, TileBitmap finalGot) {
+    Set<Consumer<TileBitmap>> toCall1, toCall2;
+    synchronized(this) {
+      toCall1 = queue.remove(spec);
+      toCall2 = watchers.remove(spec);
+    }
+    if( toCall1 != null )
+      toCall1.forEach(c -> c.accept(finalGot));
+    if( toCall2 != null )
+      toCall2.forEach(c -> c.accept(finalGot));
   }
 
 }

@@ -21,10 +21,8 @@ import net.makholm.henning.mapwarper.georaster.PixelAddresser;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.rgb.RGB;
-import net.makholm.henning.mapwarper.tiles.TileCache;
 import net.makholm.henning.mapwarper.tiles.TileSpec;
 import net.makholm.henning.mapwarper.tiles.Tileset;
-import net.makholm.henning.mapwarper.tiles.TryDownloadLater;
 import net.makholm.henning.mapwarper.util.AbortRendering;
 import net.makholm.henning.mapwarper.util.BadError;
 
@@ -64,7 +62,7 @@ abstract class CommonRenderer implements RenderWorker {
             target.top()+target.rows()/2));
 
     this.cacheLookupLevel =
-        target.eagerDownload() ? TileCache.DOWNLOAD : TileCache.DISK;
+        target.eagerDownload() ? LookupLevel.DOWNLOAD : LookupLevel.DISK;
 
     markAllForRendering();
   }
@@ -125,7 +123,9 @@ abstract class CommonRenderer implements RenderWorker {
       int ymin, int ymax, double ybase);
 
   private int currentColumn;
-  protected byte cacheLookupLevel = TileCache.DISK;
+
+  protected enum LookupLevel { RAM, DISK, DOWNLOAD };
+  protected LookupLevel cacheLookupLevel = LookupLevel.DISK;
 
   protected final int getPixel(Point p, long fallbackSpec) {
     return getPixel(p.x, p.y, fallbackSpec);
@@ -165,11 +165,8 @@ abstract class CommonRenderer implements RenderWorker {
         if( nt.checkedCache ) {
           bitmap = nt.midcache;
         } else {
-          try {
-            bitmap = nt.tileset.context.ramCache.getTile(nt, cacheLookupLevel);
-          } catch( TryDownloadLater e ) {
-            bitmap = null;
-          }
+          bitmap = nt.tileset.context.ramCache.getTile(nt,
+              cacheLookupLevel != LookupLevel.RAM);
           nt.midcache = bitmap;
           nt.checkedCache = true;
         }
@@ -177,7 +174,7 @@ abstract class CommonRenderer implements RenderWorker {
           if( currentColumn > nt.xmax ) nt.xmax = currentColumn;
           if( currentColumn < nt.xmin ) nt.xmin = currentColumn;
           if( (aspec & DOWNLOAD_BIT) != 0 &&
-              cacheLookupLevel == TileCache.DISK &&
+              cacheLookupLevel == LookupLevel.DOWNLOAD &&
               !addresser.onTileEdge() ) {
             nt.requestDownload();
           } else {
@@ -243,15 +240,13 @@ abstract class CommonRenderer implements RenderWorker {
 
     void requestDownload() {
       if( downloadRequested == null ) {
-        downloadRequested =
-            tileset.context.downloader.request(this, this::downloadComplete);
+        downloadRequested = request(this::downloadComplete);
       }
     }
 
     void watchForDownload() {
       if( downloadWatched == null && downloadRequested == null ) {
-        downloadWatched =
-            tileset.context.downloader.watch(this, this::downloadComplete);
+        downloadWatched = watch(this::downloadComplete);
       }
     }
 

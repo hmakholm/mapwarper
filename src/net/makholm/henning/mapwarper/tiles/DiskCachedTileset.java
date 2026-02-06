@@ -10,9 +10,14 @@ import javax.imageio.ImageIO;
 import org.w3c.dom.Element;
 
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
+import net.makholm.henning.mapwarper.util.KeyedLock;
 import net.makholm.henning.mapwarper.util.NiceError;
 
 public abstract class DiskCachedTileset extends Tileset {
+
+  public final String extension;
+
+  private final KeyedLock<Path> downloadLock = new KeyedLock<>();
 
   protected DiskCachedTileset(TileContext ctx, String name, Element xml) {
     super(ctx, name, xml);
@@ -44,8 +49,6 @@ public abstract class DiskCachedTileset extends Tileset {
   public abstract void produceTileInFile(long tile, Path dest)
       throws IOException, TryDownloadLater;
 
-  public final String extension;
-
   /**
    * This methods should implicitly use the {@link #cacheRoot} field
    * to construct the path.
@@ -59,54 +62,43 @@ public abstract class DiskCachedTileset extends Tileset {
     return javaImage;
   }
 
-  private BufferedImage produceTileInRam(long tile, boolean allowDownload)
-      throws TryDownloadLater {
+  private BufferedImage produceTileInRam(long tile) throws IOException {
     Path file = fileForTile(tile);
     if( Files.isRegularFile(file) ) {
       context.diskCacheHits.incrementAndGet();
-      try {
+      try( var locked = downloadLock.tryReader(file) ) {
+        if( locked == null ) return null;
         return readFromFile(file);
       } catch( IOException e ) {
-        System.err.println("Failed to read cached "+file+
-            "; attempting redownload");
         tryDeleteFile(file);
+        throw e;
       }
     }
-    if( !allowDownload )
-      return null;
-    try {
-      file.getParent().toFile().mkdirs();
-      produceTileInFile(tile, file);
-    } catch( IOException e ) {
-      tryDeleteFile(file);
-      e.printStackTrace();
-      String msg = e.getMessage();
-      if( msg == null || msg.isEmpty() )
-        msg = e.getClass().getName();
-      throw NiceError.of("Failed to download %s: %s",
-          tilename(tile), msg);
-    } catch( TryDownloadLater e ) {
-      tryDeleteFile(file);
-      throw e;
-    }
-    try {
-      return readFromFile(file);
-    } catch( IOException e ) {
-      tryDeleteFile(file);
-      throw NiceError.of("Could not read freshly downloaded %s: %s",
-          tilename(tile), e.getMessage());
-    }
+    return null;
   }
 
   @Override
-  public TileBitmap loadTile(long tile, boolean allowDownload) throws TryDownloadLater {
-    var rawBitmap = produceTileInRam(tile, allowDownload);
+  public TileBitmap loadTile(long tile) throws IOException {
+    var rawBitmap = produceTileInRam(tile);
     if( rawBitmap == null ) return null;
     var tilesize = tilesize(tile);
     if( rawBitmap.getWidth() != tilesize || rawBitmap.getHeight() != tilesize )
-      throw NiceError.of("Tile provider '%s' made %dx%d tile for %s; expected %dx%d",
-          name, rawBitmap.getWidth(), rawBitmap.getHeight(), tile, tilesize, tilesize);
+      throw NiceError.of("Got %dx%d tile for %s; expected %dx%d",
+          rawBitmap.getWidth(), rawBitmap.getHeight(), tilename(tile),
+          tilesize, tilesize);
     return TileBitmap.of(rawBitmap);
+  }
+
+  @Override
+  public void downloadTile(long tile) throws IOException, TryDownloadLater {
+    Path file = fileForTile(tile);
+    try( var locked = downloadLock.takeWriter(file) ) {
+      file.getParent().toFile().mkdirs();
+      produceTileInFile(tile, file);
+    } catch( IOException | TryDownloadLater e ) {
+      tryDeleteFile(file);
+      throw e;
+    }
   }
 
   protected static void tryDeleteFile(Path file) {

@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import net.makholm.henning.mapwarper.geometry.Point;
+import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.util.XmlConfig;
 
 public class TileContext {
@@ -22,7 +24,8 @@ public class TileContext {
   public AtomicLong downloadedBytes = new AtomicLong(0);
 
   public final TileCache ramCache = new TileCache();
-  public final TileDownloader downloader = new TileDownloader();
+
+  public volatile Point downloadFocus = Point.at(Coords.EARTH_SIZE/2, Coords.EARTH_SIZE/2);
 
   public TileContext(XmlConfig config, HttpClient http) {
     this.config = config;

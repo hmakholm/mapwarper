@@ -45,7 +45,7 @@ public class GeoDanmark extends Tileset {
   private static final CompoundDecoder decoder = new CompoundDecoder();
 
   @Override
-  public TileBitmap loadTile(long tile, boolean allowDownload) throws TryDownloadLater {
+  public TileBitmap loadTile(long tile) {
     var path = fileForMaxitile(tile);
     TileBitmap got;
     try {
@@ -59,10 +59,13 @@ public class GeoDanmark extends Tileset {
     }
     if( got.numPixels > 1 )
       return got;
-    else if( !allowDownload )
-      return null;
     else
       return CompoundAddresser.pseudotile(tile, got.pixelByIndex(0));
+  }
+
+  @Override
+  protected void downloadTile(long tile) {
+    // We can't actually download yet
   }
 
   @Override

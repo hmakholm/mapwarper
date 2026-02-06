@@ -553,8 +553,8 @@ public final class MapView {
         SwingUtils.beep();
       } else {
         cancelLastGetTile.run();
-        cancelLastGetTile = mainTiles.context.downloader.request(
-            new TileSpec(mainTiles, shortcode), dummyDownloadConsumer);
+        cancelLastGetTile =
+            new TileSpec(mainTiles, shortcode).request(dummyDownloadConsumer);
       }
     };
   }

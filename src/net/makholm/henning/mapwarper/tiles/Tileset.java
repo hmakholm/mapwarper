@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.tiles;
 
+import java.io.IOException;
 import java.net.http.HttpClient;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
@@ -38,6 +39,7 @@ public abstract class Tileset {
 
   protected final Path cacheRoot;
   protected final String webUrlTemplate;
+  final TileDownloader downloader;
 
   /**
    * Create a pixel addresser for a particular resolution and area.
@@ -69,14 +71,33 @@ public abstract class Tileset {
   public abstract PixelAddresser makeAddresser(int zoom, Point globalRefpoint);
 
   /**
+   * <em>Loading</em> a tile should be a fairly cheap operation that involves
+   * at most the local disk cache. It generally doesn't happen in the UI
+   * thread, but does happen where it can block the map rendering thread.
+   * It definitely shouldn't be waiting on network activity.
+   *
    * This should be thread safe with respect to producing <em>different</em>
-   * tiles, but the caller must guard against calls to produce the
+   * tiles, but the caller should guard against calls to produce the
    * <em>same</em> tile happening in parallel.
+   *
+   * On the other hand it is the tileset's responsibility to gracefully
+   * reject attempts to load a tile that is currently being downloaded.
    *
    * @param tile as returned by {@link PixelAddresser#locate(double, double)}
    * of the addressing objects created by {@link #makeAddresser(int, Point)}.
    */
-  public abstract TileBitmap loadTile(long tile, boolean allowDownload) throws TryDownloadLater;
+  protected abstract TileBitmap loadTile(long tile) throws IOException;
+
+  /**
+   * Downloading is a potentially slow operation. It doesn't return an
+   * actual tile, but merely makes it possible to load the tile after
+   * it returns.
+   *
+   * Currently there's only ever one thread doing downloads for a single
+   * tileset.
+   */
+  protected abstract void downloadTile(long tile)
+      throws IOException, TryDownloadLater;
 
   public abstract String tilename(long tile);
 
@@ -171,6 +192,7 @@ public abstract class Tileset {
       }
     }
     boundingBox = bbox;
+    downloader = new TileDownloader(this);
   }
 
   protected String stringAttr(String attr, String defval) {

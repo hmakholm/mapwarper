@@ -1,5 +1,6 @@
 package net.makholm.henning.mapwarper.tiles;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Locale;
 
@@ -112,15 +113,14 @@ public class CommonWebTileset extends HttpTileset {
   }
 
   @Override
-  public TileBitmap loadTile(long tile, boolean allowDownload)
-      throws TryDownloadLater {
+  public TileBitmap loadTile(long tile) throws IOException {
     if( boundingBox != null &&
         !boundingBox.intersects(WebMercatorAddresser.rectOf(tile)) ) {
       int tilex = WebMercatorAddresser.tilex(tile);
       int tiley = WebMercatorAddresser.tiley(tile);
       return TileBitmap.blank((tilex^tiley) % 2 == 0 ? 0xFFCCBBBB : 0xFFCCAAAA);
     } else {
-      return super.loadTile(tile, allowDownload);
+      return super.loadTile(tile);
     }
   }
 

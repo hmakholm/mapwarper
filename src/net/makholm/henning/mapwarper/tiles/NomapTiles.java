@@ -31,8 +31,13 @@ public class NomapTiles extends Tileset {
   }
 
   @Override
-  public TileBitmap loadTile(long tile, boolean allowDownload) {
+  public TileBitmap loadTile(long tile) {
     return TileBitmap.blank(0xFFAAAAAA);
+  }
+
+  @Override
+  public void downloadTile(long tile) {
+    // Do nothing; the tile can always be loaded!
   }
 
   @Override
