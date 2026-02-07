@@ -38,6 +38,7 @@
      S: Tegn ret linje (:straight track)
      D: Tegn slew (:displacement)
      C: Tegn spor (:curved track)
+     V: Tegn svagt spor (:weak track)
 
      B: Tegn grænse
      N: Tegn grænse som bliver vist som lige
@@ -55,6 +56,8 @@
      Skift-T: openrailmap lup
 
      L: generel lup
+     G: download tile under musens position
+     M: måleværktøj, viser information om segmenter
 
      U: teleport
      Skift-U: unzoom
@@ -62,7 +65,8 @@
      Ctrl-I: Skift sporretning
 
      Z: Zoom
-     M: (Næsten) noop-tool
+     
+     .: (Næsten) noop-tool
 
      Ctrl-Z: Fortryd
      Ctrl-Y: Ufortryd
@@ -83,7 +87,7 @@
      [, ]: ændr opløsning for luppen
      <, >: squeeze/stretch warp
 
-     `: Ny segmentkæde
+     Insert: Ny segmentkæde
      1: 100% zoom
      2: Roter 90°
 
@@ -92,9 +96,9 @@
      F3:
      F4:
 
-     F5: supersample til/fra
-     F6: gør grundkort mørkere
-     F7: annoteringer for fremmede spor
+     F5: download fra/til
+     F6: supersample til/fra
+     F7: gør grundkort mørkere
      F8: krumning til/fra
 
      F9: andre marginer til/fra
@@ -225,10 +229,9 @@
    dog højst det enkelte kortlags max-zoom.
 
    Ortho-projektion kan vises i en særlig tilstand hvor det valgte
-   kort ikke bliver _downloadet_ automatisk, men kun tiles der
-   allerede er cachet (i tilesettets _standardzoom_) bliver vist
-   og resten udfyldes med OpenStreetMap. Den er nyttig til at
-   konsturere margenlinjer der skal minimere tile-forbruget.
+   kort ikke bliver _downloadet_ automatisk, men kun en enkelt tile ad
+   gangen med en særlig kommando (G). Den er nyttig til at konsturere
+   margenlinjer der skal minimere tile-forbruget.
 
    Kommando: skift til ortho-projektion.
      * Skalaen bliver grundkortets standardzoom hvis dette ligger
