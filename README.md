@@ -70,7 +70,7 @@ The national mapping agency
 provides excellent orthophotos licensed as CC-BY-4.0.  Getting them
 from their web server is slightly clunky, though -- you may need to
 create and configure an API key to use it with Mapwarper. See
-[apikeys.md](apikeys.md) for details.
+[documentation/apikeys.md](documentation/apikeys.md) for details.
 
 ## Installation
 
