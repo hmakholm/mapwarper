@@ -308,6 +308,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   }
 
   public void repaintFromScratch() {
+    logic.mainTiles.context.ramCache.clear();
     readViewportRect();
     recenterPosition();
     updateLogicalViewportRect();
