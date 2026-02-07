@@ -81,7 +81,7 @@ public class WindowTitle {
         zoom = Math.min(zoom, natzoom);
       }
       sb.append(tiles.name);
-      if( baseproj.usesDownloadFlag() && !Toggles.DOWNLOAD.setIn(flagBits) )
+      if( !Toggles.DOWNLOAD.setIn(flagBits) )
         sb.append('?');
       sb.append(zoom);
       double factor = aff.scaleAcross / Coords.zoom2pixsize(zoom);

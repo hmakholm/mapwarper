@@ -49,6 +49,11 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
   }
 
   @Override
+  public long nominalFallbackChain() {
+    return supersample.source;
+  }
+
+  @Override
   protected boolean renderColumn(int col, double xmid,
       int ymin, int ymax, double ybase) {
     if( supersample.numSamples == 1 || renderPassesCompleted < 2 )

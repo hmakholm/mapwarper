@@ -17,8 +17,6 @@ import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
 
 public final class OrthoProjection extends BaseProjection {
 
-  public static final int WEAK_SHRINK = 3;
-
   public static final OrthoProjection ORTHO = new OrthoProjection();
 
   private OrthoProjection() { }
@@ -72,12 +70,10 @@ public final class OrthoProjection extends BaseProjection {
     FallbackChain fallback = new FallbackChain(spec, xpixsize, ypixsize);
     if( Toggles.LENS_MAP.setIn(spec.flags()) ) {
       chain = fallback.lensChain();
-    } else if( Toggles.DOWNLOAD.setIn(spec.flags())) {
+    } else {
       fallback.attemptMain();
       fallback.attemptFallbacks(3);
       chain = fallback.getChain();
-    } else {
-      chain = fallback.weakChain(WEAK_SHRINK);
     }
     return target
         -> new BasicRenderer(spec, xpixsize, ypixsize, target, chain) {
@@ -86,11 +82,6 @@ public final class OrthoProjection extends BaseProjection {
             return new PointWithNormal(Point.at(x,y), commonNormal);
           }
         };
-  }
-
-  @Override
-  public boolean usesDownloadFlag() {
-    return true;
   }
 
   @Override

@@ -17,4 +17,9 @@ public abstract class BasicRenderer extends SimpleRenderer {
         sourceChain, 0);
   }
 
+  @Override
+  public long nominalFallbackChain() {
+    return sourceChain;
+  }
+
 }

@@ -39,4 +39,6 @@ public interface RenderWorker {
    */
   void dispose();
 
+  long nominalFallbackChain();
+
 }

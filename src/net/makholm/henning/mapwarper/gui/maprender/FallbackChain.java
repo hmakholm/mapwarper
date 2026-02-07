@@ -2,6 +2,7 @@ package net.makholm.henning.mapwarper.gui.maprender;
 
 import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.georaster.PixelAddresser;
+import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 import net.makholm.henning.mapwarper.util.MathUtil;
 
@@ -50,6 +51,7 @@ public class FallbackChain {
   private final int fallbackMinUse;
   private final int fallbackTooCloseZoom;
 
+  private final boolean downloadMain;
   private final boolean fallbackEqualsMain;
 
   private final int mainZoomToUse;
@@ -91,6 +93,7 @@ public class FallbackChain {
       fallbackTooCloseZoom = naturalZoom(Math.sqrt(pixsizex*pixsizey),
           fallbackTiles);
     }
+    downloadMain = fallbackEqualsMain || Toggles.DOWNLOAD.setIn(spec.flags());
 
     mainZoomToUse = Math.min(targetZoom, mainNaturalZoom);
   }
@@ -98,7 +101,7 @@ public class FallbackChain {
   public void addAttempt(int zoom, boolean fallback, boolean download) {
     long val = (zoom << ZOOM_SHIFT) & ATTEMPT_MASK;
     if( fallback ) val |= FALLBACK_BIT;
-    if( download ) val |= DOWNLOAD_BIT;
+    if( download && (fallback || downloadMain)) val |= DOWNLOAD_BIT;
     accumulatedBits |= val << (numAttempts * BITS_PER_ATTEMPT);
     numAttempts++;
   }
@@ -165,16 +168,6 @@ public class FallbackChain {
     }
   }
 
-  public long weakChain(int maxRelativeShrink) {
-    if( mainZoomToUse >= targetZoom - maxRelativeShrink )
-      addAttempt(targetZoom, false, false);
-    else
-      addAttempt(mainZoomToUse, false, false);
-    addAttempt(fallbackNaturalZoom, true, true);
-    attemptFallbacks(0);
-    return accumulatedBits;
-  }
-
   public long lensChain() {
     attemptMain();
     return accumulatedBits;
@@ -184,6 +177,17 @@ public class FallbackChain {
     for( long bit = DOWNLOAD_BIT; bit != 0; bit <<= BITS_PER_ATTEMPT )
       chain &= ~bit;
     return chain;
+  }
+
+  public static int firstMainZoom(long chain) {
+    for( int i = 0; i < MAX_ATTEMPTS; i++ )
+      if( (chain & (FALLBACK_BIT << (i*BITS_PER_ATTEMPT))) == 0 ) {
+        int zoom = (int)(chain >> (i*BITS_PER_ATTEMPT + ZOOM_SHIFT)) &
+            (ATTEMPT_MASK >> ZOOM_SHIFT);
+        if( zoom != 0 )
+          return zoom;
+      }
+    return 0;
   }
 
   public void downloadTheFirstFallback() {

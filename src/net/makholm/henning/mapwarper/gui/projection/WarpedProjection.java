@@ -186,22 +186,12 @@ public final class WarpedProjection extends BaseProjection {
       fallbackChain = fallback.getChain();
       long marginChain =
           FallbackChain.neverDownload(supersamplingChain) | fallbackChain;
-      if( !Toggles.DOWNLOAD.setIn(spec.flags()) ) {
-        supersamplingChain = FallbackChain.neverDownload(supersamplingChain);
-        fallback.downloadTheFirstFallback();
-        fallbackChain = fallback.getChain();
-      }
       var recipe = SupersamplingRenderer.prepareSupersampler(spec,
           xscale, yscale, supersamplingChain, fallbackChain);
       var margins = WarpMargins.get(this);
       return target -> new MarginedWarpRenderer(this, spec,
           xscale, yscale, target, recipe, margins, marginChain);
     }
-  }
-
-  @Override
-  public boolean usesDownloadFlag() {
-    return true;
   }
 
   public AxisRect shrinkToMargins(AxisRect r, double scaleAlong) {

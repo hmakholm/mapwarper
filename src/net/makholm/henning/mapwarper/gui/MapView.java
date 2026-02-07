@@ -20,6 +20,7 @@ import net.makholm.henning.mapwarper.gui.files.FilePane;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
+import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
 import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
@@ -415,7 +416,6 @@ public final class MapView {
 
   void orthoCommand(Tileset targetTiles, boolean downloading) {
     int logPixsize = Coords.zoom2logPixsize(targetTiles.guiTargetZoom);
-    int naturalLogPixsize = logPixsize;
     double log2along = MathUtil.log2(projection.scaleAlong());
     double log2across = MathUtil.log2(projection.scaleAlong());
     // the "along" direction is the one that can have a larger pixsize
@@ -429,8 +429,6 @@ public final class MapView {
     } else {
       toggleState &= ~Toggles.DOWNLOAD.bit();
       toggleState |= Toggles.DARKEN_MAP.bit();
-      logPixsize = Math.min(logPixsize,
-          naturalLogPixsize + OrthoProjection.WEAK_SHRINK);
     }
     setProjection(OrthoProjection.ORTHO.withScaleAcross(1 << logPixsize));
   }
@@ -540,23 +538,38 @@ public final class MapView {
     @Override public void accept(TileBitmap ignore) {}
   };
 
-  Runnable singleTileDownloadCommand() {
-    if( projection.base().usesDownloadFlag() &&
-        Toggles.DOWNLOAD.setIn(toggleState) ) {
-      return null;
-    } else return () -> {
-      cancelLens();
-      int zoom = mainTiles.guiTargetZoom;
-      var addresser = mainTiles.makeAddresser(zoom, mouseGlobal);
-      long shortcode = addresser.locate(mouseGlobal);
-      if( shortcode == 0 ) {
-        SwingUtils.beep();
-      } else {
-        cancelLastGetTile.run();
-        cancelLastGetTile =
-            new TileSpec(mainTiles, shortcode).request(dummyDownloadConsumer);
-      }
+  void singleTileDownloadCommand() {
+    cancelLens();
+    // Hack to get the appropriate zoom level is to pretend we're going
+    // to render a 1x1 display tile
+    var dummyTarget = new RenderTarget() {
+      @Override public long left() { return (long)mouseLocal.x; }
+      @Override public long top() { return (long)mouseLocal.y; }
+      @Override public int columns() { return 1; }
+      @Override public int rows() { return 1; }
+      @Override public boolean isUrgent() { return false; }
+      @Override public boolean eagerDownload() { return false; }
+      @Override public void checkCanceled() { }
+      @Override public void givePixel(int x, int y, int rgb) { }
+      @Override public void isNowGrownUp() { }
+      @Override public void pokeSchedulerAsync() { }
     };
+    var factory = projection.makeRenderFactory(dynamicMapLayerSpec);
+    var render = factory.makeWorker(dummyTarget);
+    int zoom = FallbackChain.firstMainZoom(render.nominalFallbackChain());
+    if( zoom == 0 ) {
+      SwingUtils.beep();
+      return;
+    }
+    var addresser = mainTiles.makeAddresser(zoom, mouseGlobal);
+    long shortcode = addresser.locate(mouseGlobal);
+    if( shortcode == 0 ) {
+      SwingUtils.beep();
+      return;
+    }
+    cancelLastGetTile.run();
+    cancelLastGetTile =
+        new TileSpec(mainTiles, shortcode).request(dummyDownloadConsumer);
   }
 
   Runnable copyCommand() {

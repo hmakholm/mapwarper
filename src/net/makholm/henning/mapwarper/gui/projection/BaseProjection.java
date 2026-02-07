@@ -19,10 +19,6 @@ public abstract class BaseProjection extends Projection {
     return false;
   }
 
-  public boolean usesDownloadFlag() {
-    return false;
-  }
-
   @Override public final BaseProjection base() { return this; }
   @Override public final Point local2projected(Point p) { return p; }
   @Override public final Point projected2local(Point p) { return p; }

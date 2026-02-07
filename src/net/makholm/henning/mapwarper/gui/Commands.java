@@ -113,7 +113,7 @@ public class Commands {
   private final Cmd lensMinus = check("lensMinus", "Decrease lens resolution",
       self -> self.lens.lensMinusCommand());
 
-  private final Cmd downloadTile = check("getTile", "Force-fetch map tile",
+  private final Cmd downloadTile = simple("getTile", "Force-fetch map tile",
       self -> self.mapView.singleTileDownloadCommand());
 
   private final Cmd repaint = simple("repaint", "Repaint from scratch",
