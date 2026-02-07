@@ -549,9 +549,7 @@ public final class MapView {
       return null;
     else return () -> {
       int level = Toggles.tilecacheDebugZoom(toggleState);
-      level += delta;
-      System.out.println("New level is "+level);
-      toggleState = Toggles.setTilecacheDebugZoom(toggleState, level);
+      toggleState = Toggles.setTilecacheDebugZoom(toggleState, level+delta);
     };
   }
 
