@@ -139,11 +139,12 @@ the right-click menu in the map view.  For many tools, holding Shift
 down previews what the result of clicking would be. In the drawing
 tools, Ctrl-click (or Ctrl-drag) deletes nodes.
 
-If you can read Danish, my original design notes in `gui.txt` may give
-you an idea how the UI is supposed to work. Otherwise you're on your
-own.  (In any case, I don't have a written-down explanation in _any_
-language about the underlying model of how a chain of vector segments
-defines a warped map projection ...)
+If you can read Danish, my original design notes in
+[gui.txt](documentation/gui.txt) may give you an idea how the UI is
+supposed to work. Otherwise you're on your own.  (In any case, I don't
+have a written-down explanation in _any_ language about the underlying
+model of how a chain of vector segments defines a warped map
+projection ...)
 
 ## Example data
 
