@@ -69,7 +69,7 @@
 
      Ctrl-X, Ctrl-C, Ctrl-V: Klip, kopier, klistr
 
->    O: værktøj til at åbne en fil man peger på? 
+     O: værktøj til at åbne en fil man peger på på kortet
 
      Ctrl-O: Åbn ... (vil måske blot folde venstre panel ud)
      Ctrl-S: Gem
@@ -114,9 +114,8 @@
       Google, Bing: 18
 
    Ved ændring af projektion og skalering er udgangspunktet at det
-   punkt musen peger på er fikspunkt. (Det er undtagelser, fx hvis man
-   zoomer ind med aktiv lup). Er musen ikke i vinduet bruges dets
-   midtpunkt i stedet.
+   punkt musen peger på er fikspunkt. Er musen ikke i vinduet bruges
+   dets midtpunkt i stedet.
 
    Hver projektion definerer et rektangulært område som er det
    maksimale der kan zoomes ud til:
@@ -368,8 +367,6 @@
        nogen få pixels. I meget høje zooms kan man se at cirklen
        centreres om de heltallige globale koordinater næste knude
        ville få.
->      - TODO: Kan størrelsen ændres i tilfælde af smal- eller
->        bredspor?
    Handlinger:
      - KLIK nær et inaktive segment af den rette klasse for at gøre
        den inaktive kæde aktiv (i stedet for den nuværende, hvis der
