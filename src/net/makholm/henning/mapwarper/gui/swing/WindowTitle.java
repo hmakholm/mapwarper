@@ -25,7 +25,9 @@ public class WindowTitle {
     frame.setTitle("Mapwarper v3");
   }
 
-  private static final int RELEVANT_FLAGS = Toggles.DOWNLOAD.bit();
+  private static final int RELEVANT_FLAGS =
+      Toggles.DOWNLOAD.bit() |
+      Toggles.TILECACHE_DEBUG_MASK;
 
   private Tool tool;
   private VectFile file;
@@ -81,8 +83,14 @@ public class WindowTitle {
         zoom = Math.min(zoom, natzoom);
       }
       sb.append(tiles.name);
-      if( !Toggles.DOWNLOAD.setIn(flagBits) )
+      if( !Toggles.DOWNLOAD.setIn(flagBits) ) {
         sb.append('?');
+        if( Toggles.tilecacheDebugZoom(flagBits) != 0 ) {
+          sb.append('=');
+          zoom = Toggles.tilecacheDebugZoom(flagBits)+
+              Toggles.TILECACHE_DEBUG_OFFSET;
+        }
+      }
       sb.append(zoom);
       double factor = aff.scaleAcross / Coords.zoom2pixsize(zoom);
       if( factor == 1 ) {

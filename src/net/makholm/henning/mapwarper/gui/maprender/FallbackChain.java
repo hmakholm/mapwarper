@@ -43,9 +43,11 @@ public class FallbackChain {
 
   // -------------------------------------------------------------------------
 
+  private final int flags;
   private final int targetZoom;
 
   private final int mainNaturalZoom;
+  private final int maxMainFallbacks;
   private final int fallbackNaturalZoom;
   private final int fallbackMinDownload;
   private final int fallbackMinUse;
@@ -60,6 +62,7 @@ public class FallbackChain {
   private int numAttempts;
 
   public FallbackChain(LayerSpec spec, double pixsizex, double pixsizey) {
+    flags = spec.flags() & Toggles.MAP_MASK;
     pixsizex = Math.abs(pixsizex);
     pixsizey = Math.abs(pixsizey);
     var mainTiles = spec.mainTiles();
@@ -93,9 +96,16 @@ public class FallbackChain {
       fallbackTooCloseZoom = naturalZoom(Math.sqrt(pixsizex*pixsizey),
           fallbackTiles);
     }
-    downloadMain = fallbackEqualsMain || Toggles.DOWNLOAD.setIn(spec.flags());
+    downloadMain = fallbackEqualsMain || Toggles.DOWNLOAD.setIn(flags);
 
-    mainZoomToUse = Math.min(targetZoom, mainNaturalZoom);
+    if( !downloadMain && Toggles.tilecacheDebugZoom(flags) !=0 ) {
+      mainZoomToUse =
+          Toggles.TILECACHE_DEBUG_OFFSET + Toggles.tilecacheDebugZoom(flags);
+      maxMainFallbacks = 0;
+    } else {
+      maxMainFallbacks = 8;
+      mainZoomToUse = Math.min(targetZoom, mainNaturalZoom);
+    }
   }
 
   public void addAttempt(int zoom, boolean fallback, boolean download) {
@@ -112,7 +122,10 @@ public class FallbackChain {
 
   public long supersampleMain(boolean downloadWhenSupersampling) {
     long result;
-    if( targetZoom > mainZoomToUse && targetZoom <= mainZoomToUse+5 ) {
+    if( maxMainFallbacks == 0 ) {
+      addAttempt(mainZoomToUse, false, downloadWhenSupersampling);
+      result = accumulatedBits;
+    } else if( targetZoom > mainZoomToUse && targetZoom <= mainZoomToUse+5 ) {
       addAttempt(mainZoomToUse, false, false);
       long saved = accumulatedBits;
       addAttempt(targetZoom, false, false);
@@ -136,6 +149,8 @@ public class FallbackChain {
   }
 
   public void attemptFallbacks(int mainSizesToInclude) {
+    if( mainSizesToInclude > maxMainFallbacks )
+      mainSizesToInclude = maxMainFallbacks;
     int fallbackZoom;
     if( fallbackEqualsMain ) {
       fallbackZoom = mainZoomToUse-1;

@@ -249,8 +249,13 @@ public final class MapView {
     @Override public Projection projection() { return projection; }
     @Override public Tileset mainTiles() { return mainTiles; }
     @Override public int targetZoom() { return mainTiles.guiTargetZoom; }
-    @Override public Tileset fallbackTiles() { return fallbackTiles; }
     @Override public DoubleSupplier windowDiagonal() { return globalWindowDiagonal; }
+    @Override public Tileset fallbackTiles() {
+      if( fallbackTiles != mainTiles || Toggles.DOWNLOAD.setIn(toggleState) )
+        return fallbackTiles;
+      else
+        return mainTiles.context.nomapTileset;
+    }
 
     @Override public int flags() {
       int flags = currentTool.retouchDisplayFlags(toggleState);
@@ -428,6 +433,7 @@ public final class MapView {
       toggleState |= Toggles.DOWNLOAD.bit();
     } else {
       toggleState &= ~Toggles.DOWNLOAD.bit();
+      toggleState &= ~Toggles.TILECACHE_DEBUG_MASK;
       toggleState |= Toggles.DARKEN_MAP.bit();
     }
     setProjection(OrthoProjection.ORTHO.withScaleAcross(1 << logPixsize));
@@ -537,6 +543,17 @@ public final class MapView {
       new Consumer<TileBitmap>() {
     @Override public void accept(TileBitmap ignore) {}
   };
+
+  Runnable tilecacheDebugShift(int delta) {
+    if( Toggles.DOWNLOAD.setIn(toggleState) )
+      return null;
+    else return () -> {
+      int level = Toggles.tilecacheDebugZoom(toggleState);
+      level += delta;
+      System.out.println("New level is "+level);
+      toggleState = Toggles.setTilecacheDebugZoom(toggleState, level);
+    };
+  }
 
   void singleTileDownloadCommand() {
     cancelLens();

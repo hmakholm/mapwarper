@@ -100,18 +100,20 @@ public class Commands {
 
   private final Cmd squeeze = check("squeeze", "Increase squeeze factor",
       self -> self.mapView.squeeze.stepCommand(+1));
-
   private final Cmd stretch = check("stretch", "Decrease squeeze factor",
       self -> self.mapView.squeeze.stepCommand(-1));
-
   private final Cmd unsqueeze = simple("unsqueeze", "Flip between squeezed and not",
       self -> self.mapView.squeeze.unsqueezeCommand());
 
   private final Cmd lensPlus = check("lensPlus", "Increase lens resoltion",
       self -> self.lens.lensPlusCommand());
-
   private final Cmd lensMinus = check("lensMinus", "Decrease lens resolution",
       self -> self.lens.lensMinusCommand());
+
+  private final Cmd tdebugPlus = check("tdebugPlus", "Tilecache debugger +1",
+      self -> self.mapView.tilecacheDebugShift(1));
+  private final Cmd tdebugMinus = check("tdebugMinus", "Tilecache debugger -1",
+      self -> self.mapView.tilecacheDebugShift(-1));
 
   private final Cmd downloadTile = simple("getTile", "Force-fetch map tile",
       self -> self.mapView.singleTileDownloadCommand());
@@ -297,7 +299,9 @@ public class Commands {
     keymap.accept("S-U", unzoom);
     keymap.accept("O", openTool);
     keymap.accept("[", lensMinus);
+    keymap.accept("{", tdebugMinus);
     keymap.accept("]", lensPlus);
+    keymap.accept("}", tdebugPlus);
     keymap.accept("\\", toggleTilesetPane);
 
     keymap.accept("A", magicTool);
@@ -415,6 +419,8 @@ public class Commands {
     var debug = menu.addSubmenu("Debug");
     debug.add(forceGC);
     debug.add(nearestNodeTool);
+    debug.add(tdebugPlus);
+    debug.add(tdebugMinus);
   }
 
   public void defineTilesetMenu(Tileset tiles, IMenu menu) {

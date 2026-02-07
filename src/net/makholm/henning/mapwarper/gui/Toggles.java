@@ -12,6 +12,10 @@ public enum Toggles {
   MAIN_TRACK(false, true, "showTrack", "Show main track"),
   EXT_BOUNDS(false, false, "showBounds", "Show indirect bounds"),
   DOWNLOAD(true, false, "downloadMap", "Eagerly download tiles"),
+  TILECACHE_DEBUG_0(true, false, ":tilecache0", null),
+  TILECACHE_DEBUG_1(true, false, ":tilecache1", null),
+  TILECACHE_DEBUG_2(true, false, ":tilecahce2", null),
+  TILECACHE_DEBUG_3(true, false, ":tilecahce3", null),
   OVERLAY_MAP(true, false, ":overlayMapBit", null),
   LENS_MAP(true, false, ":lensMapFlagBit", null),
   BLANK_OUTSIDE_MARGINS(true, false, ":clearMarginsFlagBit", null),
@@ -55,6 +59,22 @@ public enum Toggles {
     }
     MAP_MASK = mapMask;
     VECTOR_MASK = vectorMask;
+  }
+
+  public static final int TILECACHE_DEBUG_MASK =
+      TILECACHE_DEBUG_0.bit() |
+      TILECACHE_DEBUG_1.bit() |
+      TILECACHE_DEBUG_2.bit() |
+      TILECACHE_DEBUG_3.bit();
+  public static final int TILECACHE_DEBUG_OFFSET = 22-15;
+
+  public static final int tilecacheDebugZoom(int flags) {
+    return (flags & TILECACHE_DEBUG_MASK) / TILECACHE_DEBUG_0.bit();
+  }
+
+  public static final int setTilecacheDebugZoom(int flags, int zoom) {
+    return (flags & ~TILECACHE_DEBUG_MASK) |
+        (zoom * TILECACHE_DEBUG_0.bit()) & TILECACHE_DEBUG_MASK;
   }
 
 }
