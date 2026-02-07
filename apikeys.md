@@ -18,9 +18,9 @@ checking them into Git.
 ## OpenStreetMap "Transport Map"
 
 The `transport` tileset needs an API key. The online renderer at
-`https://www.openstreetmap.org` has one, which it is not difficult to
-extract using your browser's inspector panel. I don't like just
-putting it up for download, though.
+[openstreetmap.org](https://www.openstreetmap.org) has one, which it
+is not difficult to extract using your browser's inspector panel. I
+don't like just putting it up on GitHub, though.
 
 This tileset used to be one's best option for clearly showing railways
 on large-scale maps, but nowadays the default style has been updated
@@ -62,8 +62,8 @@ the end of the world" comment applies to that, so out of an abundance
 of caution I'm not distributing that. Making one for yourself is free
 though. Here's what I did:
 
-1. Log on to portal.datafordeler.dk with MitID credentials.  Create an
-   account and verify your email address.
+1. Log on to [portal.datafordeler.dk](https://portal.datafordeler.dk)
+   with MitID credentials.  Create an account and verify your email address.
 
    - If you're not a Danish resident, you won't have MitID. Supposedly
      it's also possible to create an account with just a username/password
