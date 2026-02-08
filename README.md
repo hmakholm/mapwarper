@@ -1,8 +1,8 @@
 # Mapwarper (v3)
 
 This is a desktop application for displaying Google Maps (and Bing)
-aerophotos with specially tailored distortions to make railway track
-layouts more clearly visible.
+aerophotos with [specially tailored distortions to make railway track
+layouts more clearly visible](documentation/what-why.md).
 
 I don't particularly expect anyone but myself will really want to use
 it, but just in case someone I tell about it is curious, here are some
