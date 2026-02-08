@@ -130,7 +130,8 @@ public class XmlConfig {
       return;
     files.put(p, null);
     if( !Files.isRegularFile(p) ) {
-      System.err.println("Ignoring non-existing "+p);
+      if( verbose )
+        System.err.println("Ignoring non-existing "+p);
       return;
     }
 
