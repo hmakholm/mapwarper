@@ -32,7 +32,7 @@ abstract class CommonRenderer implements RenderWorker {
   protected final double xscale;
   protected final double yscale;
   protected final RenderTarget target;
-  protected final boolean tilegrid;
+  protected final PixelAddresser tilegrid;
 
   private final Tileset mainTiles;
   private final Tileset fallbackTiles;
@@ -51,7 +51,6 @@ abstract class CommonRenderer implements RenderWorker {
     this.target = target;
     mainTiles = spec.mainTiles();
     fallbackTiles = spec.fallbackTiles();
-    tilegrid = Toggles.TILEGRID.setIn(spec.flags());
 
     ncols = target.columns();
     dirtyColumns = new BitSet(ncols);
@@ -63,6 +62,15 @@ abstract class CommonRenderer implements RenderWorker {
 
     this.cacheLookupLevel =
         target.eagerDownload() ? LookupLevel.DOWNLOAD : LookupLevel.DISK;
+    if( !Toggles.TILEGRID.setIn(spec.flags()) )
+      tilegrid = null;
+    else {
+      int zoom = mainTiles.guiTargetZoom;
+      if( !Toggles.DOWNLOAD.setIn(spec.flags()) &&
+          Toggles.tilecacheDebugZoom(spec.flags()) != 0 )
+        zoom = Toggles.tilecacheDebugZoom(spec.flags()) + Toggles.TILECACHE_DEBUG_OFFSET;
+      tilegrid = mainTiles.makeAddresser(zoom, globalMidpoint);
+    }
 
     markAllForRendering();
   }
@@ -132,7 +140,6 @@ abstract class CommonRenderer implements RenderWorker {
   }
 
   protected final int getPixel(double x, double y, long fallbackSpec) {
-    Boolean gridcode = null;
     for(int attempt = 0;; attempt++) {
       int aspec =
           (int)(fallbackSpec >> attempt * BITS_PER_ATTEMPT) & ATTEMPT_MASK;
@@ -150,8 +157,6 @@ abstract class CommonRenderer implements RenderWorker {
 
       long shortcode = addresser.locate(x,y);
       if( shortcode == 0 ) continue;
-      if( tilegrid && gridcode == null )
-        gridcode = addresser.isOddDownloadTile(shortcode);
 
       TileBitmap bitmap;
       int lci = cacheSetOf64(aspec, shortcode);
@@ -186,19 +191,26 @@ abstract class CommonRenderer implements RenderWorker {
         localCacheIndex[lci] = cacheTag(aspec, shortcode);
       }
       if( bitmap != null ) {
-        int rgb = addresser.getPixel(bitmap);
-        if( gridcode != null ) {
-          rgb -= (rgb >> 2) & 0x3F3F3F;
-          if( gridcode )
-            rgb += 0x3F3F3F;
-        }
-        return rgb;
+        return addresser.getPixel(bitmap);
       }
     }
   }
 
   private Tileset tilesetFor(int aspec) {
     return (aspec & FALLBACK_BIT) != 0 ? fallbackTiles : mainTiles;
+  }
+
+  protected final int applyTilegrid(Point pixel, int rgb) {
+    if( tilegrid == null )
+      return rgb;
+    else {
+      long gridcode = tilegrid.locate(pixel);
+      if( gridcode == 0 )
+        return rgb;
+      else
+        return rgb - ((rgb >> 2) & 0x3F3F3F) +
+            (tilegrid.isOddDownloadTile(gridcode) ? 0x3F3F3F : 0);
+    }
   }
 
   @Override

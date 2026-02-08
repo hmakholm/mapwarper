@@ -52,6 +52,7 @@ public abstract class SimpleRenderer extends CommonRenderer {
       if( rgb == RGB.OUTSIDE_BITMAP )
         hadAllPixels = false;
       else {
+        rgb = applyTilegrid(p, rgb);
         rgb -= (rgb >> 1) & dimmask;
         target.givePixel(col, y, rgb);
       }

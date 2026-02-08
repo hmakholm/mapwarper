@@ -103,8 +103,10 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
           rgb = getPixel(p, supersample.source | supersample.fallback);
           if( rgb == RGB.OUTSIDE_BITMAP )
             hadAllPixels = false;
-          else
+          else {
+            rgb = applyTilegrid(p, rgb);
             target.givePixel(col, row, rgb);
+          }
           continue rowloop;
         }
         rbSum += rgb & 0xFF00FF;
@@ -113,10 +115,17 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
       int rScaled = (rbSum >>> 16) * supersample.oversampleScaler;
       int gScaled = gSum * supersample.oversampleScaler;
       int bScaled = (rbSum & 0xFFFF) * supersample.oversampleScaler;
-      target.givePixel(col, row, RGB.OPAQUE |
+      int rgb = RGB.OPAQUE |
           (rScaled & 0xFF0000) |
           ((gScaled >> 16) & 0x00FF00) |
-          (bScaled >> 16));
+          (bScaled >> 16);
+      if( tilegrid != null ) {
+        Point mid = Point.at(
+            nwX + acrossX/2 + dx/2 + dmx/4,
+            nwY + acrossY/2 + dy/2 + dmy/4);
+        rgb = applyTilegrid(mid, rgb);
+      }
+      target.givePixel(col, row, rgb);
     }
     return hadAllPixels;
   }
