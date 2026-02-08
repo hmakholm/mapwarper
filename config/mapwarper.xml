@@ -136,4 +136,90 @@
   <boundingBox>575166809::341940864</boundingBox>
 </tileset>
 
+<!-- ============ K E Y    B I N D I N G S ======================= -->
+
+<!-- At least the one of them that work uniformly enough to make
+     reconfiguration meaningful. They can be overridden in local
+     config files. It should even be possible to bind several keys
+     to the same command, though it may be somewhat nondeterministic
+     which of them show up in the menu entry for the command. -->
+<!-- The command names _probably_ won't change, but I'm not making
+     an particularly strong commitment to keep them stable. Be
+     prepared to have to update personal overrides from time to time. -->
+
+<keybind name="C-C" value="copy"/>
+<keybind name="C-I" value="reverse"/>
+<keybind name="C-L" value="repaint"/>
+<keybind name="C-N" value="new"/>
+<keybind name="C-O" value="open"/>
+<keybind name="C-Q" value="quit"/>
+<keybind name="C-S" value="saveAll"/>
+<keybind name="C-V" value="paste"/>
+<keybind name="C-X" value="cut"/>
+<keybind name="C-Y" value="redo.1"/>
+<keybind name="C-Z" value="undo.1"/>
+
+<!-- Escape is multi-functional and hardcoded -->
+<keybind name="S-F2" value="GC"/>
+<keybind name="S-F3" value="nearestNode"/>
+<keybind name="F5" value="downloadMap"/>
+<keybind name="F6" value="supersample"/>
+<keybind name="F7" value="darkenMap"/>
+<keybind name="F8" value="showCurvature"/>
+<keybind name="F9" value="showBounds"/>
+<keybind name="F10" value="showCrosshairs"/>
+<keybind name="F11" value="showTrack"/>
+<keybind name="F12" value="explore"/>
+
+<keybind name="`" value="newchain"/>
+<keybind name="1" value="zoom100"/>
+<keybind name="2" value="rotate"/>
+<keybind name="0" value="unsqueeze"/>
+<keybind name="-" value="zoomOut"/>
+<keybind name="+" value="zoomIn"/>
+<keybind name="Insert" value="newchain"/>
+
+<keybind name="Tab" value="toggleFilePane"/>
+<keybind name="S-Tab" value="toggleTilePane"/>
+<keybind name="Q" value="quickwarp"/>
+<keybind name="M-Q" value="circlewarp"/>
+<keybind name="W" value="warp"/>
+<keybind name="S-W" value="lens.bing"/>
+<keybind name="E" value="weakOrtho"/>
+<keybind name="S-E" value="lens.google"/>
+<keybind name="R" value="ortho"/>
+<keybind name="S-R" value="lens.osm"/>
+<keybind name="S-T" value="lens.openrail"/>
+<keybind name="U" value="teleport"/>
+<keybind name="S-U" value="unzoom"/>
+<keybind name="O" value="filepick"/>
+<keybind name="[" value="lensMinus"/>
+<keybind name="{" value="tdebugMinus"/>
+<keybind name="]" value="lensPlus"/>
+<keybind name="}" value="tdebugPlus"/>
+<keybind name="\" value="toggleTilePane"/>
+
+<keybind name="A" value="MAGIC"/>
+<keybind name="S" value="STRONG"/>
+<keybind name="D" value="SLEW"/>
+<keybind name="M-G" value="tilegrid"/>
+<keybind name="G" value="getTile"/>
+<keybind name="H" value="lock"/>
+<keybind name="L" value="lens"/>
+<!-- Enter is hardcoded to the file pane -->
+
+<keybind name="Z" value="zoom"/>
+<keybind name="X" value="delete"/>
+<keybind name="C" value="TRACK"/>
+<keybind name="V" value="WEAK"/>
+<keybind name="B" value="BOUND"/>
+<keybind name="N" value="LBOUND"/>
+<keybind name="M" value="measure"/>
+<keybind name="&lt;" value="squeeze"/>
+<keybind name="&gt;" value="stretch"/>
+<keybind name="." value="Mapwarper v3"/> <!-- the "move" tool calls itself this -->
+<keybind name="Space" value="refresh"/>
+
+<!-- Arrow keys are hardcoded: they depend on whether the file pane is shown. -->
+
 </config>

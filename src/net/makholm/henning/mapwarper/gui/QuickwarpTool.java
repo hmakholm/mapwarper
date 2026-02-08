@@ -13,18 +13,17 @@ import net.makholm.henning.mapwarper.gui.swing.Command;
 
 public class QuickwarpTool extends ProjectionSwitchingTool {
 
+  public Command quickCircle;
+
   protected QuickwarpTool(Commands owner) {
     super(owner, "quickwarp", "Quick-warp");
+    quickCircle = altQuickCommand("circlewarp", "Circular quick-warp",
+        () -> mapView().projection.base() instanceof CircleWarp);
   }
 
   @Override
   protected Boolean getMenuSelected() {
     return mapView().projection.base() instanceof QuickWarp;
-  }
-
-  public Command quickCircle() {
-    return altQuickCommand("Circular quick-warp",
-        () -> mapView().projection.base() instanceof CircleWarp);
   }
 
   @Override

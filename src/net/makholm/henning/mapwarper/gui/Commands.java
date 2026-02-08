@@ -125,9 +125,9 @@ public class Commands {
   private final Cmd unsqueeze = simple("unsqueeze", "Flip between squeezed and not",
       self -> self.mapView.squeeze.unsqueezeCommand());
 
-  private final Cmd lensPlus = check("lensPlus", "Increase lens resoltion",
+  final Cmd lensPlus = check("lensPlus", "Increase lens resoltion",
       self -> self.lens.lensPlusCommand());
-  private final Cmd lensMinus = check("lensMinus", "Decrease lens resolution",
+  final Cmd lensMinus = check("lensMinus", "Decrease lens resolution",
       self -> self.lens.lensMinusCommand());
 
   private final Cmd tdebugPlus = check("tdebugPlus", "Tilecache debugger +1",
@@ -266,7 +266,7 @@ public class Commands {
   private final Cmd open = simple("open", "Open ...",
       self -> self.files.openCommand());
 
-  private final Cmd saveAll = simple("save", "Save",
+  private final Cmd saveAll = simple("saveAll", "Save",
       self -> self.files.saveAllCommand());
 
   private final Cmd revert = simple("revert", "Reread all from disk",
@@ -290,79 +290,21 @@ public class Commands {
     keymap.accept("Escape", simple("esc", "Escape",
         self -> self.mapView.escapePressed()));
 
-    // Letters with Ctrl, in alphabetical order
-    keymap.accept("C-C", copy);
-    keymap.accept("C-I", reverse);
-    keymap.accept("C-L", repaint);
-    keymap.accept("C-N", newFile);
-    keymap.accept("C-O", open);
-    keymap.accept("C-Q", quit);
-    keymap.accept("C-R", revert);
-    keymap.accept("C-S", saveAll);
-    keymap.accept("C-V", paste);
-    keymap.accept("C-X", cut);
-    keymap.accept("C-Y", mapView.undoList.redo.getCommand(this, 1));
-    keymap.accept("C-Z", mapView.undoList.undo.getCommand(this, 1));
+    // Make sure some commands with likely key bindings
+    mapView.undoList.redo.getCommand(this, 1);
+    mapView.undoList.undo.getCommand(this, 1);
+    for( var tileset : mapView.tiles.tilesets.keySet() )
+      tilesetCommands(tileset);
 
-    // Without Ctrl, but possibly shifted, in QUERTY order
-    keymap.accept("S-F2", forceGC);
-    keymap.accept("S-F3", nearestNodeTool);
-    keymap.accept("F5", Toggles.DOWNLOAD.command(this));
-    keymap.accept("F6", Toggles.SUPERSAMPLE.command(this));
-    keymap.accept("F7", Toggles.DARKEN_MAP.command(this));
-    keymap.accept("F8", Toggles.CURVATURE.command(this));
-    keymap.accept("F9", Toggles.EXT_BOUNDS.command(this));
-    keymap.accept("F10", Toggles.CROSSHAIRS.command(this));
-    keymap.accept("F11", Toggles.MAIN_TRACK.command(this));
-    keymap.accept("F12", explore);
-
-    keymap.accept("1", zoom100);
-    keymap.accept("2", rotate);
-    keymap.accept("0", unsqueeze);
-    keymap.accept("-", zoomOut);
-    keymap.accept("+", zoomIn);
-
-    keymap.accept("Insert", newChain);
-
-    keymap.accept("Tab", toggleFilePane);
-    keymap.accept("Q", quickwarp);
-    keymap.accept("M-Q", quickwarp.quickCircle());
-    keymap.accept("W", warp);
-    keymap.accept("S-W", tilesetCommands("bing").lens);
-    keymap.accept("E", weakOrtho);
-    keymap.accept("S-E", tilesetCommands("google").lens);
-    keymap.accept("R", ortho);
-    keymap.accept("S-R", tilesetCommands("osm").lens);
-    keymap.accept("S-T", tilesetCommands("openrail").lens);
-    keymap.accept("U", teleport);
-    keymap.accept("S-U", unzoom);
-    keymap.accept("O", openTool);
-    keymap.accept("[", lensMinus);
-    keymap.accept("{", tdebugMinus);
-    keymap.accept("]", lensPlus);
-    keymap.accept("}", tdebugPlus);
-    keymap.accept("\\", toggleTilesetPane);
-
-    keymap.accept("A", magicTool);
-    keymap.accept("S", straightTool);
-    keymap.accept("D", slewTool);
-    keymap.accept("M-G", Toggles.TILEGRID.command(this));
-    keymap.accept("G", downloadTile);
-    keymap.accept("H", lock);
-    keymap.accept("L", lens);
-
-    keymap.accept("Z", zoomTool);
-    keymap.accept("X", delete);
-    keymap.accept("C", trackTool);
-    keymap.accept("V", weakTrackTool);
-    keymap.accept("B", boundTool);
-    keymap.accept("N", localBoundTool);
-    keymap.accept("M", measureTool);
-    keymap.accept("<", squeeze);
-    keymap.accept(">", stretch);
-    keymap.accept(".", move);
-
-    keymap.accept("Space", refresh);
+    for( var key : mapView.tiles.config.tagmap("keybind").keySet() ) {
+      var comname = mapView.tiles.config.string("keybind", key);
+      if( comname == null ) continue;
+      var command = commandRegistry.get(comname);
+      if( command == null )
+        System.err.println("Ignoring key binding "+key+" for unknown command '"+comname+"'");
+      else
+        keymap.accept(key, command);
+    }
 
     keymap.accept("Up", files("up...", f -> f.moveSelection(-1), v -> v.scrollByKey(0, -1)));
     keymap.accept("Down", files("down...", f -> f.moveSelection(1), v -> v.scrollByKey(0, 1)));
@@ -415,7 +357,7 @@ public class Commands {
     zoom.add(ortho);
     zoom.add(warp);
     zoom.add(quickwarp);
-    zoom.add(quickwarp.quickCircle());
+    zoom.add(quickwarp.quickCircle);
     zoom.addSeparator();
     zoom.add(zoomIn);
     zoom.add(zoomOut);

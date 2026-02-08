@@ -170,10 +170,10 @@ public abstract class Tool extends Command implements MouseAction {
 
   private final Map<Integer, Command> quickCommands = new LinkedHashMap<>();
 
-  private Command makeQuickCommand(int modifier, String niceName,
-      BooleanSupplier menuCheckmark) {
+  private Command makeQuickCommand(int modifier,
+      String quickCodename, String niceName, BooleanSupplier menuCheckmark) {
     return quickCommands.computeIfAbsent(modifier, m0 ->
-    new Command(owner, codename + "%" + modifier, niceName) {
+    new Command(owner, quickCodename, niceName) {
       private ToolResponse tr() {
         return owner.swing.quickToolResponse(Tool.this,
             modifier | QUICK_COM_MASK);
@@ -193,14 +193,15 @@ public abstract class Tool extends Command implements MouseAction {
     });
   }
 
-  protected final Command bareQuickCommand(String niceName,
+  protected final Command bareQuickCommand(String codename, String niceName,
       BooleanSupplier menuCheckmark) {
-    return makeQuickCommand(0, niceName, menuCheckmark);
+    return makeQuickCommand(0, codename, niceName, menuCheckmark);
   }
 
-  protected final Command altQuickCommand(String niceName,
+  protected final Command altQuickCommand(String codename, String niceName,
       BooleanSupplier menuCheckmark) {
-    return makeQuickCommand(InputEvent.ALT_DOWN_MASK, niceName, menuCheckmark);
+    return makeQuickCommand(InputEvent.ALT_DOWN_MASK, codename, niceName,
+        menuCheckmark);
   }
 
 }
