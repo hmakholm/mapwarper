@@ -22,7 +22,7 @@
 <!-- ============ T I L E S E T    D E F I N I T I O N S =================== -->
 
 <tileset name="osm"
-         desc="OpnStreetmap - Standard"
+         desc="OpenStreetmap - Standard"
          weburl="https://openstreetmap.org/?mlat=[LAT]&amp;mlon=[LON]&amp;zoom=[Z]"
          tileurl="https://tile.openstreetmap.org/*.png"
          darkenMap="true">
@@ -30,7 +30,7 @@
 </tileset>
 
 <tileset name="osmhot"
-         desc="OpnStreetmap - Humanitarian"
+         desc="OpenStreetmap - Humanitarian"
          weburl="https://openstreetmap.org/?mlat=[LAT]&amp;mlon=[LON]&amp;zoom=[Z]&amp;layers=H"
          tileurl="https://a.tile.openstreetmap.fr/hot/*.png"
          darkenMap="true">
@@ -41,7 +41,7 @@
 </tileset>
 
 <tileset name="transport"
-         desc="OpnStreetmap - Transport Map"
+         desc="OpenStreetmap - Transport Map"
          weburl="https://openstreetmap.org/?mlat=[LAT]&amp;mlon=[LON]&amp;zoom=[Z]&amp;layers=T"
          tileurl="https://a.tile.thunderforest.com/transport/*.png?apikey=[APIKEY]"
          darkenMap="true">
