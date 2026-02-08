@@ -468,7 +468,7 @@ public final class MapView {
 
   void orthoCommand(Tileset targetTiles, boolean downloading) {
     if( targetTiles == null )
-      targetTiles = downloading ? warpTiles : mapTiles;
+      targetTiles = downloading ? mapTiles : warpTiles;
     int logPixsize = Coords.zoom2logPixsize(targetTiles.guiTargetZoom);
     double log2along = MathUtil.log2(projection.scaleAlong());
     double log2across = MathUtil.log2(projection.scaleAlong());
