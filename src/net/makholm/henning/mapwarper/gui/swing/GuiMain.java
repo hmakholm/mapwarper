@@ -50,6 +50,7 @@ public class GuiMain extends JFrame {
 
   Optional<BufferedImage> mapIcon = SwingUtils.loadBundledImage("mapIcon.png");
   Optional<BufferedImage> warpIcon = SwingUtils.loadBundledImage("mainIcon.png");
+  Optional<BufferedImage> lensIcon = SwingUtils.loadBundledImage("lensIcon.png");
 
   /**
    * Used for short administrative actions that must be decoupled from the

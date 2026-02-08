@@ -203,7 +203,7 @@ public final class MapView {
       PointWithNormal centerGlobalNew = translator().local2global(newCenterLocal);
       if( Math.abs(centerGlobalOld.normal.dot(centerGlobalNew.normal)) < 0.9 ) {
         // That's too much of a turn for it to feel meaningful to preserve the lens
-        lensRect = null;
+        cancelLens();
       } else {
         var projected = lensRect.box.transform(oldProj::local2projected);
         var oldCP = projected.center();
@@ -230,7 +230,19 @@ public final class MapView {
     if( lensRect != null ) {
       swing.repaintFor(lensRect);
       lensRect = null;
+      lensChanged();
     }
+  }
+
+  void setLens(Tileset tiles) {
+    if( tiles != lensTiles ) {
+      lensTiles = tiles;
+      lensChanged();
+    }
+  }
+
+  void lensChanged() {
+    window.tilesetPane.repaint();
   }
 
   int naturalLensZoom() {
@@ -402,6 +414,7 @@ public final class MapView {
   }
 
   public void selectTool(Tool tool) {
+    currentTool.whenDeselected();
     currentTool = tool;
     currentTool.whenSelected();
   }
@@ -426,7 +439,7 @@ public final class MapView {
 
   public void defaultTilesetClickAction(Tileset targetTiles) {
     if( lensRect != null ) {
-      lensTiles = targetTiles;
+      setLens(targetTiles);
       lensZoom = targetTiles.guiTargetZoom;
     } else if( targetTiles.isOverlayMap ) {
       SwingUtils.beep();
@@ -447,7 +460,7 @@ public final class MapView {
   }
 
   void setwarpCommand(Tileset tiles) {
-    if( mainTiles == warpTiles && !warpTilesByDefault() )
+    if( mainTiles == warpTiles && warpTilesByDefault() )
       setMainTiles(tiles);
     warpTiles = tiles;
     window.tilesetPane.repaint();

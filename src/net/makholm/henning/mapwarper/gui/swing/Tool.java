@@ -110,6 +110,10 @@ public abstract class Tool extends Command implements MouseAction {
     mapView().swing.tempTool.disable();
   }
 
+  public void whenDeselected() {
+    // Nothing by default
+  }
+
   @Override
   protected final void invokeByKey(char key) {
     var prev = mapView().currentTool;

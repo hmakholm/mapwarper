@@ -16,6 +16,18 @@ public class LensTool extends Tool {
   }
 
   @Override
+  public void whenSelected() {
+    super.whenSelected();
+    mapView().lensChanged();
+  }
+
+  @Override
+  public void whenDeselected() {
+    super.whenSelected();
+    mapView().lensChanged();
+  }
+
+  @Override
   public ToolResponse mouseResponse(Point pos, int modifiers) {
     var dragAction = startDrag(pos);
     if( dragAction != null ) {

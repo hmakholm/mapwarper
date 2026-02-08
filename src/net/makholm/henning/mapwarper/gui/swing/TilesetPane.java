@@ -18,6 +18,7 @@ import javax.swing.JSeparator;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.MouseInputAdapter;
 
+import net.makholm.henning.mapwarper.gui.LensTool;
 import net.makholm.henning.mapwarper.tiles.TileContext;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 
@@ -95,10 +96,14 @@ public class TilesetPane extends JPanel {
         window.warpIcon.ifPresent(icons::add);
       if( window.mainLogic.mapTiles == tiles )
         window.mapIcon.ifPresent(icons::add);
+      if( window.mainLogic.lensTiles == tiles &&
+          (window.mainLogic.currentTool instanceof LensTool ||
+              window.mainLogic.lensRect != null) )
+        window.lensIcon.ifPresent(icons::add);
       if( !icons.isEmpty() ) {
         var g = SwingUtils.startPaint(g0);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-            RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         int margin = 4;
         int size = Math.min(31, getHeight()-2*margin);
         int x = getWidth()-margin-size;
