@@ -22,7 +22,7 @@ the tracks, it's easy to lose sight of the big picture and how the
 switch you're looking at _now_ connects to the other one, several
 screenfuls of photo away.
 
-Now, one solution to this is to make a squences of screenshots of the
+Now, one solution to this is to make a sequences of screenshots of the
 aerophotos and stitch them together in a suitable image editor, after
 which you can turn the whole thing and scale it by different factors
 along vs across the line.
@@ -43,7 +43,7 @@ crossing to the right of the platforms.</sup>
 On the other hand, when the railway is _curved_, this strategy fails.
 Here's an attempt to depict the approaches to Copenhagen Central
 station in the same way. There's a straight section of some 350 meters
-to the right of the _Dybbølsbro_ brudge where you can see what's going
+to the right of the _Dybbølsbro_ bridge where you can see what's going
 on, but beyond that, the overall curvature of the line quickly makes
 everything unrecognizable.
 
@@ -52,12 +52,12 @@ everything unrecognizable.
 [@geodanmark](https://www.geodanmark.dk/home/vejledninger/vilkaar-for-data-anvendelse/),
 CC-BY-4.0)</sup>
 
-The Mapwarper program is an project to solve this problem. The program
+The Mapwarper program is a project to solve this problem. The program
 simply _staightens out the railway_ by bending ("warping") the
 aerophoto before it gets compressed lengthwise.
 
 How this works is: First I use a mouse-and-keyboard GUI to define the
-smooth guiding curve on a map baground. This is the curve that will be
+smooth guiding curve on a map background. This is the curve that will be
 straightened out later in the process.
 
 ![Map with guiding curve](example-track.jpg)  
@@ -92,7 +92,7 @@ the whole thing together lengthwise, and then you have a nice overview
 of the station showing how everything <sup>(at least the part of
 everything that is visible from above)</sup> fits together:
 
-![Straigthened aerophoto](example-geodk-warped.jpg)  
+![Straightened aerophoto](example-geodk-warped.jpg)  
 <sup>(Transformed orthophoto from
 [@geodanmark](https://www.geodanmark.dk/home/vejledninger/vilkaar-for-data-anvendelse/),
 CC-BY-4.0)</sup>
