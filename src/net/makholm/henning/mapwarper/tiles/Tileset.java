@@ -34,6 +34,7 @@ public abstract class Tileset {
   public final List<String> blurb = new ArrayList<>();
 
   public final int guiTargetZoom;
+  public final boolean allowOrtho;
   public final boolean isOverlayMap;
   public final boolean darkenMap;
   public final AxisRect boundingBox;
@@ -167,6 +168,8 @@ public abstract class Tileset {
 
     this.guiTargetZoom = intAttr("guiTargetZoom", 16);
     this.isOverlayMap = "true".equals(xml.getAttribute("lensOnly"));
+    this.allowOrtho =
+        !isOverlayMap && !"false".equals(xml.getAttribute("useAsBackground"));
     this.darkenMap = "true".equals(xml.getAttribute("darkenMap"));
 
     AxisRect bbox = null;

@@ -2,7 +2,11 @@ package net.makholm.henning.mapwarper.gui.swing;
 
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -31,7 +35,11 @@ public class TilesetPane extends JPanel {
   }
 
   private static class OneTileset extends JPanel {
+    final Tileset tiles;
+    final GuiMain window;
     OneTileset(GuiMain window, Tileset tiles, TilesetPane parent) {
+      this.tiles = tiles;
+      this.window = window;
       setBorder(new EmptyBorder(5,5,5,0));
 
       Font font = SwingUtils.getANiceDefaultFont();
@@ -77,6 +85,29 @@ public class TilesetPane extends JPanel {
           }
         }
       });
+    }
+    @Override
+    public void paint(Graphics g0) {
+      super.paint(g0);
+      if( window.mainLogic == null ) return;
+      var icons = new ArrayList<BufferedImage>(2);
+      if( window.mainLogic.warpTiles == tiles )
+        window.warpIcon.ifPresent(icons::add);
+      if( window.mainLogic.mapTiles == tiles )
+        window.mapIcon.ifPresent(icons::add);
+      if( !icons.isEmpty() ) {
+        var g = SwingUtils.startPaint(g0);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+            RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        int margin = 4;
+        int size = Math.min(31, getHeight()-2*margin);
+        int x = getWidth()-margin-size;
+        int y = getHeight()-margin-size;
+        for( var img : icons ) {
+          g.drawImage(img, x, y, size, size, null);
+          x -= margin+size;
+        }
+      }
     }
   }
 

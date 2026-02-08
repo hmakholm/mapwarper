@@ -7,9 +7,7 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import javax.swing.JMenuItem;
-import javax.swing.JRadioButtonMenuItem;
+import java.util.function.BooleanSupplier;
 
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.Commands;
@@ -158,10 +156,8 @@ public abstract class Tool extends Command implements MouseAction {
   public void activeFileChanged() { }
 
   @Override
-  public JMenuItem makeMenuItem() {
-    var result = new JRadioButtonMenuItem(getAction());
-    result.setSelected(this == mapView().currentTool);
-    return result;
+  protected Boolean getMenuSelected() {
+    return this == mapView().currentTool;
   }
 
   // -------------------------------------------------------------------------
@@ -170,12 +166,17 @@ public abstract class Tool extends Command implements MouseAction {
 
   private final Map<Integer, Command> quickCommands = new LinkedHashMap<>();
 
-  private Command makeQuickCommand(int modifier, String niceName) {
+  private Command makeQuickCommand(int modifier, String niceName,
+      BooleanSupplier menuCheckmark) {
     return quickCommands.computeIfAbsent(modifier, m0 ->
     new Command(owner, codename + "%" + modifier, niceName) {
       private ToolResponse tr() {
         return owner.swing.quickToolResponse(Tool.this,
             modifier | QUICK_COM_MASK);
+      }
+      @Override
+      protected Boolean getMenuSelected() {
+        return menuCheckmark == null ? null : menuCheckmark.getAsBoolean();
       }
       @Override
       public boolean makesSenseNow() {
@@ -188,12 +189,14 @@ public abstract class Tool extends Command implements MouseAction {
     });
   }
 
-  protected final Command bareQuickCommand(String niceName) {
-    return makeQuickCommand(0, niceName);
+  protected final Command bareQuickCommand(String niceName,
+      BooleanSupplier menuCheckmark) {
+    return makeQuickCommand(0, niceName, menuCheckmark);
   }
 
-  protected final Command altQuickCommand(String niceName) {
-    return makeQuickCommand(InputEvent.ALT_DOWN_MASK, niceName);
+  protected final Command altQuickCommand(String niceName,
+      BooleanSupplier menuCheckmark) {
+    return makeQuickCommand(InputEvent.ALT_DOWN_MASK, niceName, menuCheckmark);
   }
 
 }

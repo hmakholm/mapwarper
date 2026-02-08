@@ -72,6 +72,8 @@ public final class MapView {
   public Projection projection = OrthoProjection.ORTHO;
   public long positionX, positionY;
 
+  public Tileset mapTiles;
+  public Tileset warpTiles;
   public Tileset mainTiles;
   public final Tileset fallbackTiles;
 
@@ -114,8 +116,13 @@ public final class MapView {
     this.files = new FilePane(this, files, filearg);
     this.squeeze = new Squeezing(this);
 
-    setMainTiles(tiles.tilesets.get("osm"));
-    this.fallbackTiles = tiles.tilesets.get("osm");
+    var fallbackTiles = tiles.tilesets.get("osm");
+    if( fallbackTiles == null ) fallbackTiles = tiles.nomapTileset;
+    this.fallbackTiles = fallbackTiles;
+    this.mapTiles = fallbackTiles;
+    setMainTiles(fallbackTiles);
+    this.warpTiles = tiles.tilesets.get("google");
+    if( warpTiles == null ) warpTiles = mainTiles;
 
     this.swing = new SwingMapView(this);
 
@@ -251,10 +258,13 @@ public final class MapView {
     @Override public int targetZoom() { return mainTiles.guiTargetZoom; }
     @Override public DoubleSupplier windowDiagonal() { return globalWindowDiagonal; }
     @Override public Tileset fallbackTiles() {
-      if( fallbackTiles != mainTiles || Toggles.DOWNLOAD.setIn(toggleState) )
-        return fallbackTiles;
-      else
+      if( warpTilesByDefault() && mapTiles != mainTiles )
+        return mapTiles;
+      else if( mainTiles == fallbackTiles &&
+          !Toggles.DOWNLOAD.setIn(toggleState) )
         return mainTiles.context.nomapTileset;
+      else
+        return fallbackTiles;
     }
 
     @Override public int flags() {
@@ -409,17 +419,43 @@ public final class MapView {
     setProjection(TurnedProjection.turnCounterclockwise(projection));
   }
 
+  private boolean warpTilesByDefault() {
+    return !(projection.base() instanceof OrthoProjection
+        && Toggles.DOWNLOAD.setIn(toggleState));
+  }
+
   public void defaultTilesetClickAction(Tileset targetTiles) {
     if( lensRect != null ) {
       lensTiles = targetTiles;
       lensZoom = targetTiles.guiTargetZoom;
     } else if( targetTiles.isOverlayMap ) {
       SwingUtils.beep();
-    } else
-      setMainTiles(targetTiles);
+    } else if( targetTiles.allowOrtho &&
+        targetTiles.desc.indexOf("photo") < 0 ) {
+      orthoCommand(targetTiles, true);
+      setmapCommand(targetTiles);
+    } else {
+      setwarpCommand(targetTiles);
+    }
+  }
+
+  void setmapCommand(Tileset tiles) {
+    if( mainTiles == mapTiles && !warpTilesByDefault() )
+      setMainTiles(tiles);
+    mapTiles = tiles;
+    window.tilesetPane.repaint();
+  }
+
+  void setwarpCommand(Tileset tiles) {
+    if( mainTiles == warpTiles && !warpTilesByDefault() )
+      setMainTiles(tiles);
+    warpTiles = tiles;
+    window.tilesetPane.repaint();
   }
 
   void orthoCommand(Tileset targetTiles, boolean downloading) {
+    if( targetTiles == null )
+      targetTiles = downloading ? warpTiles : mapTiles;
     int logPixsize = Coords.zoom2logPixsize(targetTiles.guiTargetZoom);
     double log2along = MathUtil.log2(projection.scaleAlong());
     double log2across = MathUtil.log2(projection.scaleAlong());
@@ -510,10 +546,13 @@ public final class MapView {
     return baseWarp.apply(aff);
   }
 
-  void warpCommand(Tileset targetTiles) {
+  void warpCommand() {
+    Tileset tiles = warpTiles;
+    if( warpTilesByDefault() && mainTiles != mapTiles )
+      tiles = mainTiles;
     try {
-      Projection warped = makeScaledWarpedProjection(targetTiles);
-      setMainTiles(targetTiles);
+      Projection warped = makeScaledWarpedProjection(tiles);
+      setMainTiles(tiles);
       setProjection(warped);
       perhapsMoveToInterestingPoint();
     } catch( WarpedProjection.CannotWarp e ) {

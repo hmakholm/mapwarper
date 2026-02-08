@@ -8,6 +8,7 @@ import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.KeyStroke;
 
 import net.makholm.henning.mapwarper.gui.Commands;
@@ -108,8 +109,20 @@ public abstract class Command {
     System.err.println("["+codename+"]");
   }
 
+  protected Boolean getMenuSelected() {
+    // Returning null means this never shows a checkmark
+    return null;
+  }
+
   public JMenuItem makeMenuItem() {
-    JMenuItem result = new JMenuItem(getAction());
+    JMenuItem result;
+    Boolean selectedState = getMenuSelected();
+    if( selectedState != null ) {
+      result = new JRadioButtonMenuItem(getAction());
+      result.setSelected(selectedState);
+    } else {
+      result = new JMenuItem(getAction());
+    }
     if( !makesSenseNow() )
       result.setEnabled(false);
     return result;

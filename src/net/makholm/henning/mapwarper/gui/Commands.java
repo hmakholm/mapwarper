@@ -9,6 +9,8 @@ import java.util.function.Predicate;
 
 import net.makholm.henning.mapwarper.gui.files.FilePane;
 import net.makholm.henning.mapwarper.gui.files.OpenTool;
+import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
+import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.gui.swing.Command;
 import net.makholm.henning.mapwarper.gui.swing.GuiMain;
 import net.makholm.henning.mapwarper.gui.swing.SwingMapView;
@@ -34,6 +36,7 @@ public class Commands {
     files = main.files;
 
     mapView.currentTool = move;
+    mapView.tiles.tilesets.keySet().forEach(this::tilesetCommands);
   }
 
   private final ToggleCommand[] toggles; {
@@ -97,6 +100,23 @@ public class Commands {
 
   private final Cmd rotate = simple("rotate", "Rotate 90°",
       self -> self.mapView.rotateCommand());
+
+  private final Cmd ortho = new Cmd("ortho", "Standard map projection",
+      self -> () -> self.mapView.orthoCommand(null, true)) {
+    @Override public Boolean getMenuSelected() {
+      return mapView.projection.base() instanceof OrthoProjection;
+    }
+  };
+  private final Cmd weakOrtho = simple("weakOrtho",
+      "Show already downloaded warp tiles in standard projection",
+      self -> self.mapView.orthoCommand(null, false));
+  private final Cmd warp = new Cmd("warp", "Warped projection",
+      self -> () -> self.mapView.warpCommand()) {
+    @Override public Boolean getMenuSelected() {
+      return mapView.projection.base() instanceof WarpedProjection;
+    }
+    @Override public boolean makesSenseNow() { return mapView.canWarp(); }
+  };
 
   private final Cmd squeeze = check("squeeze", "Increase squeeze factor",
       self -> self.mapView.squeeze.stepCommand(+1));
@@ -167,42 +187,61 @@ public class Commands {
   }
 
   private class TilesetCommands {
-    final Command just, ortho, weakOrtho, warp, lens;
+    final Command just, weakOrtho, lens;
+    final Command setmap, setmapm, setwarp, setwarpm;
     TilesetCommands(String name) {
       Tileset tiles = mapView.tiles.tilesets.get(name);
       if( tiles != null ) {
-        if( tiles.isOverlayMap )
-          just = ortho = weakOrtho = warp = null;
-        else {
+        if( tiles.isOverlayMap ) {
+          just = weakOrtho = setmap = setmapm = setwarp = setwarpm = null;
+        } else {
           just = new TilesetCommand("just", "Use in current projection",
               mv -> mv.mainTiles != tiles,
               MapView::setMainTiles, tiles);
-          ortho = new TilesetCommand("ortho", "Use in standard projection",
-              mv -> true, (mv,t) -> mv.orthoCommand(t, true), tiles);
           if( tiles != mapView.fallbackTiles )
             weakOrtho = new TilesetCommand("weakOrtho",
                 "Already downloaded tiles in standard projection",
                 mv -> true, (mv,t) -> mv.orthoCommand(t, false), tiles);
           else
             weakOrtho = null;
-          warp = new TilesetCommand("warp", "Use in fresh warped projection",
-              MapView::canWarp, MapView::warpCommand, tiles);
+          if( !tiles.allowOrtho ) {
+            setmap = setmapm = null;
+          } else {
+            setmap = new TilesetCommand("setmap", "Set as map tiles",
+                mv->true, MapView::setmapCommand, tiles);
+            setmapm = new TilesetCommand("setmapm", tiles.desc,
+                mv->true, MapView::setwarpCommand, tiles) {
+              @Override protected Boolean getMenuSelected() {
+                return mapView.mapTiles == tiles;
+              }
+            };
+          }
+          setwarp = new TilesetCommand("setwarp", "Set as warping tiles",
+              mv->true, MapView::setwarpCommand, tiles);
+          setwarpm = new TilesetCommand("setwarpm", tiles.desc,
+              mv->true, MapView::setwarpCommand, tiles) {
+            @Override protected Boolean getMenuSelected() {
+              return mapView.warpTiles == tiles;
+            }
+          };
         }
         lens = new TilesetCommand("lens", "Use with lens tool",
             mv -> true, MapView::lensCommand, tiles);
       } else {
-        just = ortho = weakOrtho = warp = lens =
+        just = weakOrtho = lens =
             simple("nosuchtiles."+name, "NOSUCHTILES",
                 self -> self.window.showErrorBox(
                     "This key would use the unknown tileset '%s'.", name));
+        setmap = setmapm = setwarp = setwarpm = null;
       }
     }
     final void defineMenu(IMenu menu) {
-      if( just != null ) menu.add(just);
-      if( just != null ) menu.add(ortho);
-      if( weakOrtho != null ) menu.add(weakOrtho);
-      if( just != null ) menu.add(warp);
+      if( setmap != null ) menu.add(setmap);
+      if( setwarp != null ) menu.add(setwarp);
       menu.add(lens);
+      menu.addSeparator();
+      if( just != null ) menu.add(just);
+      if( weakOrtho != null ) menu.add(weakOrtho);
     }
   }
 
@@ -288,11 +327,11 @@ public class Commands {
     keymap.accept("Tab", toggleFilePane);
     keymap.accept("Q", quickwarp);
     keymap.accept("M-Q", quickwarp.quickCircle());
-    keymap.accept("W", tilesetCommands("google").warp);
+    keymap.accept("W", warp);
     keymap.accept("S-W", tilesetCommands("bing").lens);
-    keymap.accept("E", tilesetCommands("google").weakOrtho);
+    keymap.accept("E", weakOrtho);
     keymap.accept("S-E", tilesetCommands("google").lens);
-    keymap.accept("R", tilesetCommands("osm").ortho);
+    keymap.accept("R", ortho);
     keymap.accept("S-R", tilesetCommands("osm").lens);
     keymap.accept("S-T", tilesetCommands("openrail").lens);
     keymap.accept("U", teleport);
@@ -373,6 +412,11 @@ public class Commands {
     view.add(toggleTilesetPane);
     view.addSeparator();
     var zoom = view;//.addSubmenu("Zoom / Projection");
+    zoom.add(ortho);
+    zoom.add(warp);
+    zoom.add(quickwarp);
+    zoom.add(quickwarp.quickCircle());
+    zoom.addSeparator();
     zoom.add(zoomIn);
     zoom.add(zoomOut);
     zoom.add(zoom100);
@@ -380,11 +424,9 @@ public class Commands {
     zoom.add(squeeze);
     zoom.add(stretch);
     zoom.add(unsqueeze);
-    zoom.add(quickwarp);
-    zoom.add(quickwarp.quickCircle());
-    zoom.addSeparator();
-    zoom.add(rotate);
-    zoom.add(teleport);
+    view.addSeparator();
+    view.add(rotate);
+    view.add(teleport);
     view.addSeparator();
 
     view.add(Toggles.MAIN_TRACK.command(this));
@@ -412,9 +454,20 @@ public class Commands {
     tools.add(explore);
 
     var tiles = menu.addSubmenu("Map tiles");
+    var maptiles =
+        tiles.addSubmenu("Background map tileset ("+mapView.mapTiles.name+")");
+    var warptiles =
+        tiles.addSubmenu("Warping tileset ("+mapView.warpTiles.name+")");
+    tiles.add(weakOrtho);
+    tiles.addSeparator();
     tiles.add(Toggles.TILEGRID.command(this));
     tiles.add(Toggles.DOWNLOAD.command(this));
     tiles.add(downloadTile);
+
+    for( var tsc : tilesetCommands.values() ) {
+      if( tsc.setmapm != null ) maptiles.add(tsc.setmapm);
+      if( tsc.setwarpm != null ) warptiles.add(tsc.setwarpm);
+    }
 
     var debug = menu.addSubmenu("Debug");
     debug.add(forceGC);
@@ -439,7 +492,7 @@ public class Commands {
     return new Cmd(codename, niceName, action);
   }
 
-  private final class Cmd extends Command {
+  private class Cmd extends Command {
     final Function<Commands, Runnable> action;
     Cmd(String codename, String niceName,
         Function<Commands, Runnable> action) {

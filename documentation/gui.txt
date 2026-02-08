@@ -19,12 +19,14 @@
    Katalogvisningen kan opfriskes ved at folde væk og frem igen.
 
    Kommando (BACKSLASH): til et sidepanel til højre med liste over
-   tilesets.  Her kan vælges grundkort, lup-kort, udfyldningskort.
+   tilesets.  Her kan vælges grundkort, warp-tilesæt og lup-tilesæt.
+   Der huskes på hvilket tilesæt der er grundkort og warp-tilesæt
+   også mens selve kortvisningen er i den modsate tilstand.
 
-     Muligvis er panelerne altid i princippet til stede men blot
-     kollapset til en bredde på 0, og der vises altid en kant hvor man
-     kan ændre bredden med musen. Kommandoerne er da blot genveje til
-     at ændre bredden med.
+     Panelerne er i princippet altid til stede men blot kollapset til
+     en bredde på 0, og der vises altid en kant hvor man kan ændre
+     bredden med musen. Kommandoerne er da blot genveje til at ændre
+     bredden med.
 
    Kommando: Luk programmet
 
@@ -228,26 +230,24 @@
    først og fremmest skal sikre at tekst på grundkortet er læselig),
    dog højst det enkelte kortlags max-zoom.
 
-   Ortho-projektion kan vises i en særlig tilstand hvor det valgte
-   kort ikke bliver _downloadet_ automatisk, men kun en enkelt tile ad
-   gangen med en særlig kommando (G). Den er nyttig til at konsturere
-   margenlinjer der skal minimere tile-forbruget.
-
    Kommando: skift til ortho-projektion.
+     * Skift samtidig til det valgte tileset for baggrundskort.
      * Skalaen bliver grundkortets standardzoom hvis dette ligger
        mellem den nuværende x-skala og y-skala. Ellers rundes den
        nærmeste størrelse i dette interval i retning af standardzoomet
        til nærmeste toerpotens.
      * Var den hidtidige projektion også ortho, sker der hermed ingen
        ændring af projektionen overhovedet.
-     * Menuvalget er i højre sidebars kontekstmenu, så der kan
-       konfigureres forskellige shortcuts til forskellige grundkort.
-     * Der er to versioner af kommandoen for hvert grundkorte alt
-       efter om den særlige "download ikke" funktionalitet skal
-       bruges". Det er et designvalg per grundkort hvilket af dem
-       der har en tastaturbinding.
-     * Dette er også aktionen ved KLIK i højre sidebar når
-       "lup"-værtøjet ikke er aktivt.
+
+   Kommando: skift til ortho-projektion uden download
+     * Ortho-projektion kan vises i en særlig tilstand hvor det valgte
+       kort ikke bliver _downloadet_ automatisk, men kun en enkelt
+       tile ad  gangen med en særlig kommando (G). Den er nyttig til
+       at konsturere margenlinjer der skal minimere tile-forbruget.
+     * Denne kommando vælger det tilsæt der er konfigureret til
+       _warps_, snarere end standardkortet.
+     * Der er særlige versioner af kommandoen der også vælger et
+       tilesæt; de findes normalt kun i menuen i højre sidebar.
 
    == Warp-projektion ==
 

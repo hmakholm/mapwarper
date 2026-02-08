@@ -5,6 +5,7 @@ import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.gui.overlays.ArrowOverlay;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
 import net.makholm.henning.mapwarper.gui.projection.BaseProjection;
+import net.makholm.henning.mapwarper.gui.projection.CircleWarp;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.QuickWarp;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection.CannotWarp;
@@ -16,8 +17,14 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
     super(owner, "quickwarp", "Quick-warp");
   }
 
+  @Override
+  protected Boolean getMenuSelected() {
+    return mapView().projection.base() instanceof QuickWarp;
+  }
+
   public Command quickCircle() {
-    return altQuickCommand("Circular quick-warp");
+    return altQuickCommand("Circular quick-warp",
+        () -> mapView().projection.base() instanceof CircleWarp);
   }
 
   @Override

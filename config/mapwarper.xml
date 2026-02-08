@@ -125,6 +125,7 @@
          tileurl="https://api.datafordeler.dk/FileDownloads/GetRasterMultipleFiles?MinX=~X~001&amp;MaxX=~X~999&amp;MinY=~Y~001&amp;MaxY=~Y~999&amp;Register=GeoDKO&amp;DataSetName=GeoDKO12,5cm&amp;Version=1&amp;apiKey=[APIKEY]"
          disableHttpsValidation="true"
          extension=".zip"
+         useAsBackground="false"
          guiTargetZoom="18">
   <!-- there's also a GetRasterFile API getting a single file, but I
        cannot figure out how to get it to deliver the 12.5 cm

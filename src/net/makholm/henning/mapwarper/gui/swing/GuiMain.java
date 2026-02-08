@@ -5,9 +5,11 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 
 import javax.swing.Action;
@@ -45,6 +47,9 @@ public class GuiMain extends JFrame {
   private final JSplitPane rightSplitter;
 
   boolean anyUserInputYet;
+
+  Optional<BufferedImage> mapIcon = SwingUtils.loadBundledImage("mapIcon.png");
+  Optional<BufferedImage> warpIcon = SwingUtils.loadBundledImage("mainIcon.png");
 
   /**
    * Used for short administrative actions that must be decoupled from the
@@ -178,7 +183,7 @@ public class GuiMain extends JFrame {
   }
 
   private void setMainIcon() {
-    SwingUtils.loadBundledImage("mainIcon.png").ifPresent(this::setIconImage);
+    warpIcon.ifPresent(this::setIconImage);
   }
 
   private int savedLeftPanePosition = SwingFilePane.PREFERRED_WIDTH;
