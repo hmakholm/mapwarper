@@ -50,7 +50,6 @@ public class GeoDanmark extends Tileset {
 
   @Override
   public PixelAddresser makeAddresser(int zoom, Point globalRefpoint) {
-    if( zoom == 14 ) zoom = 15;
     if( zoom < 15 || zoom > 19 )
       return WebMercatorAddresser.BLANK;
     return new CompoundAddresser.WithUTM(boundingBox, UTM32, 1000,

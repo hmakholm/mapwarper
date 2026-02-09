@@ -126,7 +126,7 @@
          disableHttpsValidation="true"
          extension=".zip"
          useAsBackground="false"
-         guiTargetZoom="18">
+         coarsestZoom="15" guiTargetZoom="18" finestZoom="19">
   <!-- there's also a GetRasterFile API getting a single file, but I
        cannot figure out how to get it to deliver the 12.5 cm
        resolution. -->

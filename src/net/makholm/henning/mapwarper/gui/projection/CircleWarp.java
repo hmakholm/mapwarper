@@ -11,7 +11,6 @@ import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.geometry.Vector;
-import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
@@ -172,21 +171,16 @@ public class CircleWarp extends BaseProjection {
   }
 
   @Override
+  public boolean suppressMainTileDownload(double squeeze) {
+    return true;
+  }
+
+  @Override
   public RenderFactory makeRenderFactory(LayerSpec spec,
       double xscale, double yscale) {
     FallbackChain fallback = new FallbackChain(spec, xscale, yscale);
-    long supersamplingChain, fallbackChain;
-    if( Toggles.LENS_MAP.setIn(spec.flags()) ) {
-      supersamplingChain = fallback.lensChain();
-      fallbackChain = 0;
-    } else {
-      supersamplingChain = fallback.supersampleMain(false);
-      fallback.attemptFallbacks(3);
-      fallbackChain = fallback.getChain();
-    }
-
     var recipe = SupersamplingRenderer.prepareSupersampler(spec,
-        xscale, yscale, supersamplingChain, fallbackChain);
+        xscale, yscale, fallback.premiumChain, fallback.marginChain);
     return target
         -> new SupersamplingRenderer(spec, xscale, yscale, target, recipe) {
           @Override

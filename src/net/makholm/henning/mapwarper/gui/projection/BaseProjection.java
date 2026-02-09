@@ -46,6 +46,12 @@ public abstract class BaseProjection extends Projection {
     return createWorker(this, 1.0, 1.0);
   }
 
+  /**
+   * Return true for projections that have a high risk of downloading many
+   * not really wanted tiles.
+   */
+  public abstract boolean suppressMainTileDownload(double squeeze);
+
   @Override
   public final RenderFactory makeRenderFactory(LayerSpec spec) {
     return makeRenderFactory(spec, 1.0, 1.0);

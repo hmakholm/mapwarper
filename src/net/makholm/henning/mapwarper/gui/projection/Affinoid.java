@@ -30,6 +30,10 @@ public final class Affinoid {
   public double squeeze = 1;
   public int quadrantsTurned = 0;
 
+  public double scaleAlong() {
+    return scaleAcross * squeeze;
+  }
+
   public void makeSqueezable(double defaultSqueeze) {
     if( !squeezable ) {
       quadrantsTurned = 0;

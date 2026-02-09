@@ -79,7 +79,7 @@ public class WindowTitle {
 
       int zoom = tiles.guiTargetZoom;
       if( baseproj.isOrtho() ) {
-        int natzoom = FallbackChain.naturalZoom(aff.scaleAcross, tiles);
+        int natzoom = FallbackChain.naturalZoom(aff.scaleAcross);
         zoom = Math.min(zoom, natzoom);
       }
       sb.append(tiles.name);

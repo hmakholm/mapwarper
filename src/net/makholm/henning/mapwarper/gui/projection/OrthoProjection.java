@@ -9,7 +9,6 @@ import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.georaster.Coords;
-import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.maprender.BasicRenderer;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
@@ -64,17 +63,15 @@ public final class OrthoProjection extends BaseProjection {
       Vector.of(0, 1).normalize();
 
   @Override
+  public boolean suppressMainTileDownload(double squeeze) {
+    return false;
+  }
+
+  @Override
   public RenderFactory makeRenderFactory(LayerSpec spec,
       double xpixsize, double ypixsize) {
-    long chain;
-    FallbackChain fallback = new FallbackChain(spec, xpixsize, ypixsize);
-    if( Toggles.LENS_MAP.setIn(spec.flags()) ) {
-      chain = fallback.lensChain();
-    } else {
-      fallback.attemptMain();
-      fallback.attemptFallbacks(3);
-      chain = fallback.getChain();
-    }
+    var chains = new FallbackChain(spec, xpixsize, ypixsize);
+    var chain = chains.standardChain;
     return target
         -> new BasicRenderer(spec, xpixsize, ypixsize, target, chain) {
           @Override

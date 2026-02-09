@@ -170,27 +170,23 @@ public final class WarpedProjection extends BaseProjection {
   }
 
   @Override
+  public boolean suppressMainTileDownload(double squeeze) {
+    return false;
+  }
+
+  @Override
   protected RenderFactory makeRenderFactory(LayerSpec spec,
       double xscale, double yscale) {
-    FallbackChain fallback = new FallbackChain(spec, xscale, yscale);
-    long supersamplingChain, fallbackChain;
+    FallbackChain chains = new FallbackChain(spec, xscale, yscale);
+    var recipe = SupersamplingRenderer.prepareSupersampler(spec,
+        xscale, yscale, chains.premiumChain, chains.standardChain);
     if( Toggles.LENS_MAP.setIn(spec.flags()) ) {
-      supersamplingChain = fallback.lensChain();
-      var recipe = SupersamplingRenderer.prepareSupersampler(spec,
-          xscale, yscale, supersamplingChain, 0);
       return target -> new BaseWarpRenderer(this, spec,
           xscale, yscale, target, recipe);
     } else {
-      supersamplingChain = fallback.supersampleMain(true);
-      fallback.attemptFallbacks(3);
-      fallbackChain = fallback.getChain();
-      long marginChain =
-          FallbackChain.neverDownload(supersamplingChain) | fallbackChain;
-      var recipe = SupersamplingRenderer.prepareSupersampler(spec,
-          xscale, yscale, supersamplingChain, fallbackChain);
       var margins = WarpMargins.get(this);
       return target -> new MarginedWarpRenderer(this, spec,
-          xscale, yscale, target, recipe, margins, marginChain);
+          xscale, yscale, target, recipe, margins, chains.marginChain);
     }
   }
 

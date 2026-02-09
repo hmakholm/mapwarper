@@ -3,6 +3,7 @@ package net.makholm.henning.mapwarper.gui.maprender;
 import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.georaster.PixelAddresser;
 import net.makholm.henning.mapwarper.gui.Toggles;
+import net.makholm.henning.mapwarper.gui.projection.Affinoid;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 import net.makholm.henning.mapwarper.util.MathUtil;
 
@@ -43,181 +44,215 @@ public class FallbackChain {
 
   // -------------------------------------------------------------------------
 
-  private final int flags;
-  private final int targetZoom;
+  public final Tileset mainTiles, fallbackTiles;
 
-  private final int mainNaturalZoom;
-  private final int maxMainFallbacks;
-  private final int fallbackNaturalZoom;
-  private final int fallbackMinDownload;
-  private final int fallbackMinUse;
-  private final int fallbackTooCloseZoom;
+  public int principalZoom;
 
-  private final boolean downloadMain;
-  private final boolean fallbackEqualsMain;
+  /**
+   * These are the <em>intended</em> tiles that should be rendered with
+   * supersampling in projections where that makes sense.
+   */
+  public final long premiumChain;
 
-  private final int mainZoomToUse;
+  /**
+   * Tiles that can also be used in general but are already lower
+   * quality and don't justify the extra work of supersampling.
+   */
+  public final long standardChain;
 
-  private long accumulatedBits;
-  private int numAttempts;
+  /**
+   * A reduced chain that minimizes download work while still being
+   * minimally recognizable; used outside of the defined bounds in
+   * warped projections.
+   */
+  public final long marginChain;
+
+  public FallbackChain(LayerSpec spec) {
+    this(spec, spec.projection().getAffinoid());
+  }
+
+  public FallbackChain(LayerSpec spec, Affinoid aff) {
+    this(spec, aff.scaleAlong(), aff.scaleAcross);
+  }
 
   public FallbackChain(LayerSpec spec, double pixsizex, double pixsizey) {
-    flags = spec.flags() & Toggles.MAP_MASK;
-    pixsizex = Math.abs(pixsizex);
-    pixsizey = Math.abs(pixsizey);
-    var mainTiles = spec.mainTiles();
-    var fallbackTiles = spec.fallbackTiles();
+    mainTiles = spec.mainTiles();
+    fallbackTiles = spec.fallbackTiles();
+    var flags = spec.flags();
+    var naturalZoom = naturalZoom(pixsizey);
 
-    this.targetZoom = spec.targetZoom();
-    this.mainNaturalZoom = naturalZoom(pixsizey, mainTiles);
-    if( fallbackTiles.name.equals("nomap") ) {
-      fallbackEqualsMain = false;
-      fallbackNaturalZoom = 1;
-      fallbackMinDownload = 1;
-      fallbackMinUse = 1;
-      fallbackTooCloseZoom = 2;
-    } else {
-      fallbackEqualsMain = fallbackTiles == mainTiles;
-      fallbackNaturalZoom = Math.min(fallbackTiles.guiTargetZoom,
-          naturalZoom(pixsizey, fallbackTiles));
+    boolean suppressDownload = spec.projection().base()
+        .suppressMainTileDownload(pixsizex/pixsizey);
 
-      // fallbackMinDownload is when we have zoomed so far out that the
-      // tile size is larger than the window.
-      fallbackMinDownload = clampZoom((int)MathUtil.log2(
-          Coords.EARTH_SIZE / spec.windowDiagonal().getAsDouble()));
+    int mainZoom = Math.min(naturalZoom, mainTiles.guiTargetZoom);
 
-      // fallbackMinUse is when we have zoomed so far out that a fallback
-      // pixel stretches for more than 20 UI pixels in the Y direction
-      fallbackMinUse = clampZoom((int)MathUtil.log2(
-          Coords.EARTH_SIZE / (pixsizey * 20)) - 8);
+    long draftPremiumChain = 0;
+    long draftStandardChain = 0;
+    long marginChainMask = -1;
 
-      // fallbackTooCloseZoom is when we have zoomed so far in that there
-      // are more fallback pixels than there are pixels to display
-      fallbackTooCloseZoom = naturalZoom(Math.sqrt(pixsizex*pixsizey),
-          fallbackTiles);
-    }
-    downloadMain = fallbackEqualsMain || Toggles.DOWNLOAD.setIn(flags);
+    final boolean wantNiceFallback;
 
-    if( !downloadMain && Toggles.tilecacheDebugZoom(flags) !=0 ) {
-      mainZoomToUse =
-          Toggles.TILECACHE_DEBUG_OFFSET + Toggles.tilecacheDebugZoom(flags);
-      maxMainFallbacks = 0;
-    } else {
-      maxMainFallbacks = 8;
-      mainZoomToUse = Math.min(targetZoom, mainNaturalZoom);
-    }
-  }
+    // MAIN TILES
 
-  public void addAttempt(int zoom, boolean fallback, boolean download) {
-    long val = (zoom << ZOOM_SHIFT) & ATTEMPT_MASK;
-    if( fallback ) val |= FALLBACK_BIT;
-    if( download && (fallback || downloadMain)) val |= DOWNLOAD_BIT;
-    accumulatedBits |= val << (numAttempts * BITS_PER_ATTEMPT);
-    numAttempts++;
-  }
+    if( Toggles.OVERLAY_MAP.setIn(flags) ) {
+      // This is for the lens, where we don't bother with fallbacks
+      mainZoom = spec.targetZoom();
+      draftPremiumChain |= nextAttempt(mainTiles, true, mainZoom);
+      for( int i=1; i<=5; i++ )
+        draftStandardChain |= nextAttempt(mainTiles, false, mainZoom-i);
+      premiumChain = draftPremiumChain;
+      standardChain = marginChain = draftPremiumChain | draftStandardChain;
+      return;
 
-  public void attemptMain() {
-    addAttempt(mainZoomToUse, false, true);
-  }
+    } else if( mainTiles == fallbackTiles ) {
+      // Another special case: if main and fallback are the same, then
+      // don't bother to make them two separate sequences; instead rely
+      // on the existing support we have for making the fallback map
+      // look good.
+      wantNiceFallback = true;
 
-  public long supersampleMain(boolean downloadWhenSupersampling) {
-    long result;
-    if( maxMainFallbacks == 0 ) {
-      addAttempt(mainZoomToUse, false, downloadWhenSupersampling);
-      result = accumulatedBits;
-    } else if( targetZoom > mainZoomToUse && targetZoom <= mainZoomToUse+5 ) {
-      addAttempt(mainZoomToUse, false, false);
-      long saved = accumulatedBits;
-      addAttempt(targetZoom, false, false);
-      if( downloadWhenSupersampling )
-        addAttempt(mainZoomToUse, false, true);
-      result = accumulatedBits;
-      accumulatedBits = saved;
-    } else {
-      if( downloadWhenSupersampling ) {
-        addAttempt(mainZoomToUse, false, true);
-        result = accumulatedBits;
-        accumulatedBits = 0;
-        numAttempts = 0;
-        addAttempt(mainZoomToUse, false, false);
-      } else {
-        addAttempt(mainZoomToUse, false, false);
-        result = accumulatedBits;
+    } else if( !suppressDownload && Toggles.DOWNLOAD.setIn(flags) ) {
+      // This is the common case.
+      wantNiceFallback = false;
+
+      if( pixsizex >= 3*pixsizey &&
+          mainTiles.guiTargetZoom > mainZoom &&
+          mainTiles.guiTargetZoom <= mainZoom+5 ) {
+        // A special case to avoid lots of sudden downloads when one zooms
+        // out from squeezed projection: Try falling back to the tileset's
+        // principal resolution _before_ downloading the one corresponding
+        // to the display zoom.
+        draftPremiumChain |= nextAttempt(mainTiles, false, mainZoom);
+        draftPremiumChain |= nextAttempt(mainTiles, false, mainTiles.guiTargetZoom);
+        marginChainMask = ~draftPremiumChain;
       }
+      draftPremiumChain |= nextAttempt(mainTiles, true, mainZoom);
+      draftStandardChain |= additionalMainAttempts(mainZoom);
+
+    } else if( Toggles.tilecacheDebugZoom(flags) != 0 &&
+        !Toggles.DOWNLOAD.setIn(flags) ) {
+      // The tilecache debug no-download mode, where we want only one
+      // particular main-tile zoom.
+      draftPremiumChain |= nextAttempt(mainTiles, false,
+          Toggles.tilecacheDebugZoom(flags) + Toggles.TILECACHE_DEBUG_OFFSET);
+      wantNiceFallback = true;
+
+    } else if( mainZoom < mainTiles.coarsestZoom && !suppressDownload ) {
+      // We're explicitly (rather than implicitly by quickwarp) in no-download
+      // mode, but zoomed farther out than the tileset can deliver.
+      // Extraordinarily allow finer zooms to be used then.
+      if( mainZoom >= mainTiles.coarsestZoom-2 )
+        draftPremiumChain |= nextAttempt(mainTiles, false, mainTiles.coarsestZoom);
+      wantNiceFallback = true;
+
+    } else {
+      // The ordinary no-download mode, enabled by force in quickwarp projections.
+      // Here we want a best-effort attempt to show _something_ from the main
+      // tileset, but without needing to download anything.
+      draftPremiumChain |= nextAttempt(mainTiles, false, mainZoom);
+      if( mainTiles.guiTargetZoom > mainZoom &&
+          mainTiles.guiTargetZoom <= mainZoom+2 ) {
+        long better = nextAttempt(mainTiles, false, mainTiles.guiTargetZoom);
+        draftPremiumChain |= better;
+        marginChainMask = ~better;
+        principalZoom = mainTiles.guiTargetZoom;
+      }
+      draftStandardChain |= additionalMainAttempts(mainZoom);
+
+      // When we don't have anything downloaded, be sure to aim for a
+      // full-resolution fallback map.
+      wantNiceFallback = true;
     }
+    long draftMarginChain = neverDownload(
+        (draftPremiumChain | draftStandardChain) & marginChainMask);
+
+    // FALLBACK TILES
+
+    /**
+     * The best zoom where there are as many fallback pixels as there are
+     * display pixels, given the squeeze.
+     */
+    int naturalFallbackZoom = naturalZoom(Math.sqrt(pixsizex*pixsizey));
+    /**
+     * The zoom where we have zoomed so far out that the default 256x256
+     * pixel tile would be larger than the window.
+     */
+    int stopDownloadZoom = clampZoom((int)MathUtil.log2(
+        Coords.EARTH_SIZE / spec.windowDiagonal().getAsDouble()));
+
+    int fallbackZoom = Math.min(naturalZoom, fallbackTiles.guiTargetZoom);
+    int firstStdDownload = Math.min(fallbackZoom-2, naturalFallbackZoom);
+    int nextDownload = wantNiceFallback ? fallbackZoom : firstStdDownload;
+    int firstMarginDownload = naturalFallbackZoom-2;
+
+    for(; numAttempts < MAX_ATTEMPTS && fallbackZoom >= 1; fallbackZoom-- ) {
+      if( numAttempts == MAX_ATTEMPTS-1 ) {
+        fallbackZoom = fallbackDownload(fallbackZoom);
+        if( fallbackZoom >= naturalFallbackZoom )
+          nextDownload = fallbackZoom = fallbackDownload(naturalFallbackZoom);
+      }
+      long attempt;
+      if( fallbackZoom <= nextDownload ) {
+        attempt = nextAttempt(fallbackTiles, true, fallbackZoom);
+        if( fallbackZoom > firstStdDownload )
+          nextDownload = firstStdDownload;
+        if( fallbackZoom <= stopDownloadZoom )
+          nextDownload = -1;
+        else
+          nextDownload = fallbackDownload(fallbackZoom-2);
+        if( draftPremiumChain == 0 )
+          draftPremiumChain |= attempt;
+      } else {
+        attempt = nextAttempt(fallbackTiles, false, fallbackZoom);
+      }
+      if( fallbackZoom <= firstMarginDownload )
+        draftMarginChain |= attempt;
+      else
+        draftStandardChain |= attempt;
+    }
+
+    // PUTTING IT ALL TOGETHER
+
+    premiumChain = draftPremiumChain;
+    standardChain = draftPremiumChain | draftStandardChain | draftMarginChain;
+    marginChain = neverDownload(draftStandardChain) | draftMarginChain;
+    //    System.out.println("Premium chain:  "+toString(premiumChain));
+    //    System.out.println("Standard chain: "+toString(standardChain));
+    //    System.out.println("Margin chain:   "+toString(marginChain)+" (threshold "+firstMarginDownload+")");
+  }
+
+  private int numAttempts;
+
+  private long nextAttempt(Tileset tiles, boolean download, int zoom) {
+    if( zoom < tiles.coarsestZoom || zoom > tiles.finestZoom )
+      return 0; // and _don't_ increment numAttempts
+
+    if( principalZoom == 0 && tiles == mainTiles )
+      principalZoom = zoom;
+
+    long val = (zoom << ZOOM_SHIFT) & ATTEMPT_MASK;
+    if( tiles != mainTiles ) val |= FALLBACK_BIT;
+    if( download ) val |= DOWNLOAD_BIT;
+    val <<= numAttempts * BITS_PER_ATTEMPT;
+    numAttempts++;
+    return val;
+  }
+
+  private long additionalMainAttempts(int mainZoom) {
+    long result = 0;
+    for( int i=1; i<=3 && numAttempts < (MAX_ATTEMPTS+1)/2; i++ )
+      result |= nextAttempt(mainTiles, false, mainZoom-i);
     return result;
   }
 
-  public void attemptFallbacks(int mainSizesToInclude) {
-    if( mainSizesToInclude > maxMainFallbacks )
-      mainSizesToInclude = maxMainFallbacks;
-    int fallbackZoom;
-    if( fallbackEqualsMain ) {
-      fallbackZoom = mainZoomToUse-1;
-    } else {
-      fallbackZoom = fallbackNaturalZoom;
-      for( int i = 0; i<mainSizesToInclude; i++ ) {
-        int z = mainZoomToUse - 1 - i;
-        if( z < 0 ) break;
-        addAttempt(z, false, false);
-      }
-    }
-    if( fallbackZoom >= fallbackTooCloseZoom )
-      fallbackZoom = fallbackTooCloseZoom-1;
-    boolean stopDownloading = false;
-    while( numAttempts < MAX_ATTEMPTS &&
-        fallbackZoom >= 1 ) {
-      if( numAttempts == MAX_ATTEMPTS-1 && fallbackZoom % 2 == 0 )
-        fallbackZoom--;
-      boolean download =
-          !stopDownloading &&
-          fallbackZoom <= fallbackNaturalZoom-2 &&
-          fallbackZoom <= targetZoom-2 &&
-          (fallbackZoom % 2) == 1;
-      if( download && fallbackZoom <= fallbackMinDownload )
-        stopDownloading = true;
-      addAttempt(fallbackZoom, true, download);
-      if( stopDownloading && fallbackZoom < fallbackMinUse  )
-        break;
-      fallbackZoom--;
-    }
-  }
-
-  public long lensChain() {
-    attemptMain();
-    return accumulatedBits;
+  private static int fallbackDownload(int zoom) {
+    return zoom & ~1;
   }
 
   public static long neverDownload(long chain) {
     for( long bit = DOWNLOAD_BIT; bit != 0; bit <<= BITS_PER_ATTEMPT )
       chain &= ~bit;
     return chain;
-  }
-
-  public static int firstMainZoom(long chain) {
-    for( int i = 0; i < MAX_ATTEMPTS; i++ )
-      if( (chain & (FALLBACK_BIT << (i*BITS_PER_ATTEMPT))) == 0 ) {
-        int zoom = (int)(chain >> (i*BITS_PER_ATTEMPT + ZOOM_SHIFT)) &
-            (ATTEMPT_MASK >> ZOOM_SHIFT);
-        if( zoom != 0 )
-          return zoom;
-      }
-    return 0;
-  }
-
-  public void downloadTheFirstFallback() {
-    for( int i = 0; i < numAttempts; i++ ) {
-      int shift = i * BITS_PER_ATTEMPT;
-      if( ((accumulatedBits >> shift) & FALLBACK_BIT) != 0 ) {
-        accumulatedBits |= DOWNLOAD_BIT << shift;
-        return;
-      }
-    }
-  }
-
-  public long getChain() {
-    // System.out.println("Created chain: "+toString(accumulatedBits));
-    return accumulatedBits;
   }
 
   public static String toString(long v) {
@@ -236,13 +271,13 @@ public class FallbackChain {
       if( fallback ) sb.append('f');
       if( !download ) sb.append(')');
 
-      v >>>= BITS_PER_ATTEMPT;
+      v = (v >>> BITS_PER_ATTEMPT);
       if( v == 0 ) return sb.toString();
       sb.append(' ');
     }
   }
 
-  public static int naturalZoom(double pixsize, Tileset tiles) {
+  public static int naturalZoom(double pixsize) {
     // Math.getExponent rounds down, which is what we want: better
     // map pixels that are slightly smaller than display pixels than
     // the other way around.

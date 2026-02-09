@@ -20,7 +20,6 @@ import net.makholm.henning.mapwarper.gui.files.FilePane;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
-import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
 import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
@@ -246,8 +245,7 @@ public final class MapView {
   }
 
   int naturalLensZoom() {
-    return FallbackChain.naturalZoom(
-        projection.scaleAcross(), dynamicLensSpec.mainTiles());
+    return FallbackChain.naturalZoom(projection.scaleAcross());
   }
 
   boolean isExportLens() {
@@ -607,23 +605,7 @@ public final class MapView {
 
   void singleTileDownloadCommand() {
     cancelLens();
-    // Hack to get the appropriate zoom level is to pretend we're going
-    // to render a 1x1 display tile
-    var dummyTarget = new RenderTarget() {
-      @Override public long left() { return (long)mouseLocal.x; }
-      @Override public long top() { return (long)mouseLocal.y; }
-      @Override public int columns() { return 1; }
-      @Override public int rows() { return 1; }
-      @Override public boolean isUrgent() { return false; }
-      @Override public boolean eagerDownload() { return false; }
-      @Override public void checkCanceled() { }
-      @Override public void givePixel(int x, int y, int rgb) { }
-      @Override public void isNowGrownUp() { }
-      @Override public void pokeSchedulerAsync() { }
-    };
-    var factory = projection.makeRenderFactory(dynamicMapLayerSpec);
-    var render = factory.makeWorker(dummyTarget);
-    int zoom = FallbackChain.firstMainZoom(render.nominalFallbackChain());
+    var zoom = new FallbackChain(dynamicMapLayerSpec).principalZoom;
     if( zoom == 0 ) {
       SwingUtils.beep();
       return;
