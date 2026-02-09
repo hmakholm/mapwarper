@@ -64,6 +64,22 @@ public class Mapwarper {
     if( explicitTileCacheArg != null )
       config.override("tilecache", "", explicitTileCacheArg);
 
+    boolean trouble = false;
+    if( config.tagmap("keybind").isEmpty() ) {
+      System.err.println("There appears to be no GUI keybindings defined.");
+      trouble = true;
+    }
+    if( config.tagmap("tileset").isEmpty() ) {
+      System.err.println("There appears to be no tilesets defined.");
+      trouble = true;
+    }
+    if( trouble ) {
+      System.err.println("This looks like the main configuration file has not been");
+      System.err.println("found. It should be located as config/mapwarper.xml next");
+      System.err.println("to the JAR file or bin/ directory with compiled classes.");
+      System.exit(3);
+    }
+
     config.setSystemProperties();
 
     var http = HttpClient.newBuilder();
