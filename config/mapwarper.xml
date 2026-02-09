@@ -144,7 +144,7 @@
      to the same command, though it may be somewhat nondeterministic
      which of them show up in the menu entry for the command. -->
 <!-- The command names _probably_ won't change, but I'm not making
-     an particularly strong commitment to keep them stable. Be
+     any particularly strong commitment to keep them stable. Be
      prepared to have to update personal overrides from time to time. -->
 
 <keybind name="C-C" value="copy"/>
@@ -178,6 +178,7 @@
 <keybind name="-" value="zoomOut"/>
 <keybind name="+" value="zoomIn"/>
 <keybind name="Insert" value="newchain"/>
+<keybind name="Home" value="unzoom"/>
 
 <keybind name="Tab" value="toggleFilePane"/>
 <keybind name="S-Tab" value="toggleTilePane"/>
@@ -191,7 +192,6 @@
 <keybind name="S-R" value="lens.osm"/>
 <keybind name="S-T" value="lens.openrail"/>
 <keybind name="U" value="teleport"/>
-<keybind name="S-U" value="unzoom"/>
 <keybind name="O" value="filepick"/>
 <keybind name="[" value="lensMinus"/>
 <keybind name="{" value="tdebugMinus"/>

@@ -62,7 +62,7 @@
      M: måleværktøj, viser information om segmenter
 
      U: teleport
-     Skift-U: unzoom
+     Home: unzoom
 
      Ctrl-I: Skift sporretning
 
