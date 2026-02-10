@@ -140,11 +140,8 @@ abstract class CommonRenderer implements RenderWorker {
   }
 
   protected final int getPixel(double x, double y, long fallbackSpec) {
-    for(int attempt = 0;; attempt++) {
-      int aspec =
-          (int)(fallbackSpec >> attempt * BITS_PER_ATTEMPT) & ATTEMPT_MASK;
-
-      if( aspec == 0 ) return RGB.OUTSIDE_BITMAP;
+    for(; fallbackSpec != 0; fallbackSpec >>= BITS_PER_ATTEMPT) {
+      int aspec = (int)fallbackSpec & ATTEMPT_MASK;
       int zoom = (int)(aspec >> ZOOM_SHIFT);
       if( zoom == 0 ) continue;
 
@@ -194,6 +191,7 @@ abstract class CommonRenderer implements RenderWorker {
         return addresser.getPixel(bitmap);
       }
     }
+    return RGB.OUTSIDE_BITMAP;
   }
 
   private Tileset tilesetFor(int aspec) {
