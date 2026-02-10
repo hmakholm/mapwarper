@@ -45,7 +45,8 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
       SupersamplingRecipe supersample) {
     super(spec, xpixsize, ypixsize, target);
     this.supersample = supersample;
-    this.renderPassesWanted = 3;
+    if( supersample.numSamples > 1 )
+      this.renderPassesWanted = 3;
   }
 
   @Override

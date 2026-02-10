@@ -64,8 +64,7 @@ abstract class CommonRenderer implements RenderWorker {
         Point.at(target.left()+target.columns()/2,
             target.top()+target.rows()/2));
 
-    this.cacheLookupLevel =
-        target.eagerDownload() ? LookupLevel.DOWNLOAD : LookupLevel.DISK;
+    this.loadTiles = true;
     if( !Toggles.TILEGRID.setIn(spec.flags()) )
       tilegrid = null;
     else {
@@ -145,8 +144,7 @@ abstract class CommonRenderer implements RenderWorker {
 
   private int currentColumn;
 
-  protected enum LookupLevel { RAM, DISK, DOWNLOAD };
-  protected LookupLevel cacheLookupLevel = LookupLevel.DISK;
+  protected boolean loadTiles = false;
 
   protected final int getPixel(Point p, long fallbackSpec) {
     return getPixel(p.x, p.y, fallbackSpec);
@@ -180,8 +178,7 @@ abstract class CommonRenderer implements RenderWorker {
         if( nt.checkedCache ) {
           bitmap = nt.midcache;
         } else {
-          bitmap = nt.tileset.context.ramCache.getTile(nt,
-              cacheLookupLevel != LookupLevel.RAM);
+          bitmap = nt.tileset.context.ramCache.getTile(nt, loadTiles);
           nt.midcache = bitmap;
           nt.checkedCache = true;
         }
@@ -189,7 +186,7 @@ abstract class CommonRenderer implements RenderWorker {
           if( currentColumn > nt.xmax ) nt.xmax = currentColumn;
           if( currentColumn < nt.xmin ) nt.xmin = currentColumn;
           if( (aspec & DOWNLOAD_BIT) != 0 &&
-              cacheLookupLevel == LookupLevel.DOWNLOAD &&
+              loadTiles &&
               !addresser.onTileEdge() ) {
             currentColumnWaitsForTiles = true;
             nt.requestDownload();

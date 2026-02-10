@@ -396,11 +396,6 @@ class MapPainter {
       return buffer.isYoung;
     }
 
-    @Override
-    public boolean eagerDownload() {
-      return false;
-    }
-
     int priority() {
       return worker == null ? 1000 : worker.priority();
     }

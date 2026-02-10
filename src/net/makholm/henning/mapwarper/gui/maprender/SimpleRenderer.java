@@ -26,14 +26,7 @@ public abstract class SimpleRenderer extends CommonRenderer {
 
   @Override
   public final void doSomeWork() throws AbortRendering {
-    if( cacheLookupLevel == LookupLevel.DOWNLOAD ) {
-      // Keep it like that
-    } else if( renderPassesCompleted == 0 )
-      cacheLookupLevel = LookupLevel.RAM;
-    else if( renderPassesCompleted == renderPassesWanted-1 )
-      cacheLookupLevel = LookupLevel.DOWNLOAD;
-    else
-      cacheLookupLevel = LookupLevel.DISK;
+    loadTiles = renderPassesCompleted > 0;
     oneRenderPass();
     renderPassesCompleted++;
     if( renderPassesCompleted < renderPassesWanted ) {

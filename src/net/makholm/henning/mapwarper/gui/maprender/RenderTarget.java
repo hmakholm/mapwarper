@@ -10,7 +10,6 @@ public interface RenderTarget {
   int rows();
 
   boolean isUrgent();
-  boolean eagerDownload();
 
   void checkCanceled() throws AbortRendering;
 
