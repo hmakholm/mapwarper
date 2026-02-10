@@ -44,7 +44,6 @@ class TileDownloader extends BackgroundThread {
         if( startedYet ) {
           notify();
         } else {
-          System.out.println("Starting "+this+" for "+spec);
           start();
           startedYet = true;
         }
