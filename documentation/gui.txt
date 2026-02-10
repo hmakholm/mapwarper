@@ -59,7 +59,7 @@
 
      L: generel lup
      G: download tile under musens position
-     M: måleværktøj, viser information om segmenter
+     Skift-M: måleværktøj, viser information om segmenter
 
      U: teleport
      Home: unzoom
@@ -68,7 +68,7 @@
 
      Z: Zoom
      
-     .: (Næsten) noop-tool
+     M: (Næsten) noop-tool
 
      Ctrl-Z: Fortryd
      Ctrl-Y: Ufortryd

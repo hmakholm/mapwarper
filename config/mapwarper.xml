@@ -141,7 +141,7 @@
 
 <!-- ============ K E Y    B I N D I N G S ======================= -->
 
-<!-- At least the one of them that work uniformly enough to make
+<!-- At least the ones of them that work uniformly enough to make
      reconfiguration meaningful. They can be overridden in local
      config files. It should even be possible to bind several keys
      to the same command, though it may be somewhat nondeterministic
@@ -217,10 +217,10 @@
 <keybind name="V" value="WEAK"/>
 <keybind name="B" value="BOUND"/>
 <keybind name="N" value="LBOUND"/>
-<keybind name="M" value="measure"/>
+<keybind name="M" value="Mapwarper v3"/> <!-- the "move" tool calls itself this -->
+<keybind name="S-M" value="measure"/>
 <keybind name="&lt;" value="squeeze"/>
 <keybind name="&gt;" value="stretch"/>
-<keybind name="." value="Mapwarper v3"/> <!-- the "move" tool calls itself this -->
 <keybind name="Space" value="refresh"/>
 
 <!-- Arrow keys are hardcoded: they depend on whether the file pane is shown. -->

@@ -131,7 +131,7 @@ starts up in, press `R` to get back to an ordinary unwarped map view,
 then `O`.
 
 Drag holding the middle mouse button to move the map. Or, if you don't
-have a working middle button, press `.` to select a tool where the
+have a working middle button, press `M` to select a tool where the
 first button will do it.
 
 Beyond that, play around. Most of the command keys are documented in
