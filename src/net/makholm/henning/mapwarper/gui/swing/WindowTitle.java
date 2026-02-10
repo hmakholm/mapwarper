@@ -85,10 +85,9 @@ public class WindowTitle {
       sb.append(tiles.name);
       if( !Toggles.DOWNLOAD.setIn(flagBits) ) {
         sb.append('?');
-        if( Toggles.tilecacheDebugZoom(flagBits) != 0 ) {
+        if( Toggles.hasDebugZoom(flagBits) ) {
           sb.append('=');
-          zoom = Toggles.tilecacheDebugZoom(flagBits)+
-              Toggles.TILECACHE_DEBUG_OFFSET;
+          zoom = Toggles.debugZoom(flagBits);
         }
       }
       sb.append(zoom);

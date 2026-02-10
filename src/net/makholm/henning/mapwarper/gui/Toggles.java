@@ -66,15 +66,26 @@ public enum Toggles {
       TILECACHE_DEBUG_1.bit() |
       TILECACHE_DEBUG_2.bit() |
       TILECACHE_DEBUG_3.bit();
-  public static final int TILECACHE_DEBUG_OFFSET = 22-15;
+  private static final int TILECACHE_DEBUG_OFFSET = 22-15;
 
-  public static final int tilecacheDebugZoom(int flags) {
-    return (flags & TILECACHE_DEBUG_MASK) / TILECACHE_DEBUG_0.bit();
+  public static boolean hasDebugZoom(int flags) {
+    return (flags & TILECACHE_DEBUG_MASK) != 0;
   }
 
-  public static final int setTilecacheDebugZoom(int flags, int zoom) {
-    return (flags & ~TILECACHE_DEBUG_MASK) |
-        (zoom * TILECACHE_DEBUG_0.bit()) & TILECACHE_DEBUG_MASK;
+  public static int debugZoom(int flags) {
+    int got = (flags & TILECACHE_DEBUG_MASK) / TILECACHE_DEBUG_0.bit();
+    return got == 0 ? 0 : got + TILECACHE_DEBUG_OFFSET;
+  }
+
+  public static int setDebugZoom(int flags, int zoom) {
+    flags &= ~TILECACHE_DEBUG_MASK;
+    if( zoom != 0) {
+      zoom -= TILECACHE_DEBUG_OFFSET;
+      if( zoom < 0 ) zoom = 1;
+      if( zoom > 15 ) zoom = 0;
+      flags |= zoom * TILECACHE_DEBUG_0.bit() & TILECACHE_DEBUG_MASK;
+    }
+    return flags;
   }
 
 }

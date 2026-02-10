@@ -129,12 +129,10 @@ public class FallbackChain {
       draftPremiumChain |= nextAttempt(mainTiles, true, mainZoom);
       draftStandardChain |= additionalMainAttempts(mainZoom);
 
-    } else if( Toggles.tilecacheDebugZoom(flags) != 0 &&
-        !Toggles.DOWNLOAD.setIn(flags) ) {
+    } else if( Toggles.hasDebugZoom(flags) && !Toggles.DOWNLOAD.setIn(flags) ) {
       // The tilecache debug no-download mode, where we want only one
       // particular main-tile zoom.
-      draftPremiumChain |= nextAttempt(mainTiles, false,
-          Toggles.tilecacheDebugZoom(flags) + Toggles.TILECACHE_DEBUG_OFFSET);
+      draftPremiumChain |= nextAttempt(mainTiles, false, Toggles.debugZoom(flags));
       wantNiceFallback = true;
 
     } else if( mainZoom < mainTiles.coarsestZoom && !suppressDownload ) {

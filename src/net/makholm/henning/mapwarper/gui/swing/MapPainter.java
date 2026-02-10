@@ -361,7 +361,8 @@ class MapPainter {
           spec.targetZoom() <= spec.mainTiles().guiTargetZoom ) {
         darkenShift = 3;
         darkenMask = 0x0000001F;
-      } else if( Toggles.DARKEN_MAP.setIn(flags) ) {
+      } else if( Toggles.DARKEN_MAP.setIn(flags) &&
+          !Toggles.TILEGRID.setIn(flags)) {
         darkenShift = 2;
         darkenMask = 0x003F3F3F;
       } else {

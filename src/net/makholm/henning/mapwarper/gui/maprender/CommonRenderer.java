@@ -67,8 +67,8 @@ abstract class CommonRenderer implements RenderWorker {
     else {
       int zoom = mainTiles.guiTargetZoom;
       if( !Toggles.DOWNLOAD.setIn(spec.flags()) &&
-          Toggles.tilecacheDebugZoom(spec.flags()) != 0 )
-        zoom = Toggles.tilecacheDebugZoom(spec.flags()) + Toggles.TILECACHE_DEBUG_OFFSET;
+          Toggles.hasDebugZoom(spec.flags()) )
+        zoom = Toggles.debugZoom(spec.flags());
       tilegrid = mainTiles.makeAddresser(zoom, globalMidpoint);
     }
 

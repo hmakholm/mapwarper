@@ -137,7 +137,7 @@ public final class MapView {
     if( mainTiles != tiles ) {
       mainTiles = tiles;
       toggleState &= ~Toggles.DARKEN_MAP.bit();
-      if( tiles.darkenMap )
+      if( mainTiles.darkenMap )
         toggleState |= Toggles.DARKEN_MAP.bit();
       if( mainTiles == fallbackTiles )
         toggleState |= Toggles.DOWNLOAD.bit();
@@ -480,8 +480,7 @@ public final class MapView {
       toggleState |= Toggles.DOWNLOAD.bit();
     } else {
       toggleState &= ~Toggles.DOWNLOAD.bit();
-      toggleState &= ~Toggles.TILECACHE_DEBUG_MASK;
-      toggleState |= Toggles.DARKEN_MAP.bit();
+      toggleState = Toggles.setDebugZoom(toggleState, 0);
     }
     setProjection(OrthoProjection.ORTHO.withScaleAcross(1 << logPixsize));
   }
@@ -598,8 +597,15 @@ public final class MapView {
     if( Toggles.DOWNLOAD.setIn(toggleState) )
       return null;
     else return () -> {
-      int level = Toggles.tilecacheDebugZoom(toggleState);
-      toggleState = Toggles.setTilecacheDebugZoom(toggleState, level+delta);
+      if( Toggles.hasDebugZoom(toggleState) ) {
+        int level = Toggles.debugZoom(toggleState) + delta;
+        if( level < mainTiles.coarsestZoom || level > mainTiles.finestZoom )
+          level = 0;
+        toggleState = Toggles.setDebugZoom(toggleState, level);
+      } else if( delta < 0 )
+        toggleState = Toggles.setDebugZoom(toggleState, mainTiles.finestZoom);
+      else
+        toggleState = Toggles.setDebugZoom(toggleState, mainTiles.coarsestZoom);
     };
   }
 
