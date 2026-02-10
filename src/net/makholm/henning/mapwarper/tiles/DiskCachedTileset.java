@@ -70,7 +70,6 @@ public abstract class DiskCachedTileset extends Tileset {
   private BufferedImage produceTileInRam(long tile) throws IOException {
     Path file = fileForTile(tile);
     if( Files.isRegularFile(file) ) {
-      context.diskCacheHits.incrementAndGet();
       try( var locked = downloadLock.tryReader(file) ) {
         if( locked == null ) return null;
         return readFromFile(file);

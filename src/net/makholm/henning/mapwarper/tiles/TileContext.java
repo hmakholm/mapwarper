@@ -4,8 +4,6 @@ import java.net.http.HttpClient;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.Coords;
@@ -20,10 +18,6 @@ public class TileContext {
 
   public final Map<String, Tileset> tilesets = new LinkedHashMap<>();
   public final Tileset nomapTileset;
-
-  public AtomicInteger diskCacheHits = new AtomicInteger(0);
-  public AtomicInteger downloadedTiles = new AtomicInteger(0);
-  public AtomicLong downloadedBytes = new AtomicLong(0);
 
   public final TileCache ramCache = new TileCache();
 

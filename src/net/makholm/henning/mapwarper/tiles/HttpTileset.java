@@ -60,8 +60,6 @@ public abstract class HttpTileset extends DiskCachedTileset {
       if( length == 0 ) {
         throw new IOException("Got 200 for "+url+" but zero bytes!");
       }
-      context.downloadedTiles.incrementAndGet();
-      context.downloadedBytes.addAndGet(length);
     } catch( InterruptedException e ) {
       throw new RuntimeException("This shouldn't happen", e);
     } catch( IOException e ) {

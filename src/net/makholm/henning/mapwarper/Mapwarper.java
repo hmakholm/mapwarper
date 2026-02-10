@@ -156,19 +156,7 @@ public class Mapwarper {
   public static void main(String[] args) {
     try {
       Mapwarper me = new Mapwarper(args);
-      try {
-        me.command.run(me.words);
-      } finally {
-        if( me.tileContext.diskCacheHits.get() != 0 ) {
-          System.err.println(me.tileContext.diskCacheHits +
-              " tiles hit in disk cache");
-        }
-        if( me.tileContext.downloadedTiles.get() != 0 ) {
-          System.err.println("Downloaded "+
-              me.tileContext.downloadedBytes + " bytes in "+
-              me.tileContext.downloadedTiles + " tiles.");
-        }
-      }
+      me.command.run(me.words);
     } catch( NiceError e ) {
       System.err.println(e.getMessage());
       System.exit(1);
