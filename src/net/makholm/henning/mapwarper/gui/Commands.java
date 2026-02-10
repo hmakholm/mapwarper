@@ -252,6 +252,8 @@ public class Commands {
     return tilesetCommands.computeIfAbsent(name, TilesetCommands::new);
   }
 
+  private final Cmd exportLens = simple("exportLens", "Select area to export",
+      self -> self.mapView.lensCommand(self.mapView.tiles.nomapTileset));
   private final Command export =
       new Exporter(this, "export", "Export PNG ...", false);
   private final Command exportWithTracks =
@@ -326,6 +328,7 @@ public class Commands {
     files.add(saveAll);
     files.add(revert);
     files.addSeparator();
+    files.add(exportLens);
     files.add(export);
     files.add(exportWithTracks);
     files.addSeparator();

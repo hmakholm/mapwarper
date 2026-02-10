@@ -42,6 +42,9 @@ abstract class CommonRenderer implements RenderWorker {
   private final int ncols;
   private final ColsToRenderNow colsToRenderNow = new ColsToRenderNow();
   private final BitSet dirtyColumns;
+  private final BitSet columnsWaitingForTiles;
+
+  protected boolean currentColumnWaitsForTiles;
 
   CommonRenderer(
       LayerSpec spec, double xscale, double yscale, RenderTarget target) {
@@ -55,6 +58,7 @@ abstract class CommonRenderer implements RenderWorker {
     ncols = target.columns();
     dirtyColumns = new BitSet(ncols);
     dirtyColumns.set(0, ncols);
+    columnsWaitingForTiles = new BitSet(ncols);
 
     globalMidpoint = spec.projection().createWorker().local2global(
         Point.at(target.left()+target.columns()/2,
@@ -82,9 +86,15 @@ abstract class CommonRenderer implements RenderWorker {
     }
   }
 
-  protected final boolean anythingMarkedForRendering() {
+  @Override
+  public int priority() {
     // no need to synchronize: reading an int is atomic
-    return colsToRenderNow.last >= 0;
+    if( colsToRenderNow.last >= 0 )
+      return 1;
+    else if( !columnsWaitingForTiles.isEmpty() )
+      return 0;
+    else
+      return -1;
   }
 
   private static class ColsToRenderNow {
@@ -103,6 +113,7 @@ abstract class CommonRenderer implements RenderWorker {
 
     double left = target.left() * xscale;
     do {
+      currentColumnWaitsForTiles = false;
       currentColumn = x;
       Arrays.fill(localCacheIndex, 0);
 
@@ -110,6 +121,7 @@ abstract class CommonRenderer implements RenderWorker {
           0, target.rows()-1, target.top() * yscale);
       if( renderResult )
         dirtyColumns.clear(x);
+      columnsWaitingForTiles.set(x, currentColumnWaitsForTiles);
       target.checkCanceled();
       x++ ;
     } while( x <= xlast );
@@ -125,7 +137,8 @@ abstract class CommonRenderer implements RenderWorker {
   }
 
   /**
-   * return true if all pixels in the column were successfully rendered.
+   * return true if all pixels in the column were successfully rendered,
+   * even if it might be with fallback tiles.
    */
   protected abstract boolean renderColumn(int col, double xmid,
       int ymin, int ymax, double ybase);
@@ -178,6 +191,7 @@ abstract class CommonRenderer implements RenderWorker {
           if( (aspec & DOWNLOAD_BIT) != 0 &&
               cacheLookupLevel == LookupLevel.DOWNLOAD &&
               !addresser.onTileEdge() ) {
+            currentColumnWaitsForTiles = true;
             nt.requestDownload();
           } else {
             aspec &= ~DOWNLOAD_BIT;

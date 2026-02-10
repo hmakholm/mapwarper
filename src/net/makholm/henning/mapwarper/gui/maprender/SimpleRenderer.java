@@ -64,10 +64,8 @@ public abstract class SimpleRenderer extends CommonRenderer {
   public int priority() {
     if( renderPassesCompleted < renderPassesWanted )
       return 1000 - renderPassesCompleted;
-    else if( anythingMarkedForRendering() )
-      return 1;
     else
-      return -1;
+      return super.priority();
   }
 
 }

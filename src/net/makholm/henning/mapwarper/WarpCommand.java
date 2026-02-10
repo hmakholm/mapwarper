@@ -1,28 +1,24 @@
 package net.makholm.henning.mapwarper;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Deque;
+import java.util.concurrent.Semaphore;
 import java.util.function.DoubleSupplier;
-
-import javax.imageio.ImageIO;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
+import net.makholm.henning.mapwarper.gui.Exporter;
 import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
-import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
 import net.makholm.henning.mapwarper.gui.projection.Affinoid;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.tiles.Tileset;
-import net.makholm.henning.mapwarper.util.AbortRendering;
 import net.makholm.henning.mapwarper.util.NiceError;
 import net.makholm.henning.mapwarper.util.Regexer;
 
@@ -97,18 +93,9 @@ class WarpCommand extends Mapwarper.Command {
     rect = wp.shrinkToMargins(rect, proj.scaleAlong());
     rect = proj.projected2local(rect);
 
-    int ymin = (int)Math.round(rect.ymin());
-    int ymax = (int)Math.round(rect.ymax());
-    int width = (int)Math.round(rect.width());
-    int height = ymax-ymin;
-
-    System.err.println("Warping "+width+"x"+height+" ...");
-    var bitmap = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-
-    boolean[] done = { false };
-
     int renderFlags =
         Toggles.SUPERSAMPLE.bit() |
+        Toggles.DOWNLOAD.bit() |
         Toggles.BLANK_OUTSIDE_MARGINS.bit();
 
     LayerSpec ls = new LayerSpec() {
@@ -120,46 +107,24 @@ class WarpCommand extends Mapwarper.Command {
       @Override public Tileset fallbackTiles() { return fallbackTiles; }
     };
 
-    RenderTarget rt = new RenderTarget() {
-      @Override public long left() { return 0; }
-      @Override public long top() { return ymin; }
-      @Override public int columns() { return width; }
-      @Override public int rows() { return height; }
-      @Override public boolean isUrgent() { return true; }
-      @Override public boolean eagerDownload() { return true; }
-      @Override public void checkCanceled() { }
-
+    var done = new Semaphore(0);
+    var renderThread = new Exporter.ExportRenderThread(ls, null, rect) {
       @Override
-      public void givePixel(int x, int y, int rgb) {
-        bitmap.setRGB(x, y, rgb);
+      protected void whenDone() {
+        done.release();
       }
-
-      @Override
-      public void isNowGrownUp() {
-        done[0] = true;
-      }
-
-      @Override
-      public void pokeSchedulerAsync() { }
     };
+    var sizeTrouble = renderThread.sizeTrouble();
+    if( sizeTrouble != null )
+      throw NiceError.of("%s", sizeTrouble);
 
-    var renderWorker = proj.makeRenderFactory(ls).makeWorker(rt);
-    try {
-      while( renderWorker.priority() > 1 )
-        renderWorker.doSomeWork();
-    } catch( AbortRendering e ) {
-      e.printStackTrace();
-      throw NiceError.of("This shouldn't happen!");
-    }
-    if( !done[0] )
-      System.err.println("Huh, the renderer doesn't think it's done yet.");
-
+    System.err.println("Warping "+renderThread.width+"x"+renderThread.height+" ...");
     var outfile = common.wantedOutput.orElse(DEFAULT_OUTPUT);
-    System.err.println("Writing to "+outfile+" ...");
+    renderThread.start(outfile);
     try {
-      ImageIO.write(bitmap, "PNG", outfile.toFile());
-    } catch( IOException e ) {
-      throw NiceError.of("Writing failed: "+e.getMessage());
+      done.acquire();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
   }
 

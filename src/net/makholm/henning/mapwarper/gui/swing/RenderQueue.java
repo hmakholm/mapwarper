@@ -56,7 +56,7 @@ class RenderQueue {
           double priority = buf.activeInstance.priority();
           if( priority <= 0 ) {
             it.remove();
-          } else if( priority > 0 ) {
+          } else {
             double dx = mtilex - buf.xtile;
             double dy = mtiley - buf.ytile;
             priority += 1/(dx*dx+dy*dy+1);
