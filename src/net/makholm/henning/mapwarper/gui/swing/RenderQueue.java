@@ -12,6 +12,7 @@ import net.makholm.henning.mapwarper.util.BackgroundThread;
 class RenderQueue {
 
   private final Set<RenderBuffer> queue = new LinkedHashSet<>();
+  private boolean blockWakingUp;
   private double mousex, mousey;
 
   void offerMousePosition(Point p) {
@@ -20,21 +21,31 @@ class RenderQueue {
     mousex = p.x; mousey = p.y;
   }
 
+  synchronized void blockWakingUp() {
+    blockWakingUp = true;
+  }
+
   synchronized void enqueue(RenderBuffer buffer) {
     if( !buffer.working ) {
       queue.add(buffer);
-      notify();
+      if( !blockWakingUp )
+        notify();
     }
   }
 
+  synchronized void unblockWakingUp() {
+    blockWakingUp = false;
+    notify();
+  }
+
   private synchronized RenderInstance findWork(RenderInstance justFinished) {
-    double mtilex = mousex / 256 - 0.5;
-    double mtiley = mousey / 256 - 0.5;
     if( justFinished != null ) {
       justFinished.buffer.working = false;
       queue.add(justFinished.buffer);
     }
     for(;;) {
+      double mtilex = mousex / 256 - 0.5;
+      double mtiley = mousey / 256 - 0.5;
       RenderBuffer best = null;
       double bestPriority = -1;
       for( Iterator<RenderBuffer> it = queue.iterator(); it.hasNext(); ) {

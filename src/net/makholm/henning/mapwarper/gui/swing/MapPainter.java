@@ -113,6 +113,8 @@ class MapPainter {
     discardedKeys.forEach(buffers::remove);
   }
 
+  private ArrayList<RenderBuffer> buffersToStartNow = new ArrayList<>();
+
   void paint(Graphics2D g, Rectangle bounds) {
     g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
         RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
@@ -123,6 +125,7 @@ class MapPainter {
 
     // System.err.println("Painting ("+left+".."+right+")x("+top+".."+bottom+") of "+projection);
 
+    buffersToStartNow.clear();
     for( int x = (int)(left >> 8); x * 256L < right; x++ ) {
       for( int y = (int)(top >> 8); y * 256L < bottom; y++ ) {
         int xxx = (int)(x * 256L - positionOffsetX);
@@ -136,10 +139,19 @@ class MapPainter {
           if( buffer == null ) continue;
         } else {
           buffer = buffers.computeIfAbsent(key, RenderBuffer::new);
-          buffer.updateWantInstance();
+          buffersToStartNow.add(buffer);
         }
         Graphics2D gg = (Graphics2D) g.create(xxx, yyy, 256, 256);
         buffer.paint(gg);
+      }
+    }
+    if( !buffersToStartNow.isEmpty() ) {
+      owner.renderQueue.blockWakingUp();
+      try {
+        buffersToStartNow.forEach(RenderBuffer::updateWantInstance);
+      } finally {
+        owner.renderQueue.unblockWakingUp();
+        buffersToStartNow.clear();
       }
     }
   }

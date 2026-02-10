@@ -344,7 +344,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
    * This cached mouse position is relative to the
    * {@link SwingMapView} component itself.
    */
-  private Point windowMousePosition = Point.at(0);
+  private Point windowMousePosition = Point.ORIGIN;
 
   /**
    * The point where the popup menu was shown, in the same coordinate
@@ -596,6 +596,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   public void paint(Graphics g0) {
     readViewportRect();
     if( !everPaintedYet ) {
+      windowMousePosition = Point.at(viewportRect.x+viewportRect.width/2,
+          viewportRect.y+viewportRect.height/2);
       logic.setInitialPosition();
       refreshToolResponse(true);
       everPaintedYet = true;
