@@ -52,7 +52,7 @@ public class LensTool extends Tool {
     if( (mapView().lensRect == null ||
         mapView().lensZoom >= mapView().naturalLensZoom()) )
       return null;
-    else if( mapView().lensZoom >= 20 )
+    else if( mapView().lensZoom >= mapView().lensTiles.finestZoom )
       return SwingUtils::beep;
     else
       return () -> {
@@ -73,7 +73,8 @@ public class LensTool extends Tool {
   }
 
   public Runnable lensMinusCommand() {
-    if( mapView().lensZoom <= 10 )
+    if( mapView().lensZoom <= 10 ||
+        mapView().lensZoom <= mapView().lensTiles.coarsestZoom )
       return null;
     else
       return () -> {

@@ -25,6 +25,7 @@
          desc="OpenStreetmap - Standard"
          weburl="https://openstreetmap.org/?mlat=[LAT]&amp;mlon=[LON]&amp;zoom=[Z]"
          tileurl="https://tile.openstreetmap.org/*.png"
+         finestZoom="19"
          darkenMap="true">
   <blurb>&#x00A9; OpenStreetMap contributors</blurb>
 </tileset>
@@ -33,6 +34,7 @@
          desc="OpenStreetmap - Humanitarian"
          weburl="https://openstreetmap.org/?mlat=[LAT]&amp;mlon=[LON]&amp;zoom=[Z]&amp;layers=H"
          tileurl="https://a.tile.openstreetmap.fr/hot/*.png"
+         finestZoom="20"
          darkenMap="true">
   <blurb>&#x00A9; OpenStreetMap contributors</blurb>
   <!-- This might not be particularly useful - railways are not
@@ -44,6 +46,7 @@
          desc="OpenStreetmap - Transport Map"
          weburl="https://openstreetmap.org/?mlat=[LAT]&amp;mlon=[LON]&amp;zoom=[Z]&amp;layers=T"
          tileurl="https://a.tile.thunderforest.com/transport/*.png?apikey=[APIKEY]"
+         finestZoom="21"
          darkenMap="true">
   <blurb>&#x00A9; OpenStreetMap contributors</blurb>
 </tileset>
@@ -52,7 +55,7 @@
          desc="OpenTopoMap"
          weburl="https://opentopomap.org/#marker=[Z]/[LAT]/[LON]"
          tileurl="https://a.tile.top-o-map.de/*.png"
-         guiTargetZoom="15"
+         guiTargetZoom="15" finestZoom="17"
          darkenMap="true">
   <blurb>&#x00A9; OpenStreetMap contributors</blurb>
   <blurb>Map rendering &#x00A9; OpenTopoMap.org (CC-BY-SA)</blurb>
@@ -63,7 +66,7 @@
          weburl="https://maps.google.com/?q=[LAT],[LON]&amp;ll=[LAT],[LON]&amp;z=[Z]"
          tileurl="https://khms0.google.com/kh/v=1008?x=[X]&amp;y=[Y]&amp;z=[Z]"
          extension=".jpg"
-         guiTargetZoom="18">
+         guiTargetZoom="18" finestZoom="21">
   <blurb>&#x00A9; Google, I suppose...</blurb>
   <!-- https://stackoverflow.com/questions/32806084/google-map-zoom-parameter-in-url-not-working -->
   <!-- The `v` parameter in the URL increases from time to time, but
@@ -78,14 +81,14 @@
          weburl="https://www.bing.com/maps?v=2&amp;cp=[LAT]%7E[LON]&amp;style=l&amp;lvl=[Z]"
          tileurl="https://t.ssl.ak.tiles.virtualearth.net/tiles/a*.jpeg?g=14736&amp;n=z&amp;prx=1"
          extension=".jpg"
-         guiTargetZoom="18">
+         guiTargetZoom="18" finestZoom="20">
   <blurb>&#x00A9; Microsoft, I suppose...</blurb>
 </tileset>
 
 <tileset name="openrail"
          desc="OpenRailwayMap"
          tileurl="https://a.tiles.openrailwaymap.org/standard/*.png"
-         tilesize="512" guiTargetZoom="20"
+         tilesize="512" guiTargetZoom="20" finestZoom="20"
          lensOnly="true">
   <blurb>&#x00A9; OpenStreetMap contributors</blurb>
   <blurb>Style: CC-BY-SA 2.0, OpenRailwayMap.org</blurb>
@@ -95,7 +98,7 @@
          desc="GeoDanmark orthophotos"
          tileurl="https://services.datafordeler.dk/GeoDanmarkOrto/orto_foraar_webm/1.0.0/WMTS/orto_foraar_webm/default/DFD_GoogleMapsCompatible/[Z]/[Y]/[X].jpg?[APIKEY]"
          disableHttpsValidation="true"
-         guiTargetZoom="18">
+         guiTargetZoom="18" finestZoom="20">
   <!-- Beware: this tileset is scheduled to go away in mid-2026. After
        that you'll need to use the definition below instead.
        Unfortunately there's more red tape _and_ more downloading
