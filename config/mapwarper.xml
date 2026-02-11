@@ -156,6 +156,7 @@
 <keybind name="C-N" value="new"/>
 <keybind name="C-O" value="open"/>
 <keybind name="C-Q" value="quit"/>
+<keybind name="C-R" value="revert"/>
 <keybind name="C-S" value="saveAll"/>
 <keybind name="C-V" value="paste"/>
 <keybind name="C-X" value="cut"/>
