@@ -1,6 +1,7 @@
 package net.makholm.henning.mapwarper.gui;
 
 import java.awt.Cursor;
+import java.awt.geom.NoninvertibleTransformException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -9,7 +10,9 @@ import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.TransformHelper;
+import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.geometry.Vector;
+import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.gui.overlays.TextOverlay;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
@@ -86,43 +89,100 @@ public final class MeasureTool extends Tool {
   }
 
   TextOverlay mouseResponseLabel(SegmentChain chain, int i, Point mouse) {
-    String typetext = chain.kinds.get(i).desc;
     Bezier curve;
-    if( chain.chainClass == ChainClass.TRACK ) {
+    if( chain.chainClass == ChainClass.TRACK )
       curve = chain.smoothed().get(i);
-      if( curve.isExactlyALine() )
-        typetext += ", straight at "+bearing(curve.v1);
-      else if( curve.isPracticallyALine() )
-        typetext += ", almost straight";
-    } else {
+    else
       curve = Bezier.line(chain.nodes.get(i), chain.nodes.get(i+1));
-    }
-    String line2 = (i+1)+"/"+chain.numSegments+" \u2013 "+length(curve);
-    if( curve.isPracticallyALine() ) {
-      return placeLabel(curve, mouse,
-          TextOverlay.of(owner.window, typetext, line2));
+
+    var t = estimateParameterNear(curve, mouse);
+    var global = chain == measuringChain ? curve.p1 : curve.pointAt(t);
+    var local = translator().global2localWithHint(global, mouse);
+
+    boolean locatePrecisely = false;
+    boolean showOnRightSide = false;
+    boolean bearingShown = false;
+    var text = new ArrayList<String>(3);
+
+    // First line: segment kind; curve radius
+    if( chain == measuringChain ) {
+      // Nothing relevant to show
+    } else if( chain.chainClass != ChainClass.TRACK ) {
+      text.add(chain.kinds.get(i).desc);
     } else {
-      var t = estimateParameterNear(curve, mouse);
-      var global = curve.pointAt(t);
-      var local = translator().global2localWithHint(global, mouse);
-      var radius = 1/curve.signedCurvatureAt(t);
-      if( radius < 0 ) {
-        radius = -radius;
-        curve = curve.reverse();
-        t = 1-t;
+      String typetext = chain.kinds.get(i).desc;
+      if( curve.isExactlyALine() ) {
+        typetext += ", straight at "+bearing(curve.v1);
+        bearingShown = true;
+      } else if( curve.isPracticallyALine() )
+        typetext += ", almost straight";
+      else {
+        locatePrecisely = true;
+        var radius = 1/curve.signedCurvatureAt(t);
+        showOnRightSide = radius < 0;
+        radius = Math.abs(radius);
+        if( radius > curve.estimateLength()*10 &&
+            radius > 10_000 * WebMercator.unitsPerMeter(global.y) ) {
+          typetext += ", r > 10 km";
+        } else {
+          typetext += ", r = "+WebMercator.showlength(radius, global);
+        }
       }
-      if( radius > curve.estimateLength()*10 &&
-          radius > 10_000 * WebMercator.unitsPerMeter(global.y) ) {
-        typetext += ", r > 10 km";
-      } else {
-        typetext += ", r = "+WebMercator.showlength(radius, global);
-      }
-      var angle = curve.v1.bearing() - curve.v4.bearing();
-      line2 += String.format(Locale.ROOT, " \u2248 %.1f\u00B0",
-          Math.abs((angle+180) % 360 - 180));
-      return placeLabel(curve, t, local,
-          TextOverlay.of(owner.window, typetext, line2));
+      text.add(typetext);
     }
+
+    // Second line: length
+    if( chain == measuringChain ) {
+      text.add(length(curve));
+    } else {
+      String length = (i+1)+"/"+chain.numSegments+" \u2013 "+length(curve);
+      if( !curve.isPracticallyALine() ) {
+        var angle = curve.v1.bearing() - curve.v4.bearing();
+        length += String.format(Locale.ROOT, " \u2248 %.1f\u00B0",
+            Math.abs((angle+180) % 360 - 180));
+      }
+      text.add(length);
+    }
+
+    // Third line: bearing
+    var aff = mapView().projection.getAffinoid();
+
+    var direction = curve.derivativeAt(t);
+    String bearing = bearing(direction);
+    if( aff.squeezable ) {
+      locatePrecisely |= mapView().projection.createAffine() == null;
+      var diff = translator().createDifferential(local);
+      try {
+        diff = diff.createInverse();
+        var axisLocal = UnitVector.withBearing(90-aff.quadrantsTurned*90);
+        var axisGlobal = new TransformHelper().applyDelta(diff, axisLocal);
+        var rel = axisGlobal.bearing() - direction.bearing();
+        rel = Math.abs((rel + 270) % 180 - 90);
+        if( rel >= 0.1 ) {
+          bearing += String.format(Locale.ROOT,"; relative %.2f\u00B0", rel);
+          if( rel < 45 ) {
+            double ratio = Math.tan((90-rel)*Coords.DEGREE);
+            if( ratio > 100 )
+              bearing += String.format(Locale.ROOT," = 1:%d", Math.round(ratio));
+            else
+              bearing += String.format(Locale.ROOT," = 1:%.1f", ratio);
+          }
+          bearingShown = false;
+        }
+      } catch (NoninvertibleTransformException e) {
+        e.printStackTrace();
+      }
+    }
+    if( !bearingShown )
+      text.add(bearing);
+
+    var unplaced = TextOverlay.of(owner.window, text);
+    if( !locatePrecisely )
+      return placeLabel(curve, mouse, unplaced);
+    else if( showOnRightSide )
+      return placeLabel(curve.reverse(), 1-t, local, unplaced);
+    else
+      return placeLabel(curve, t, local, unplaced);
   }
 
   @Override
@@ -177,10 +237,7 @@ public final class MeasureTool extends Tool {
     Cursor cursor = dragging || pickUpMeasuringChain(mouse) < 0
         ? null : Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
 
-    var curve = Bezier.line(measuringChain.nodes.get(0),
-        measuringChain.nodes.get(1));
-    var label = placeLabel(curve, mouse,
-        TextOverlay.of(owner.window, length(curve), bearing(curve.v1)));
+    var label = mouseResponseLabel(measuringChain, 0, mouse);
     return new ToolResponse() {
       @Override
       public VisibleTrackData previewTrackData() {
@@ -244,7 +301,11 @@ public final class MeasureTool extends Tool {
     var l1 = translator().global2localWithHint(curve.p1, local);
     var l4 = translator().global2localWithHint(curve.p4, local);
     var line = l1.to(l4);
-    return MathUtil.clamp(0, line.dot(l1.to(local)) / line.sqnorm(), 1);
+    var sqnorm = line.sqnorm();
+    if( sqnorm < 1 )
+      return 0.5;
+    else
+      return MathUtil.clamp(0, line.dot(l1.to(local)) / line.sqnorm(), 1);
   }
 
 }

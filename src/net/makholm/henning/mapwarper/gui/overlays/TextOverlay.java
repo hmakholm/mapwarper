@@ -53,6 +53,10 @@ public class TextOverlay implements VectorOverlay {
     return of(c, new Style(), Point.ORIGIN, Arrays.asList(text));
   }
 
+  public static TextOverlay of(Component c, List<String> text) {
+    return of(c, new Style(), Point.ORIGIN, text);
+  }
+
   public static TextOverlay of(Component c, Style style,
       Point nw, List<String> text) {
     style = style.clone();

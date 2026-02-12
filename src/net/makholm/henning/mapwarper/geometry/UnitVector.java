@@ -13,6 +13,8 @@ public class UnitVector extends Vector {
 
   public static UnitVector of(Vector v) {
     double len = v.norm();
+    if( len < 1e-20 )
+      return RIGHT;
     return new UnitVector(v.x/len, v.y/len);
   }
 
