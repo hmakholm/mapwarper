@@ -104,13 +104,6 @@ public class FallbackChain {
       standardChain = marginChain = draftPremiumChain | draftStandardChain;
       return;
 
-    } else if( mainTiles == fallbackTiles ) {
-      // Another special case: if main and fallback are the same, then
-      // don't bother to make them two separate sequences; instead rely
-      // on the existing support we have for making the fallback map
-      // look good.
-      wantNiceFallback = true;
-
     } else if( !suppressDownload && Toggles.DOWNLOAD.setIn(flags) ) {
       // This is the common case.
       wantNiceFallback = false;
@@ -180,6 +173,7 @@ public class FallbackChain {
 
     int fallbackZoom = Math.min(naturalZoom, fallbackTiles.guiTargetZoom);
     int firstStdDownload = Math.min(fallbackZoom-2, naturalFallbackZoom);
+    firstStdDownload = fallbackDownload(firstStdDownload);
     int nextDownload = wantNiceFallback ? fallbackZoom : firstStdDownload;
     int firstMarginDownload = naturalFallbackZoom-2;
 
@@ -198,8 +192,6 @@ public class FallbackChain {
           nextDownload = -1;
         else
           nextDownload = fallbackDownload(fallbackZoom-2);
-        if( draftPremiumChain == 0 )
-          draftPremiumChain |= attempt;
       } else {
         attempt = nextAttempt(fallbackTiles, false, fallbackZoom);
       }
@@ -237,6 +229,8 @@ public class FallbackChain {
   }
 
   private long additionalMainAttempts(int mainZoom) {
+    if( mainTiles == fallbackTiles )
+      return 0;
     long result = 0;
     for( int i=1; i<=3 && numAttempts < (MAX_ATTEMPTS+1)/2; i++ )
       result |= nextAttempt(mainTiles, false, mainZoom-i);
