@@ -87,6 +87,14 @@ public class FilePane {
     return shownDir;
   }
 
+  public VectFile selectedFile() {
+    if( selectionIndex >= 0 && selectionIndex < entryList.length &&
+        entryList[selectionIndex].kind == EntryKind.FILE )
+      return cache.getFile(entryList[selectionIndex].path);
+    else
+      return null;
+  }
+
   public VectFile activeFile() {
     return activeFile;
   }
@@ -200,6 +208,7 @@ public class FilePane {
   public void moveSelection(int delta) {
     int i = MathUtil.clamp(0, selectionIndex+delta, entryList.length-1);
     selectionPath = entryList[i].path;
+    mapView.swing.invalidateToolResponse();
     updateView();
   }
 

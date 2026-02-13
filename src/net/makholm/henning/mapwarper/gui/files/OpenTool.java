@@ -116,7 +116,7 @@ public class OpenTool extends TrackHidingTool {
 
   @Override
   public ToolResponse outsideWindowResponse() {
-    return cached().noResponse;
+    return cached().responseByFilePane();
   }
 
   @Override
@@ -229,7 +229,7 @@ public class OpenTool extends TrackHidingTool {
       SegWithPath found = GenericEditTool.pickCurve(p, SegWithPath::curve,
           lookupTree.apply(mapView().translator()));
       if( found == null )
-        return noResponse;
+        return responseByFilePane();
       var withHighlight = toShow.clone();
       withHighlight.setHighlight(new TrackHighlight(found.chain, 0xDDFFDD));
       withHighlight.freeze();
@@ -258,6 +258,29 @@ public class OpenTool extends TrackHidingTool {
           activeFileChanged();
         }
       };
+    }
+
+    ToolResponse responseByFilePane() {
+      if( owner.window.filePaneVisible() ) {
+        var vf = owner.files.selectedFile();
+        if( vf != null && vf.content().numTrackChains == 1 ) {
+          var chain = vf.content().uniqueChain(ChainClass.TRACK);
+          var withHighlight = toShow.clone();
+          withHighlight.setHighlight(new TrackHighlight(chain, 0x664444));
+          withHighlight.freeze();
+          return new ToolResponse() {
+            @Override
+            public VisibleTrackData previewTrackData() {
+              return withHighlight;
+            }
+            @Override
+            public void execute(ExecuteWhy why) {
+              SwingUtils.beep();
+            }
+          };
+        }
+      }
+      return noResponse;
     }
 
     private TextOverlay makeLabel(SegWithPath swp) {

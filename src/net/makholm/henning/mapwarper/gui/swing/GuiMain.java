@@ -208,6 +208,7 @@ public class GuiMain extends JFrame {
       }
     }
     mainLogic.swing.restoreMousePosition(savedMouse);
+    mainLogic.swing.invalidateToolResponse();
   }
 
   public boolean tilesetPaneVisible() {
