@@ -19,16 +19,24 @@ import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.track.ChainClass;
 import net.makholm.henning.mapwarper.track.ChainRef;
+import net.makholm.henning.mapwarper.track.LengthEstimator;
 import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackHighlight;
 import net.makholm.henning.mapwarper.track.TrackNode;
 import net.makholm.henning.mapwarper.track.VisibleTrackData;
 import net.makholm.henning.mapwarper.util.MathUtil;
+import net.makholm.henning.mapwarper.util.SingleMemo;
 
 public final class MeasureTool extends Tool {
 
   private static final List<SegKind> SHOWKIND = List.of(SegKind.TRACK);
+
+  private final LengthEstimator estimator = new LengthEstimator();
+  private final SingleMemo<Bezier, Double> curveLength =
+      SingleMemo.of(estimator::length);
+  private final SingleMemo<SegmentChain, Double> chainLength =
+      SingleMemo.of(estimator);
 
   protected MeasureTool(Commands owner) {
     super(owner, "measure", "Measure distance");
@@ -94,6 +102,7 @@ public final class MeasureTool extends Tool {
       curve = chain.smoothed().get(i);
     else
       curve = Bezier.line(chain.nodes.get(i), chain.nodes.get(i+1));
+    var mcurve = WebMercator.mercatorize(curve, null);
 
     var t = estimateParameterNear(curve, mouse);
     var global = chain == measuringChain ? curve.p1 : curve.pointAt(t);
@@ -106,13 +115,8 @@ public final class MeasureTool extends Tool {
 
     // First line: total chain length
     if( chain.numSegments > 1 && chain.chainClass == ChainClass.TRACK ) {
-      double total = 0;
-      for( var c2 : chain.smoothed() ) {
-        var meter = WebMercator.unitsPerMeter(c2.pointAt(0.5).y);
-        total += c2.estimateLength() / meter;
-      }
       text.add("segment "+(i+1)+"/"+chain.numSegments+" of "+
-          WebMercator.showlength(total));
+          Coords.showlength(chainLength.apply(chain)));
     }
 
     // Second line: segment kind; curve radius
@@ -129,23 +133,22 @@ public final class MeasureTool extends Tool {
         typetext += ", almost straight";
       else {
         locatePrecisely = true;
-        var radius = 1/curve.signedCurvatureAt(t);
-        showOnRightSide = radius < 0;
+        var radius = 1/mcurve.signedCurvatureAt(t);
+        showOnRightSide = radius > 0;
         radius = Math.abs(radius);
-        if( radius > curve.estimateLength()*10 &&
-            radius > 10_000 * WebMercator.unitsPerMeter(global.y) ) {
+        if( radius > mcurve.estimateLength()*10 && radius > 10_000 ) {
           typetext += ", r > 10 km";
         } else {
-          typetext += ", r = "+WebMercator.showlength(radius, global);
+          typetext += ", r = "+Coords.showlength(radius);
         }
       }
       text.add(typetext);
     }
 
     // Third line: segment length
-    String length = "length "+length(curve);
+    String length = "length "+Coords.showlength(curveLength.apply(curve));
     if( !curve.isPracticallyALine() ) {
-      var angle = curve.v1.bearing() - curve.v4.bearing();
+      var angle = mcurve.v1.bearing() - mcurve.v4.bearing();
       length += String.format(Locale.ROOT, " spanning %.1f\u00B0",
           Math.abs((angle+180) % 360 - 180));
     }
@@ -154,8 +157,7 @@ public final class MeasureTool extends Tool {
     // Third line: bearing
     var aff = mapView().projection.getAffinoid();
 
-    var direction = curve.derivativeAt(t);
-    String bearing = bearing(direction);
+    String bearing = bearing(curve.derivativeAt(t));
     if( aff.squeezable ) {
       locatePrecisely |= mapView().projection.createAffine() == null;
       var diff = translator().createDifferential(local);
@@ -163,7 +165,9 @@ public final class MeasureTool extends Tool {
         diff = diff.createInverse();
         var axisLocal = UnitVector.withBearing(90-aff.quadrantsTurned*90);
         var axisGlobal = new TransformHelper().applyDelta(diff, axisLocal);
-        var rel = axisGlobal.bearing() - direction.bearing();
+        // Since we've gotten the global axis in pseudo-mercator coordinates,
+        // use those too for the relative bearing
+        var rel = axisGlobal.bearing() - curve.derivativeAt(t).bearing();
         rel = Math.abs((rel + 270) % 180 - 90);
         if( rel >= 0.1 ) {
           bearing += String.format(Locale.ROOT,"; relative %.2f\u00B0", rel);
@@ -266,11 +270,6 @@ public final class MeasureTool extends Tool {
           measuringChain = null;
       }
     };
-  }
-
-  private static String length(Bezier curve) {
-    double len = curve.estimateLength();
-    return WebMercator.showlength(len, curve.pointAt(0.5));
   }
 
   private static String bearing(Vector global) {

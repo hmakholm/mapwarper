@@ -1,8 +1,9 @@
 package net.makholm.henning.mapwarper.georaster;
 
-import java.util.Locale;
-
+import net.makholm.henning.mapwarper.geometry.Bezier;
+import net.makholm.henning.mapwarper.geometry.Ellipsoid;
 import net.makholm.henning.mapwarper.geometry.Point;
+import net.makholm.henning.mapwarper.geometry.TransformHelper;
 import net.makholm.henning.mapwarper.util.ValWithPartials;
 
 public final class WebMercator {
@@ -57,54 +58,39 @@ public final class WebMercator {
     lat.scale(180.0 / Math.PI);
   }
 
-  private static final double WGS84_A = 6_378_137.0;
-  private static final double WGS84_F = 1/298.257_223_563;
+  /**
+   * Transform the curve in global coordinates to a curve in a temporary
+   * true (ellipsoidal) Mercator projection scaled such that there's one
+   * unit per meter at the location of the curve.
+   */
+  public static Bezier mercatorize(Bezier curve, TransformHelper scratch) {
+    if( scratch == null ) scratch = new TransformHelper();
+    Point center = curve.p1.plus(0.5, curve.displacement);
+    var x = new ValWithPartials();
+    var y = new ValWithPartials();
+    toLatlon(center, y, x);
+    Ellipsoid.WGS84.mercatorize(x,y);
+    var affine = ValWithPartials.toAffine(center, x, y);
+    return curve.transform(affine, scratch);
+  }
 
-  private static final double WGS84_EQCIRC = WGS84_A * 2 * Math.PI;
-
+  /**
+   * The Web-Mercator system is only approximately conformal; the horizontal
+   * and vertical scales can vary by a considerable fraction of a percent.
+   * This method gives a somewhere-in-the-middle estimate that can be used
+   * for non-precision purposes.
+   */
   public static double unitsPerMeter(double y) {
-    double ymerc = (1 - 2*y/Coords.EARTH_SIZE) * Math.PI;
-    // The cosine of the latitude value
-    // cos(atan(sinh(y)) simplifies to 1/cosh(y)
-    double cos = 1/Math.cosh(ymerc);
-
-    // Compute the (3d) radius of the latitude circle on the WGS84 ellipsoid
-    // in units of the semimajor axis.
-    double g = 1/(1-WGS84_F)-1;
-    double h = Math.sqrt(1 + (2*g+g*g)*cos*cos);
-    double rlatcirc = cos*(1+g)/h;
-    // (Just approximating rlatcirc as cos*(1+f*(1-cos^2)) would give a
-    // relative error less than F^2, but this is not on a hot path).
-
-    // Anyway, scaling this factor to the appropriate coordinate system gives
-    // the correct east-west scale. The web-Mercator projection is not
-    // strictly conformal; the north-sourth scale is larger by a relative
-    // factor of up to 2*WGS84_F, worst at the equator -- but the callers
-    // of this method don't care for such subtleties anyway.
-    return (Coords.EARTH_SIZE / WGS84_EQCIRC) / rlatcirc;
+    double x = Coords.EARTH_SIZE/2;
+    var p1 = Point.at(x-4, y-3);
+    var p2 = Point.at(x+4, y+3);
+    var tenUnitLine = Bezier.line(p1, p2);
+    tenUnitLine = mercatorize(tenUnitLine, null);
+    return 10/tenUnitLine.displacement.length();
   }
 
   public static String[] signedRoundedDegrees(int zoom, long wrapped) {
     return Coords.signedRoundedDegrees(zoom, toLatlon(wrapped));
-  }
-
-  public static String showlength(double dist, Point refpoint) {
-    return showlength(dist / unitsPerMeter(refpoint.y));
-  }
-
-  public static String showlength(double meters) {
-    if( meters >= 4000 )
-      return String.format(Locale.ROOT, "%.1f km", meters/1000);
-    else if( meters >= 100 )
-      return (int)meters + " m";
-    else if( meters >= 10 )
-      return String.format(Locale.ROOT, "%.1f m", meters);
-    else if( meters >= 0.1 )
-      return (int)(meters * 100) + " cm";
-    else if( meters >= 0.01 )
-      return (int)(meters * 1000) + " mm";
-    else
-      return String.format(Locale.ROOT, "%.3e mm", meters * 1000);
   }
 
 }

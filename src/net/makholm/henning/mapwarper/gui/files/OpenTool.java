@@ -9,7 +9,7 @@ import java.util.Map;
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
-import net.makholm.henning.mapwarper.georaster.WebMercator;
+import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.gui.Commands;
 import net.makholm.henning.mapwarper.gui.GenericEditTool;
 import net.makholm.henning.mapwarper.gui.MouseAction;
@@ -20,6 +20,7 @@ import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.track.ChainClass;
+import net.makholm.henning.mapwarper.track.LengthEstimator;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackHighlight;
 import net.makholm.henning.mapwarper.track.VisibleTrackData;
@@ -29,6 +30,8 @@ import net.makholm.henning.mapwarper.util.XyTree;
 public class OpenTool extends TrackHidingTool {
 
   private CachedState cachedState;
+  private final SingleMemo<SegmentChain, Double> chainLength =
+      SingleMemo.of(new LengthEstimator());
 
   public OpenTool(Commands owner) {
     super(owner, "filepick", "Open file visually");
@@ -285,15 +288,9 @@ public class OpenTool extends TrackHidingTool {
 
     private TextOverlay makeLabel(SegWithPath swp) {
       Path path = basedirForLabel().relativize(swp.vf().path);
-      double length = 0;
-      for( var curve : swp.chain.smoothed() )
-        length += curve.estimateLength();
-      var midpoint = swp.chain.nodes.get(0)
-          .interpolate(0.5, swp.chain.nodes.last());
       return TextOverlay.of(owner.window,
           path.toString(),
-          swp.chain.numSegments+" segments, " +
-              WebMercator.showlength(length, midpoint));
+          Coords.showlength(chainLength.apply(swp.chain)));
     }
 
     private Path basedirForLabel() {

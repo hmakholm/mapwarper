@@ -161,4 +161,19 @@ public final class Coords {
     return String.format(Locale.ROOT, format, params);
   }
 
+  public static String showlength(double meters) {
+    if( meters >= 4000 )
+      return String.format(Locale.ROOT, "%.1f km", meters/1000);
+    else if( meters >= 100 )
+      return (int)meters + " m";
+    else if( meters >= 10 )
+      return String.format(Locale.ROOT, "%.1f m", meters);
+    else if( meters >= 0.1 )
+      return (int)(meters * 100) + " cm";
+    else if( meters >= 0.01 )
+      return (int)(meters * 1000) + " mm";
+    else
+      return String.format(Locale.ROOT, "%.3e mm", meters * 1000);
+  }
+
 }

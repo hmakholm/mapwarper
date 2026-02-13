@@ -4,6 +4,7 @@ import java.awt.geom.AffineTransform;
 import java.util.Locale;
 import java.util.Random;
 
+import net.makholm.henning.mapwarper.geometry.Ellipsoid;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.util.ValWithPartials;
@@ -21,60 +22,53 @@ import net.makholm.henning.mapwarper.util.ValWithPartials;
  */
 public class UTM {
 
+  public final Ellipsoid ellipsoid;
   public final double centralMeridian;
   public final double falseNorthing;
   public final double falseEasting;
   public final double scaleFactor;
-  public final double equatorRadius;
-  public final double invFlattening;
 
   public static final UTM WGS84(int zone, boolean north) {
     return new UTM((zone-30)*6 - 3,
         (north ? 0 : 10_000_000), 500_000,
         0.9996,
-        6_378_137, 298.257223563);
+        Ellipsoid.WGS84);
   }
 
-  public UTM withEllipsoid(double equatorRadius, double invFlattening) {
+  public UTM withEllipsoid(Ellipsoid ellipsoid) {
     return new UTM(centralMeridian, falseNorthing, falseEasting, scaleFactor,
-        equatorRadius, invFlattening);
+        ellipsoid);
   }
 
   public UTM withScaleFactor(double scaleFactor) {
     return new UTM(centralMeridian, falseNorthing, falseEasting, scaleFactor,
-        equatorRadius, invFlattening);
+        ellipsoid);
   }
 
   private UTM(double centralMeridian, double falseNorthing, double falseEasting,
-      double scaleFactor, double equatorRadius, double invFlattening) {
+      double scaleFactor, Ellipsoid ellipsoid) {
+    this.ellipsoid = ellipsoid;
     this.centralMeridian = centralMeridian;
     this.falseNorthing = falseNorthing;
     this.falseEasting = falseEasting;
     this.scaleFactor = scaleFactor;
-    this.equatorRadius = equatorRadius;
-    this.invFlattening = invFlattening;
 
     // https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system
     // says these order-3 coefficients "are accurate to around a millimeter
     // within 3000 km of the central meridian".
-    var f = 1/invFlattening; // flattening = (a-b)/a
-    var n = f/(2-f);  // third (or second) flattening = (a-b)/(a+b)
+    var n = ellipsoid.n;
     var n2 = n*n;
     var n3 = n2*n;
     var n4 = n2*n2;
-    // arc length from equator to pole
-    // given as a/(1+n)*(1+n^2/4+n^4/64) in Wikipedia
-    var A = equatorRadius*(1+n2/4+n4/64)*(2-f)/2;
 
-    e = Math.sqrt(f*(2-f)); // eccentricity, as 2sqrt(n)/(1+n) in Wikipedia
-    k0A = scaleFactor * A;
+    k0A = scaleFactor * ellipsoid.a/(1+n)*(1+n2/4+n4/64);
     alpha = new double[] {
         n/2 - n2*2/3 + n3*5/16,
         n2*13/48 - n3*3/5,
         n3*61/240 };
   }
 
-  private final double e, k0A;
+  private final double k0A;
   private final double[] alpha;
 
   public void toUTM(Point global, ValWithPartials E, ValWithPartials N) {
@@ -87,7 +81,7 @@ public class UTM {
     phi.scale(Math.PI/180);
 
     phi.sin(null);
-    var tmp = phi.clone().scale(e).atanh().scale(e);
+    var tmp = phi.clone().scale(ellipsoid.e).atanh().scale(ellipsoid.e);
     var tt = new ValWithPartials();
     var t = phi.atanh().sub(tmp).sinh(tt);
     phi = null;
@@ -131,7 +125,7 @@ public class UTM {
     return ValWithPartials.toAffine(p, E, N);
   }
 
-  public static void main(String[] s) {
+  public static void mainx(String[] s) {
     var utm = WGS84(32,true);
     var E = new ValWithPartials();
     var N = new ValWithPartials();
