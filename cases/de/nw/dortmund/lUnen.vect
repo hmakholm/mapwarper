@@ -1,4 +1,3 @@
-comment Regionaltog fra Wanne-Eickel via Mengede -- Lünen (Münster)
 coords web-mercator 2^30
 usebounds bound/hbf.vect
 usebounds bound/lUnen.vect
