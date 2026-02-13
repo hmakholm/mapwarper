@@ -87,9 +87,7 @@ public class OpenTool extends TrackHidingTool {
   }
 
   private void makeVisible(AxisRect fallback) {
-    AxisRect commonBbox = null;
-    for( var chain : cached().possibilities.keySet() )
-      commonBbox = chain.nodeTree.get().union(commonBbox);
+    AxisRect commonBbox = cached().commonBbox;
     if( commonBbox == null ) commonBbox = fallback;
     if( commonBbox != null ) mapView().unzoomTo(commonBbox);
   }
@@ -136,6 +134,7 @@ public class OpenTool extends TrackHidingTool {
 
   private class CachedState {
     final int cacheInvalidateCount = owner.files.cache.invalidateCount;
+    AxisRect commonBbox;
     final Path focusDir = owner.files.focusDir();
 
     boolean isValid() {
@@ -175,6 +174,10 @@ public class OpenTool extends TrackHidingTool {
       toShow.setFlags(Toggles.STRONG_FOREIGN_TRACK_CHAINS.bit());
       toShow.freeze();
       lookupTree = SingleMemo.of(ProjectionWorker::projection, this::makeLookupTree);
+
+      if( commonBbox == null )
+        for( var chain : possibilities.keySet() )
+          commonBbox = chain.curveTree.get().union(commonBbox);
     }
 
     private void recursivelyScanSubdirs(FSCache cache, int level, Path p) {
@@ -190,8 +193,11 @@ public class OpenTool extends TrackHidingTool {
       var content = vf.content();
       toShow.showTrackChainsIn(vf.path, content);
       for( var chain : content.chains() )
-        if( chain.chainClass == ChainClass.TRACK )
+        if( chain.chainClass == ChainClass.TRACK ) {
           possibilities.put(chain, vf);
+          if( vf.path.startsWith(focusDir) )
+            commonBbox = chain.curveTree.get().union(commonBbox);
+        }
     }
 
     private XyTree<List<SegWithPath>> makeLookupTree(ProjectionWorker worker) {
