@@ -104,7 +104,18 @@ public final class MeasureTool extends Tool {
     boolean bearingShown = false;
     var text = new ArrayList<String>(3);
 
-    // First line: segment kind; curve radius
+    // First line: total chain length
+    if( chain.numSegments > 1 && chain.chainClass == ChainClass.TRACK ) {
+      double total = 0;
+      for( var c2 : chain.smoothed() ) {
+        var meter = WebMercator.unitsPerMeter(c2.pointAt(0.5).y);
+        total += c2.estimateLength() / meter;
+      }
+      text.add("segment "+(i+1)+"/"+chain.numSegments+" of "+
+          WebMercator.showlength(total));
+    }
+
+    // Second line: segment kind; curve radius
     if( chain == measuringChain ) {
       // Nothing relevant to show
     } else if( chain.chainClass != ChainClass.TRACK ) {
@@ -131,18 +142,14 @@ public final class MeasureTool extends Tool {
       text.add(typetext);
     }
 
-    // Second line: length
-    if( chain == measuringChain ) {
-      text.add(length(curve));
-    } else {
-      String length = (i+1)+"/"+chain.numSegments+" \u2013 "+length(curve);
-      if( !curve.isPracticallyALine() ) {
-        var angle = curve.v1.bearing() - curve.v4.bearing();
-        length += String.format(Locale.ROOT, " \u2248 %.1f\u00B0",
-            Math.abs((angle+180) % 360 - 180));
-      }
-      text.add(length);
+    // Third line: segment length
+    String length = "length "+length(curve);
+    if( !curve.isPracticallyALine() ) {
+      var angle = curve.v1.bearing() - curve.v4.bearing();
+      length += String.format(Locale.ROOT, " spanning %.1f\u00B0",
+          Math.abs((angle+180) % 360 - 180));
     }
+    text.add(length);
 
     // Third line: bearing
     var aff = mapView().projection.getAffinoid();
@@ -172,6 +179,8 @@ public final class MeasureTool extends Tool {
       } catch (NoninvertibleTransformException e) {
         e.printStackTrace();
       }
+    } else {
+      bearing = "bearing "+bearing;
     }
     if( !bearingShown )
       text.add(bearing);

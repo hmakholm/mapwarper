@@ -89,11 +89,13 @@ public final class WebMercator {
   }
 
   public static String showlength(double dist, Point refpoint) {
-    dist /= unitsPerMeter(refpoint.y);
-    double meters = dist;
-    if( dist >= 4000 )
+    return showlength(dist / unitsPerMeter(refpoint.y));
+  }
+
+  public static String showlength(double meters) {
+    if( meters >= 4000 )
       return String.format(Locale.ROOT, "%.1f km", meters/1000);
-    else if( dist >= 100 )
+    else if( meters >= 100 )
       return (int)meters + " m";
     else if( meters >= 10 )
       return String.format(Locale.ROOT, "%.1f m", meters);
