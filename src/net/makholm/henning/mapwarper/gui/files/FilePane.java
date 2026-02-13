@@ -42,7 +42,7 @@ public class FilePane {
   public final MapView mapView;
   public final FSCache cache;
 
-  private Path focusDir;
+  private Path shownDir;
   private VectFile activeFile;
   private Set<Path> showtracks = new LinkedHashSet<>();
 
@@ -60,10 +60,10 @@ public class FilePane {
     Path arg = Path.of(filearg == null ? "." : filearg);
     arg = arg.toAbsolutePath().normalize();
     if( arg.getFileName().toString().endsWith(VectFile.EXTENSION) ) {
-      focusDir = arg.getParent();
+      shownDir = arg.getParent();
       activeFile = cache.getFile(arg);
     } else if( Files.isDirectory(arg) ) {
-      focusDir = arg;
+      shownDir = arg;
       activeFile = new VectFile(cache, null);
     } else {
       throw NiceError.of("Strange command line argument '%s'", filearg);
@@ -73,7 +73,18 @@ public class FilePane {
   }
 
   public Path focusDir() {
-    return focusDir;
+    if( selectionIndex >= 0 && selectionIndex < entryList.length ) {
+      switch( entryList[selectionIndex].kind ) {
+      case TRUNK_DIR:
+        return entryList[selectionIndex].path;
+      case TIP_DIR:
+      case BRANCH_DIR:
+      case FILE:
+      default:
+        return entryList[selectionIndex].path.getParent();
+      }
+    }
+    return shownDir;
   }
 
   public VectFile activeFile() {
@@ -110,7 +121,7 @@ public class FilePane {
   }
 
   public Iterable<Path> siblingsOf(VectFile vf) {
-    Path dir = vf.path != null ? vf.path.getParent() : focusDir;
+    Path dir = vf.path != null ? vf.path.getParent() : shownDir;
     return cache.getDirectory(dir).vectFiles.values();
   }
 
@@ -142,7 +153,7 @@ public class FilePane {
         if( activeFile.path.startsWith(entryList[i].path) )
           return i;
     }
-    // Second fallback: just the focus dir
+    // Second fallback: just the innermost shown directory
     for( int i=entryList.length-1; i>0; i-- )
       if( entryList[i].kind == EntryKind.TRUNK_DIR )
         return i;
@@ -154,14 +165,14 @@ public class FilePane {
     PokePublisher pokeWhat;
     switch( entry.kind ) {
     case TRUNK_DIR:
-      selectionPath = focusDir = entry.path;
+      selectionPath = shownDir = entry.path;
       pokeWhat = focusDirClicked;
       break;
     case BRANCH_DIR:
     case TIP_DIR:
-      focusDir = entry.path;
+      shownDir = entry.path;
       descendWhileUnambiguous();
-      selectionPath = focusDir;
+      selectionPath = entry.path;
       pokeWhat = focusDirClicked;
       break;
     case FILE:
@@ -195,7 +206,7 @@ public class FilePane {
   public void collapseTree() {
     if( entryList[selectionIndex].kind != EntryKind.TRUNK_DIR )
       selectionPath = safeParent(selectionPath);
-    focusDir = safeParent(selectionPath);
+    shownDir = safeParent(selectionPath);
     updateView();
     focusDirClicked.poke();
   }
@@ -205,8 +216,8 @@ public class FilePane {
     case TRUNK_DIR:
     case BRANCH_DIR:
     case TIP_DIR:
-      focusDir = entryList[selectionIndex].path;
-      var dir = cache.getDirectory(focusDir);
+      shownDir = entryList[selectionIndex].path;
+      var dir = cache.getDirectory(shownDir);
       if( !dir.subdirs.isEmpty() )
         selectionPath = dir.subdirs.values().iterator().next();
       else if( !dir.vectFiles.isEmpty() )
@@ -221,7 +232,7 @@ public class FilePane {
 
   public void selectTree() {
     var path = entryList[selectionIndex].path;
-    if( path.equals(activeFile.path) || path.equals(focusDir) ) {
+    if( path.equals(activeFile.path) || path.equals(shownDir) ) {
       // Nothing in particular to do. May be a spurious Enter press
     } else {
       mouseClicked(entryList[selectionIndex], 0, false);
@@ -241,7 +252,7 @@ public class FilePane {
 
   public void openCommand() {
     if( showBoxIfSavingIsNeeded() ) return;
-    Path startWhere = focusDir;
+    Path startWhere = focusDir();
     if( activeFile.path != null &&
         startWhere.startsWith(activeFile.path.getParent()) )
       startWhere = activeFile.path.getParent();
@@ -286,11 +297,11 @@ public class FilePane {
     for( var bound : vf.content().usebounds() )
       cache.getFile(bound).content();
 
-    Path prevFocusDir = focusDir;
-    focusDir = vf.path.getParent();
+    Path prevShownDir = shownDir;
+    shownDir = vf.path.getParent();
     descendForBoundFiles(vf);
-    if( prevFocusDir.startsWith(focusDir) )
-      focusDir = prevFocusDir;
+    if( prevShownDir.startsWith(shownDir) )
+      shownDir = prevShownDir;
     else
       descendWhileUnambiguous();
 
@@ -319,7 +330,7 @@ public class FilePane {
     if( activeFile.path != null )
       fc.setCurrentDirectory(activeFile.path.getParent().toFile());
     else
-      fc.setCurrentDirectory(focusDir.toFile());
+      fc.setCurrentDirectory(focusDir().toFile());
     return fc;
   }
 
@@ -354,9 +365,9 @@ public class FilePane {
         cache.refreshDirectory(toSaveTo.getParent());
         activeFile.contentHasBeenSaved(vf.content());
         activeFile = vf;
-        Path newFocus = toSaveTo.getParent();
-        if( !newFocus.startsWith(focusDir) )
-          focusDir = toSaveTo.getParent();
+        Path newShown = toSaveTo.getParent();
+        if( !newShown.startsWith(shownDir) )
+          shownDir = toSaveTo.getParent();
         activeFilePokes.poke();
         updateViewEventually();
         return true;
@@ -395,7 +406,7 @@ public class FilePane {
         badnesses.add(e.getMessage());
       }
     }
-    cache.cleanCache(focusDir);
+    cache.cleanCache(shownDir);
     return badnesses;
   }
 
@@ -498,27 +509,27 @@ public class FilePane {
   private void descendForBoundFiles(VectFile newActive) {
     Path target = null;
     for( var bound : newActive.content().usebounds() ) {
-      if( !bound.startsWith(focusDir) ) {
+      if( !bound.startsWith(shownDir) ) {
         // Ignore completely external bounds
       } else if( target == null ) {
         target = bound.getParent();
       } else {
         while( !bound.startsWith(target) ) {
           target = target.getParent();
-          if( target.getNameCount() <= focusDir.getNameCount() )
+          if( target.getNameCount() <= shownDir.getNameCount() )
             return;
         }
       }
     }
     if( target != null )
-      focusDir = target;
+      shownDir = target;
   }
 
   private void descendWhileUnambiguous() {
     for(;;) {
-      CachedDirectory dir = cache.getDirectory(focusDir);
+      CachedDirectory dir = cache.getDirectory(shownDir);
       if( dir.subdirs.size() == 1 )
-        focusDir = dir.subdirs.values().iterator().next();
+        shownDir = dir.subdirs.values().iterator().next();
       else
         return;
     }
@@ -624,10 +635,10 @@ public class FilePane {
 
   private List<CachedDirectory> createTrunk() {
     var trunk = new ArrayList<CachedDirectory>();
-    for( Path p0 = focusDir; p0 != null; p0 = p0.getParent() ) {
+    for( Path p0 = shownDir; p0 != null; p0 = p0.getParent() ) {
       var branchmap = new TreeMap<String, Entry>();
       var dir = cache.getDirectory(p0);
-      if( p0 == focusDir ) {
+      if( p0 == shownDir ) {
         dir.subdirs.forEach((name, path) -> {
           if( !allEntries.containsKey(path) ) {
             branchmap.put(name, createEntry(path, EntryKind.TIP_DIR));
