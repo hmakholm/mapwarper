@@ -178,6 +178,7 @@
 <keybind name="`" value="newchain"/>
 <keybind name="1" value="zoom100"/>
 <keybind name="2" value="rotate"/>
+<keybind name="4" value="lens"/>
 <keybind name="0" value="unsqueeze"/>
 <keybind name="-" value="zoomOut"/>
 <keybind name="+" value="zoomIn"/>

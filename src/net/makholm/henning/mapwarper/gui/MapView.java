@@ -221,8 +221,14 @@ public final class MapView {
 
   void setLens(BoxOverlay box) {
     lensRect = box;
-    lensZoom = Math.min(naturalLensZoom(),
-        dynamicLensSpec.mainTiles().guiTargetZoom);
+    if( isExportLens() ) {
+      lensZoom = new FallbackChain(dynamicMapLayerSpec).principalZoom;
+    } else {
+      int targetZoom = lensTiles.guiTargetZoom;
+      if( lensTiles == mainTiles && targetZoom < lensTiles.finestZoom )
+        targetZoom++;
+      lensZoom = Math.min(naturalLensZoom(), targetZoom);
+    }
   }
 
   void cancelLens() {
