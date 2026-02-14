@@ -166,7 +166,8 @@ public class GeoDanmark extends Tileset {
         Files.deleteIfExists(dest);
         String msg = e.getMessage();
         if( msg != null ) {
-          if( msg.indexOf("Connection reset") >= 0 ) {
+          if( msg.indexOf("Connection reset") >= 0 ||
+              msg.indexOf("GOAWAY received") >= 0 ) {
             throw new TryDownloadLater(e);
           }
         }
