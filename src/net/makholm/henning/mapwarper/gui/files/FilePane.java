@@ -280,12 +280,8 @@ public class FilePane {
 
   public void newCommand() {
     if( showBoxIfSavingIsNeeded() ) return;
-    if( activeFile.path != null && activeFile.content().countsAsTrackFile() )
-      showtracks.add(activeFile.path);
     VectFile vf = new VectFile(cache, null);
-    List<Path> usebounds = new ArrayList<>();
-    for( var p : activeFile.content().usebounds() ) usebounds.add(p);
-    vf.setContentHarshly(new FileContent(null, List.of(), usebounds));
+    vf.setContentHarshly(new FileContent(null, List.of(), List.of()));
     setActiveFile(vf);
   }
 

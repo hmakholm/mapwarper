@@ -563,9 +563,7 @@
        der bliver redigeret.
 
    Kommando: Ny fil
-     * Svarer til at åbne en anonym tom fil (som bliver en sporfil),
-       _bortset fra_ at hvis den p.t. åbne fil er sporfil, bliver den
-       også vist.
+     * Svarer til at åbne en anonym tom fil (som bliver en sporfil).
 
    == Opstart ==
 
