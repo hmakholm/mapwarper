@@ -141,7 +141,9 @@ public final class TrackPainter extends LongHashed {
     if( trackdata.hasFlag(Toggles.MAIN_TRACK) ) {
       var trackChains = new ArrayList<SegmentChain>();
       for( var chain : trackdata.currentFileChains() ) {
-        if( chain.isTrack() )
+        if( chain.equals(editingChain) ) {
+          // we will draw this later
+        } else if( chain.isTrack() )
           trackChains.add(chain);
         else
           drawBoundChain(chain, SegKind.BOUND.rgb);
@@ -151,7 +153,7 @@ public final class TrackPainter extends LongHashed {
     }
 
     for( var chain : trackdata.currentFileChains() ) {
-      if( chain == editingChain ) {
+      if( chain.equals(editingChain) ) {
         // we will draw this later
       } else if( editingChain == null )
         drawCrosshairs(chain, LARGE_CROSSHAIR_SIZE, 0x00BBCC);

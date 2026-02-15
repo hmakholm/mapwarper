@@ -725,7 +725,6 @@ public final class MapView {
     FileContent currentContent = files.activeFile().content();
     vdt.setCurrentChains(currentContent);
     if( editingChain != null ) {
-      vdt.removeCurrentChain(editingChain);
       vdt.setEditingChain(editingChain);
     }
     addUsebounds(pokes, vdt, currentContent);
