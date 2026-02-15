@@ -323,10 +323,10 @@ public class Commands {
   public void defineMenu(IMenu menu) {
     var files = menu.addSubmenu("File");
     files.add(open);
-    files.add(openTool);
     files.add(newFile);
     files.add(saveAll);
     files.add(revert);
+    files.add(openTool.selectionlessAlias());
     files.addSeparator();
     files.add(exportLens);
     files.add(export);
@@ -339,15 +339,6 @@ public class Commands {
     edit.add(cut);
     edit.add(copy);
     edit.add(paste);
-    edit.addSeparator();
-    edit.add(straightTool);
-    edit.add(trackTool);
-    edit.add(weakTrackTool);
-    edit.add(slewTool);
-    edit.add(magicTool);
-    edit.add(boundTool);
-    edit.add(delete);
-    edit.add(lock);
     edit.addSeparator();
     edit.add(newChain);
     edit.add(reverse);
@@ -372,6 +363,8 @@ public class Commands {
     view.addSeparator();
     view.add(rotate);
     view.add(teleport);
+    view.add(repaint);
+    view.add(refresh);
     view.addSeparator();
 
     view.add(Toggles.MAIN_TRACK.command(this));
@@ -380,8 +373,6 @@ public class Commands {
     view.add(Toggles.CURVATURE.command(this));
     view.add(Toggles.DARKEN_MAP.command(this));
     view.add(Toggles.SUPERSAMPLE.command(this));
-    view.add(repaint);
-    view.add(refresh);
 
     var tools = menu.addSubmenu("Tools");
     tools.add(straightTool);
@@ -392,10 +383,14 @@ public class Commands {
     tools.add(boundTool);
     tools.add(localBoundTool);
     tools.addSeparator();
+    tools.add(delete);
+    tools.add(lock);
+    tools.addSeparator();
     tools.add(lens);
     tools.add(zoomTool);
     tools.add(measureTool);
     tools.add(move);
+    tools.add(openTool);
     tools.add(explore);
 
     var tiles = menu.addSubmenu("Map tiles");

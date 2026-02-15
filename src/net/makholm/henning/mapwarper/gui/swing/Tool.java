@@ -9,6 +9,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
+import javax.swing.Action;
+
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.Commands;
 import net.makholm.henning.mapwarper.gui.MouseAction;
@@ -162,6 +164,26 @@ public abstract class Tool extends Command implements MouseAction {
   @Override
   protected Boolean getMenuSelected() {
     return this == mapView().currentTool;
+  }
+
+  // -------------------------------------------------------------------------
+
+
+  private Command selectionlessAlias;
+  public Command selectionlessAlias() {
+    if( selectionlessAlias == null ) {
+      selectionlessAlias = new Command(owner,codename+"%menu", niceName) {
+        @Override
+        public void invoke() {
+          Tool.this.invoke();
+        }
+        @Override
+        public Action getAction() {
+          return Tool.this.getAction();
+        }
+      };
+    }
+    return selectionlessAlias;
   }
 
   // -------------------------------------------------------------------------

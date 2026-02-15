@@ -34,7 +34,7 @@ public class OpenTool extends TrackHidingTool {
       SingleMemo.of(new LengthEstimator());
 
   public OpenTool(Commands owner) {
-    super(owner, "filepick", "Open file visually");
+    super(owner, "filepick", "Visual file picker");
   }
 
   @Override
