@@ -158,7 +158,10 @@ public final class MeasureTool extends Tool {
     var aff = mapView().projection.getAffinoid();
 
     String bearing = bearing(curve.derivativeAt(t));
-    if( aff.squeezable ) {
+    if( chain.kinds.get(i).showStraightDespiteWarp() ) {
+      // These segments don't _have_ well-defined bearings
+      bearingShown = true;
+    } else if( aff.squeezable ) {
       locatePrecisely |= mapView().projection.createAffine() == null;
       var diff = translator().createDifferential(local);
       try {
