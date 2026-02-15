@@ -106,9 +106,9 @@ public final class TrackPainter extends LongHashed {
     drawHighlight(trackdata.highlight());
 
     if( trackdata.hasFlag(Toggles.STRONG_FOREIGN_TRACK_CHAINS) )
-      linestyle(SegKind.TRACK.rgb, BUTT_STROKE);
+      linestyle(SegKind.TRACK.linestyle);
     else
-      linestyle(RGB.OTHER_TRACK, BUTT_STROKE);
+      linestyle(0xC8C8C8 | SegKind.L.TRACK);
     for( var show: trackdata.showTrackChainsIn().values() )
       for( var chain: show.chains() )
         if( chain.isTrack() ) {
@@ -146,7 +146,7 @@ public final class TrackPainter extends LongHashed {
         } else if( chain.isTrack() )
           trackChains.add(chain);
         else
-          drawBoundChain(chain, SegKind.BOUND.rgb);
+          drawBoundChain(chain, -1);
       }
       for( var chain : trackChains )
         drawTrackChain(chain);
@@ -166,7 +166,7 @@ public final class TrackPainter extends LongHashed {
         if( editingChain.isTrack() )
           drawTrackChain(editingChain);
         else
-          drawBoundChain(editingChain, SegKind.BOUND.rgb);
+          drawBoundChain(editingChain, -1);
       }
       drawCrosshairs(editingChain, LARGE_CROSSHAIR_SIZE, 0xFFFF00);
     }
@@ -216,7 +216,7 @@ public final class TrackPainter extends LongHashed {
       if( kind != drawingKind ) {
         if( i != 0 ) strokePath();
         drawingKind = kind;
-        linestyle(kind.rgb, ROUND_STROKE);
+        linestyle(kind.linestyle);
         startPath(localChain.nodes.get(i));
       }
       for( var c : localChain.curves.get(i) ) append(c);
@@ -225,7 +225,7 @@ public final class TrackPainter extends LongHashed {
   }
 
   private void drawArrowhead(LocalSegmentChain lsc) {
-    linestyle(SegKind.TRACK.rgb, BUTT_STROKE);
+    linestyle(SegKind.TRACK.linestyle);
 
     Bezier first = lsc.curves.get(0).get(0);
     var across = first.dir1().turnRight().scale(linewidth);
@@ -315,23 +315,24 @@ public final class TrackPainter extends LongHashed {
     }
   }
 
-  void drawBoundLines(SegmentChain chain, int color, IntPredicate discarder) {
-    g.setColor(new Color(color));
+  void drawBoundLines(SegmentChain chain,
+      int colorOverride, IntPredicate discarder) {
     int start = 0;
-    Stroke curStroke = null;
+    int curStroke = 0;
     for( int seg = 0; seg <= chain.numSegments; seg++ ) {
-      Stroke thisStroke;
-      if( seg == chain.numSegments )
-        thisStroke = null;
-      else if( discarder.test(seg) )
-        thisStroke = DOTTED_STROKE;
-      else if( chain.kinds.get(seg) == SegKind.LBOUND )
-        thisStroke = DASHED_STROKE;
-      else
-        thisStroke = BUTT_STROKE;
+      int thisStroke;
+      if( seg == chain.numSegments ) {
+        thisStroke = 0;
+      } else {
+        thisStroke = chain.kinds.get(seg).linestyle;
+        if( colorOverride >= 0 )
+          thisStroke = (thisStroke & 0xFF000000) | colorOverride;
+        if( discarder.test(seg) )
+          thisStroke = (thisStroke & 0x00FFFFFF) | SegKind.L.DOTTED;
+      }
       if( thisStroke != curStroke ) {
-        if( curStroke != null ) {
-          g.setStroke(curStroke);
+        if( curStroke != 0 ) {
+          linestyle(curStroke);
           g.draw(chain2Path(chain, start, seg));
         }
         curStroke = thisStroke;
@@ -442,9 +443,19 @@ public final class TrackPainter extends LongHashed {
     g.draw(arrow);
   }
 
-  private void linestyle(int rgb, Stroke stroke) {
-    g.setColor(new Color(rgb));
-    g.setStroke(stroke);
+  private void linestyle(int lrgb) {
+    g.setColor(new Color(lrgb & 0xFFFFFF));
+    g.setStroke(strokeOf(lrgb));
+  }
+
+  private static Stroke strokeOf(int lrgb) {
+    switch( lrgb & 0xFF000000 ) {
+    case SegKind.L.TRACK: return ROUND_STROKE;
+    case SegKind.L.SOLID: return BUTT_STROKE;
+    case SegKind.L.DASHED: return DASHED_STROKE;
+    case SegKind.L.DOTTED: return DOTTED_STROKE;
+    default: return new BasicStroke(2*linewidth);
+    }
   }
 
   private Path2D.Double currentPath;
