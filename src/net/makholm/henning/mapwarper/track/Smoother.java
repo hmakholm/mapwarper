@@ -148,6 +148,8 @@ class Smoother {
       return SLEWPRIO;
     case BOUND:
     case LBOUND:
+    case PASS:
+    case SKIP:
       // The easiest way not to spend too much time on bound chains is to
       // lump the entire chain into a multinode initially.
       return SLEWPRIO;
@@ -339,6 +341,8 @@ class Smoother {
       }
     case BOUND:
     case LBOUND:
+    case PASS:
+    case SKIP:
       return Bezier.line(p1, p4);
     }
 

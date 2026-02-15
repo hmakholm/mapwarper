@@ -1,6 +1,8 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
 import java.util.function.IntPredicate;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
@@ -12,6 +14,7 @@ import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjectionWorker.LocalPoint;
 import net.makholm.henning.mapwarper.track.FileContent;
+import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackNode;
 import net.makholm.henning.mapwarper.util.SingleMemo;
@@ -30,6 +33,18 @@ class WarpMargins {
    * and the y-coordinate is the <em>largest</em> relevant lefting.
    */
   private final XyTree<MarginSource> leftBoundaryTree, rightBoundaryTree;
+
+  static final class MarginLine extends Point {
+    final SegKind kind;
+    MarginLine(double min , SegKind kind, double max) {
+      super(min, max);
+      this.kind = kind;
+    }
+    double min() { return x; }
+    double max() { return y; }
+  }
+
+  final List<MarginLine> skips = new ArrayList<>();
 
   private double maxMargin;
   private double defaultMargin;
@@ -50,32 +65,34 @@ class WarpMargins {
 
     var worker = new WarpedProjectionWorker(owner);
     for( FileContent track : owner.usedFiles ) {
+      boolean mainTrack = track.contains(owner.track);
       for( SegmentChain chain : track.chains() ) {
         if( !chain.isBound() ) continue;
         TrackNode prevNode = chain.nodes.get(0), nextNode;
         LocalPoint prevLocal = worker.global2local(prevNode), nextLocal;
         for( int i=0; i<chain.numSegments;
             i++, prevNode = nextNode, prevLocal = nextLocal ) {
+          var kind = chain.kinds.get(i);
           nextNode = chain.nodes.get(i+1);
           nextLocal = worker.global2local(nextNode);
           boolean rightBound;
-          Point leftingMinMax;
+          MarginLine kinded;
           if( prevLocal.x < nextLocal.x ) {
             // Single sided bounds are _left_ bounds in the direction
             // they're drawn.
             if( prevLocal.leftOfTrack() && nextLocal.leftOfTrack() ) {
               rightBound = false;
-              leftingMinMax = Point.at(prevLocal.x, nextLocal.x);
+              kinded = new MarginLine(prevLocal.x, kind, nextLocal.x);
             } else
               continue;
           } else {
             if( prevLocal.rightOfTrack() && nextLocal.rightOfTrack() ) {
               rightBound = true;
-              leftingMinMax = Point.at(nextLocal.x, prevLocal.x);
+              kinded = new MarginLine(nextLocal.x, kind, prevLocal.x);
             } else
               continue;
           }
-          if( leftingMinMax.x > owner.totalLength || leftingMinMax.y < 0 )
+          if( kinded.min() > owner.totalLength || kinded.max() < 0 )
             continue;
 
           MarginSource thisSeg;
@@ -84,6 +101,10 @@ class WarpMargins {
             LineSeg ls = prevNode.to(nextNode);
             thisSeg = (local, global) -> global.intersectWithNormal(ls);
             break;
+          case PASS:
+          case SKIP:
+            if( mainTrack ) skips.add(kinded);
+            // in any case, fall through
           case LBOUND:
             ls = prevLocal.to(nextLocal);
             thisSeg = (local, gobal) -> local.intersectWithNormal(ls);
@@ -93,7 +114,7 @@ class WarpMargins {
             continue;
           }
 
-          var tree = XyTree.singleton(leftingMinMax, thisSeg);
+          var tree = XyTree.singleton(kinded, thisSeg);
           if( rightBound )
             rightTree = treeJoiner.union(rightTree, tree);
           else

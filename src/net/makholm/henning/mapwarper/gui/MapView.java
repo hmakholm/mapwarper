@@ -384,7 +384,7 @@ public final class MapView {
       else
         vf = files.activeFile();
       try {
-        var newWarp = new WarpedProjection(vf, files.cache,
+        var newWarp = WarpedProjection.create(vf, files.cache,
             editingChain, wp.track);
         var proj = newWarp.apply(projection.getAffinoid());
         setProjection(proj);
@@ -496,7 +496,7 @@ public final class MapView {
         vf.content().numTrackChains == 1 ) {
       try {
         var aff = projection.getAffinoid();
-        var wp = new WarpedProjection(vf, files.cache);
+        var wp = WarpedProjection.create(vf, files.cache);
         setProjection(wp.apply(aff));
         perhapsMoveToInterestingPoint();
         return true;
@@ -510,7 +510,7 @@ public final class MapView {
   WarpedProjection makeWarpedProjection() throws CannotWarp {
     var file = files.activeFile();
     if( editingChain != null && editingChain.isTrack() )
-      return new WarpedProjection(file, files.cache, editingChain);
+      return WarpedProjection.create(file, files.cache, editingChain);
 
     SegmentChain currentWarped = null;
     Path currentSource = null;
@@ -520,26 +520,26 @@ public final class MapView {
     }
 
     if( file.content().numTrackChains > 0 )
-      return new WarpedProjection(file, files.cache, currentWarped);
+      return WarpedProjection.create(file, files.cache, currentWarped);
 
     // If we're showing just one other track file, warp along that
     Iterator<Path> it = files.showtracks().iterator();
     if( it.hasNext() ) {
       Path shown = it.next();
       if( !it.hasNext() ) {
-        return new WarpedProjection(files.cache.getFile(shown),
+        return WarpedProjection.create(files.cache.getFile(shown),
             files.cache, currentWarped);
       }
     }
 
     // As the last fallback, attempt to refresh the current warp
     if( currentSource != null ) {
-      return new WarpedProjection(files.cache.getFile(currentSource),
+      return WarpedProjection.create(files.cache.getFile(currentSource),
           files.cache, currentWarped);
     }
 
     // Throw the right error by making a last doomed attempt
-    return new WarpedProjection(file, files.cache);
+    return WarpedProjection.create(file, files.cache);
   }
 
   boolean canWarp() {

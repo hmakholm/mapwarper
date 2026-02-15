@@ -21,6 +21,7 @@ import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
 import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer;
 import net.makholm.henning.mapwarper.track.ChainClass;
 import net.makholm.henning.mapwarper.track.FileContent;
+import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackNode;
 
@@ -28,11 +29,14 @@ public final class WarpedProjection extends BaseProjection {
 
   public final Path sourcename0;
   public final SegmentChain track;
-  final Set<FileContent> usedFiles = new LinkedHashSet<>();
+  final Set<FileContent> usedFiles;
 
   final SegmentChain.Smoothed curves;
   final double[] nodeLeftings;
   final double totalLength;
+
+  private final WarpedProjection withoutSkips;
+  private WarpedProjection withSkips;
 
   final Bezier pseudofirst;
   final Bezier pseudolast;
@@ -47,48 +51,27 @@ public final class WarpedProjection extends BaseProjection {
   /** These are all straight in warped coords <em>by construction</em>. */
   final LinkedHashSet<Bezier> easyCurves;
 
-  public WarpedProjection(VectFile source, FSCache cache,
+  @SuppressWarnings("serial")
+  public static final class CannotWarp extends Exception {
+    private CannotWarp(String why) {
+      super(why);
+    }
+  }
+
+  public static WarpedProjection create(VectFile source, FSCache cache,
       SegmentChain... preferredChains) throws CannotWarp {
-    this.sourcename0 = source.path;
-    this.track = findTrack(source, preferredChains);
+    var track = findTrack(source, preferredChains);
     if( track.numSegments == 0 )
       throw new CannotWarp(source.shortname() +
           " has just a single point; nothing to warp along.");
-    curves = track.smoothed.get();
 
+    var usedFiles = new LinkedHashSet<FileContent>();
     var mainContent = source.content();
     usedFiles.add(mainContent);
     for( var p : mainContent.usebounds() )
       usedFiles.add(cache.getFile(p).content());
-
-    nodesWithNormals = new PointWithNormal[track.numNodes];
-    nodeLeftings = new double[track.numNodes];
-    double t = 0;
-    UnitVector tangent = curves.get(0).dir1();
-    GlobalPoint node = GlobalPoint.of(track.nodes.get(0));
-    easyPoints.put(node, new EasyPoint(0, 0, 0, tangent));
-    nodesWithNormals[0] = new PointWithNormal(node, tangent.turnRight());
-    for( int i=0; i<track.numSegments; i++ ) {
-      nodeLeftings[i] = t;
-      var curve = curves.get(i);
-      easyPoints.put(GlobalPoint.of(curve.p1),
-          new EasyPoint(i, t, curves.segmentSlew(i), tangent));
-      t += curve.estimateLength();
-      tangent = curve.dir4();
-      easyPoints.put(GlobalPoint.of(curve.p4),
-          new EasyPoint(i+1, t, curves.segmentSlew(i), tangent));
-      node = GlobalPoint.of(track.nodes.get(i+1));
-      easyPoints.put(node, new EasyPoint(i+1, t, curves.nodeSlew(i+1), tangent));
-      nodesWithNormals[i+1] = new PointWithNormal(node, tangent.turnRight());
-    }
-    nodeLeftings[track.numSegments] = totalLength = t;
-
-    easyCurves = new LinkedHashSet<>(curves);
-
-    TrackNode n0 = track.nodes.get(0);
-    pseudofirst = Bezier.line(n0, n0.plus(curves.get(0).dir1()));
-    TrackNode n9 = track.nodes.last();
-    pseudolast = Bezier.line(n9, n9.plus(curves.last().dir4()));
+    return new WarpedProjection(null, source.path, usedFiles,
+        track, track.smoothed.get());
   }
 
   private static SegmentChain findTrack(VectFile source,
@@ -111,10 +94,53 @@ public final class WarpedProjection extends BaseProjection {
     }
   }
 
-  @SuppressWarnings("serial")
-  public static final class CannotWarp extends Exception {
-    private CannotWarp(String why) {
-      super(why);
+  WarpedProjection(WarpedProjection withoutSkips,
+      Path sourcename0, Set<FileContent> usedFiles,
+      SegmentChain track, SegmentChain.Smoothed curves) {
+    this.sourcename0 = sourcename0;
+    this.usedFiles = usedFiles;
+    this.track = track;
+    this.curves = curves;
+
+    nodesWithNormals = new PointWithNormal[track.numNodes];
+    nodeLeftings = new double[track.numNodes];
+    double t = 0;
+    UnitVector tangent = curves.get(0).dir1();
+    GlobalPoint node = GlobalPoint.of(track.nodes.get(0));
+    easyPoints.put(node, new EasyPoint(0, 0, 0, tangent));
+    nodesWithNormals[0] = new PointWithNormal(node, tangent.turnRight());
+    for( int i=0; i<track.numSegments; i++ ) {
+      nodeLeftings[i] = t;
+      var curve = curves.get(i);
+      easyPoints.put(GlobalPoint.of(curve.p1),
+          new EasyPoint(i, t, curves.segmentSlew(i), tangent));
+      double length = curve.estimateLength();
+      if( track.kinds.get(i) == SegKind.PASS )
+        length /= 15;
+      t += length;
+      tangent = curve.dir4();
+      easyPoints.put(GlobalPoint.of(curve.p4),
+          new EasyPoint(i+1, t, curves.segmentSlew(i), tangent));
+      node = GlobalPoint.of(track.nodes.get(i+1));
+      easyPoints.put(node, new EasyPoint(i+1, t, curves.nodeSlew(i+1), tangent));
+      nodesWithNormals[i+1] = new PointWithNormal(node, tangent.turnRight());
+    }
+    nodeLeftings[track.numSegments] = totalLength = t;
+
+    easyCurves = new LinkedHashSet<>(curves);
+
+    TrackNode n0 = track.nodes.get(0);
+    pseudofirst = Bezier.line(n0, n0.plus(curves.get(0).dir1()));
+    TrackNode n9 = track.nodes.last();
+    pseudolast = Bezier.line(n9, n9.plus(curves.last().dir4()));
+
+    if( withoutSkips != null ) {
+      this.withoutSkips = withoutSkips;
+      this.withSkips = this;
+    } else {
+      this.withoutSkips = this;
+      if( WarpMargins.get(this).skips.isEmpty() )
+        this.withSkips = this;
     }
   }
 
@@ -124,17 +150,30 @@ public final class WarpedProjection extends BaseProjection {
   }
 
   @Override
-  public Projection apply(Affinoid aff) {
-    aff.assertSqueezable();
-    return aff.apply(this);
+  public Affinoid getAffinoid() {
+    var aff = new Affinoid();
+    aff.useSkips = withSkips == this;
+    return aff;
   }
 
   @Override
-  public AxisRect maxUnzoom() {
-    // 5 million units is between 90 and 180 km, should be plenty
-    // of space to explore the anonymous warp
-    return new AxisRect(Point.at(-5_000_000, -5_000_000),
-        Point.at(5_000_000, 5_000_000));
+  public Projection apply(Affinoid aff) {
+    aff.assertSqueezable();
+    if( aff.useSkips )
+      return aff.apply(skippingProjection());
+    else
+      return aff.apply(withoutSkips);
+  }
+
+  private WarpedProjection skippingProjection() {
+    if( withSkips != this ) {
+      synchronized( this ) {
+        if( withSkips == null ) {
+          withSkips = new WarpSkipper(this).convert();
+        }
+      }
+    }
+    return withSkips;
   }
 
   @Override
@@ -233,12 +272,16 @@ public final class WarpedProjection extends BaseProjection {
 
   @Override
   public String describe(Path currentFile) {
+    return describe("warped", currentFile);
+  }
+
+  String describe(String basename, Path currentFile) {
     if( Objects.equals(currentFile, sourcename0) )
-      return "warped";
+      return basename;
     else if( sourcename0 == null )
-      return "warped(anonymous)";
+      return basename + "(anonymous)";
     else
-      return "warped("+sourcename0.getFileName()+")";
+      return basename + "("+sourcename0.getFileName()+")";
   }
 
 }

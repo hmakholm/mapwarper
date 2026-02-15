@@ -19,14 +19,21 @@ public abstract class BaseProjection extends Projection {
     return false;
   }
 
-  @Override public final BaseProjection base() { return this; }
+  @Override public BaseProjection base() { return this; }
   @Override public final Point local2projected(Point p) { return p; }
   @Override public final Point projected2local(Point p) { return p; }
   @Override public final double scaleAcross() { return 1.0; }
   @Override public final double scaleAlong() { return 1.0; }
 
   @Override
-  public abstract AxisRect maxUnzoom();
+  public AxisRect maxUnzoom() {
+    // As a default implementation for warped and warp-like projections,
+    // let's say the unzoom limit is 5 million unit, corresponding to between
+    // 90 and 180 km on a screen. (The secret here is that this doesn't
+    // really limit how _where_ in the coordinate system one can scroll to,
+    // so it doesn't need to reflect how long the warp (if any) actually is).
+    return new AxisRect(Point.ORIGIN, Point.at(5e6, 5e6));
+  }
 
   @Override
   public Affinoid getAffinoid() {

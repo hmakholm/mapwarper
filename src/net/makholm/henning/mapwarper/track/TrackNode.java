@@ -21,6 +21,13 @@ public final class TrackNode extends Point {
     this(x,y,0);
   }
 
+  public static TrackNode of(Point p) {
+    long x = Math.round(p.x);
+    long y = Math.round(p.y);
+    int mask = Coords.EARTH_SIZE-1;
+    return new TrackNode((int)x&mask, (int)y&mask);
+  }
+
   public TrackNode withDirection(Vector dir) {
     if( dir != null )
       return new TrackNode(Coords.x(pos), Coords.y(pos), dir.normalize());

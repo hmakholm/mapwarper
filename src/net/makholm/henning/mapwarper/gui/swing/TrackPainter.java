@@ -53,7 +53,12 @@ public final class TrackPainter extends LongHashed {
       new BasicStroke(linewidth,
           BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
           10.0f,
-          new float[] { 10.0f }, 0);
+          new float[] { 5*linewidth }, 0);
+  private static final BasicStroke FAT_DASHED_STROKE =
+      new BasicStroke(1.5f*linewidth,
+          BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+          10.0f,
+          new float[] { 7*linewidth }, 7*linewidth);
   private static final BasicStroke DOTTED_STROKE =
       new BasicStroke(linewidth,
           BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
@@ -453,6 +458,7 @@ public final class TrackPainter extends LongHashed {
     case SegKind.L.TRACK: return ROUND_STROKE;
     case SegKind.L.SOLID: return BUTT_STROKE;
     case SegKind.L.DASHED: return DASHED_STROKE;
+    case SegKind.L.FATDASH: return FAT_DASHED_STROKE;
     case SegKind.L.DOTTED: return DOTTED_STROKE;
     default: return new BasicStroke(2*linewidth);
     }

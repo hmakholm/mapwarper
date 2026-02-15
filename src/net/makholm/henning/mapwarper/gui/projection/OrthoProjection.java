@@ -29,6 +29,7 @@ public final class OrthoProjection extends BaseProjection {
   public Affinoid getAffinoid() {
     var aff = new Affinoid();
     aff.squeezable = false;
+    aff.useSkips = true;
     return aff;
   }
 

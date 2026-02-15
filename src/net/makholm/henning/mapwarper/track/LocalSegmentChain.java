@@ -38,7 +38,7 @@ public class LocalSegmentChain {
     for( int i=0; i<global.numSegments; i++ ) {
       Bezier globalCurve = globalCurves.get(i);
       List<Bezier> localCurves;
-      if( global.kinds.get(i) == SegKind.LBOUND )
+      if( global.kinds.get(i).showStraightDespiteWarp() )
         localCurves = List.of(Bezier.line(
             proj.global2local(globalCurve.p1),
             proj.global2local(globalCurve.p4)));

@@ -7,7 +7,9 @@ public enum SegKind {
   SLEW    (L.TRACK   | 0x0080DD, "slew",     "displacement joiner"),
   MAGIC   (L.TRACK   | 0xDD5500, "connect",  "arc joiner"),
   BOUND   (L.SOLID   | 0x99F488, "bounds",   "bound line"),
-  LBOUND  (L.DASHED  | 0x99F488, "local",    "locally straight bound");
+  LBOUND  (L.DASHED  | 0x99F488, "local",    "locally straight bound"),
+  PASS    (L.DASHED  | 0xF977DD, "pass",     "fast-forward bound"),
+  SKIP    (L.FATDASH | 0xFF00AA, "skip",     "skip bound");
 
   public final ChainClass klass;
   public final int rgb;
@@ -19,6 +21,7 @@ public enum SegKind {
     public static final int TRACK = 0x01 << 24;
     public static final int SOLID = 0x02 << 24;
     public static final int DASHED = 0x04 << 24;
+    public static final int FATDASH = 0x08 << 24;
     public static final int DOTTED = 0x80 << 24;
   }
 
@@ -35,7 +38,7 @@ public enum SegKind {
   }
 
   public boolean showStraightDespiteWarp() {
-    return (linestyle & L.DASHED) != 0;
+    return (linestyle & (L.DASHED | L.FATDASH)) != 0;
   }
 
 }

@@ -32,6 +32,8 @@ public final class SegmentChain extends LongHashed {
     this.numSegments = kinds.size();
     if( numSegments != numNodes-1 )
       throw BadError.of("Mismatch: %d kinds for %d nodes", kinds.size(), numNodes);
+    if( chainClass == null )
+      return; // Special lenient mode where the classes don't need to match
     for( int i = 0; i<kinds.size(); i++ )
       if( kinds.get(i).chainClass() != chainClass ) {
         throw BadError.of("kind[%d] = %s in a chain that was supposed to be %s",
@@ -150,6 +152,22 @@ public final class SegmentChain extends LongHashed {
       else
         return Vector.of(1,0).normalize();
     }
+  }
+
+  public static Smoothed directSmoothed(List<Bezier> curves, List<Double> slews) {
+    int length = curves.size();
+    if( slews.size() != length*2+1 )
+      throw BadError.of("list lengths do not match: %d vs %d",
+          curves.size(), slews.size());
+    var nodeSlews = new double[length+1];
+    var segmentSlews = new double[length];
+    nodeSlews[0] = slews.get(0);
+    for( int i=0; i<length; i++ ) {
+      segmentSlews[i] = slews.get(2*i+1);
+      nodeSlews[i+1] = slews.get(2*i+2);
+    }
+    return new Smoothed(curves.toArray(new Bezier[length]),
+        nodeSlews, segmentSlews);
   }
 
   public final Lazy<Smoothed> smoothed = Lazy.of(() -> Smoother.smoothen(this));

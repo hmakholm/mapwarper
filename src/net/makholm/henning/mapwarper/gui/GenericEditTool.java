@@ -5,7 +5,6 @@ import java.util.function.Function;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
-import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.track.SegmentChain;
@@ -69,10 +68,7 @@ implements StandardAction.Context {
   }
 
   protected static TrackNode global2node(Point global) {
-    long x = Math.round(global.x);
-    long y = Math.round(global.y);
-    int mask = Coords.EARTH_SIZE-1;
-    return new TrackNode((int)x&mask, (int)y&mask);
+    return TrackNode.of(global);
   }
 
   // -------------------------------------------------------------------------

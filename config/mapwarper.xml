@@ -198,6 +198,8 @@
 <keybind name="S-T" value="lens.openrail"/>
 <keybind name="U" value="teleport"/>
 <keybind name="O" value="filepick"/>
+<keybind name="P" value="PASS"/>
+<keybind name="S-P" value="SKIP"/>
 <keybind name="[" value="lensMinus"/>
 <keybind name="{" value="tdebugMinus"/>
 <keybind name="]" value="lensPlus"/>

@@ -3,7 +3,6 @@ package net.makholm.henning.mapwarper.gui.projection;
 import java.awt.geom.AffineTransform;
 import java.nio.file.Path;
 
-import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
@@ -44,14 +43,6 @@ public class QuickWarp extends BaseProjection {
     aff.squeezable = false;
     aff.quadrantsTurned += ourTurn;
     return aff.apply(OrthoProjection.ORTHO);
-  }
-
-  @Override
-  public AxisRect maxUnzoom() {
-    // 5 million units is between 90 and 180 km, should be plenty
-    // of space to explore the anonymous warp
-    return new AxisRect(Point.at(-5_000_000, -5_000_000),
-        Point.at(5_000_000, 5_000_000));
   }
 
   @Override

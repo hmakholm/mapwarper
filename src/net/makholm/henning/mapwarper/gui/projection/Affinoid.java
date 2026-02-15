@@ -26,6 +26,12 @@ public final class Affinoid {
    */
   public boolean squeezable = true;
 
+  /**
+   * Non-warp projections do not <em>use</em> this, but still <em>set</em>
+   * it, to hint at whether a fresh warped projection should use skips or not.
+   */
+  public boolean useSkips;
+
   public double scaleAcross = 1;
   public double squeeze = 1;
   public int quadrantsTurned = 0;
@@ -33,6 +39,8 @@ public final class Affinoid {
   public double scaleAlong() {
     return scaleAcross * squeeze;
   }
+
+  public Affinoid() {}
 
   public void makeSqueezable(double defaultSqueeze) {
     if( !squeezable ) {

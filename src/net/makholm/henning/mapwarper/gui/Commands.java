@@ -75,9 +75,11 @@ public class Commands {
   private final Tool straightTool = new TrackEditTool(this, SegKind.STRONG);
   private final Tool slewTool = new TrackEditTool(this, SegKind.SLEW);
   private final Tool magicTool = new TrackEditTool(this, SegKind.MAGIC);
-  public final Tool boundTool = new BoundEditTool(this);
+  public final Tool boundTool = new BoundEditTool(this, SegKind.BOUND);
   private final Tool localBoundTool =
       new BoundSnappingTool(this, SegKind.LBOUND);
+  private final Tool passTool = new BoundEditTool(this, SegKind.PASS);
+  private final Tool skipTool = new BoundSnappingTool(this, SegKind.SKIP);
   private final Tool delete = new DeleteTool(this);
   private final Tool lock = new LockingTool(this);
   final OpenTool openTool = new OpenTool(this);
@@ -382,6 +384,8 @@ public class Commands {
     tools.add(magicTool);
     tools.add(boundTool);
     tools.add(localBoundTool);
+    tools.add(passTool);
+    tools.add(skipTool);
     tools.addSeparator();
     tools.add(delete);
     tools.add(lock);

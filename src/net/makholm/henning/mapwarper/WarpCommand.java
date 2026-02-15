@@ -68,7 +68,7 @@ class WarpCommand extends Mapwarper.Command {
     VectFile vf = fs.getFile(vectfileName);
     WarpedProjection wp;
     try {
-      wp = new WarpedProjection(vf, fs);
+      wp = WarpedProjection.create(vf, fs);
     } catch( WarpedProjection.CannotWarp e ) {
       throw NiceError.of("Cannot use this for warping: %s", e.getMessage());
     }
@@ -78,6 +78,7 @@ class WarpCommand extends Mapwarper.Command {
     var fallbackTiles = common.tileContext.nomapTileset;
 
     Affinoid aff = new Affinoid();
+    aff.useSkips = true;
     if( wantMm > 0 ) {
       aff.scaleAcross = wantMm * 0.001 *
           WebMercator.unitsPerMeter(vf.content().nodeTree.get().center().y);
