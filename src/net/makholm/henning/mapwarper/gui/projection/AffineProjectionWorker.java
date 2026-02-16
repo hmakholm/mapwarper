@@ -2,8 +2,6 @@ package net.makholm.henning.mapwarper.gui.projection;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
-import java.util.Collections;
-import java.util.List;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
@@ -54,8 +52,8 @@ implements ProjectionWorker {
   }
 
   @Override
-  public List<Bezier> global2local(Bezier global) {
-    return Collections.singletonList(global.transform(global2local, this));
+  public Bezier global2local(Bezier global) {
+    return global.transform(global2local, this);
   }
 
   @Override

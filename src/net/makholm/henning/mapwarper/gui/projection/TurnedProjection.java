@@ -1,10 +1,10 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
 import java.awt.geom.AffineTransform;
-import java.util.List;
 import java.util.function.IntPredicate;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
+import net.makholm.henning.mapwarper.geometry.BezierChain;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.TransformHelper;
@@ -14,7 +14,6 @@ import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.util.AbortRendering;
 import net.makholm.henning.mapwarper.util.BadError;
-import net.makholm.henning.mapwarper.util.ListMapper;
 
 public final class TurnedProjection extends Projection {
 
@@ -142,9 +141,8 @@ public final class TurnedProjection extends Projection {
     }
 
     @Override
-    public List<Bezier> global2local(Bezier global) {
-      List<Bezier> got = inner.global2local(global);
-      return ListMapper.map(got, b -> b.transform(next2local, this));
+    public BezierChain global2local(Bezier global) {
+      return inner.global2local(global).transform(next2local, this);
     }
 
     @Override

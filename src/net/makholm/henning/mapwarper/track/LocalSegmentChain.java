@@ -1,17 +1,15 @@
 package net.makholm.henning.mapwarper.track;
 
-import static java.util.Collections.singletonList;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.IntPredicate;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
+import net.makholm.henning.mapwarper.geometry.BezierChain;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
-import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
 import net.makholm.henning.mapwarper.util.FrozenArray;
 import net.makholm.henning.mapwarper.util.Lazy;
@@ -37,55 +35,59 @@ public class LocalSegmentChain {
       super(p.x, p.y, n);
     }
     public double neighborDist = 1000;
+    /** Direction of adjoining track lines, if any */
+    public UnitVector dIn, dOut;
   }
 
   static LocalSegmentChain make(SegmentChain global, ProjectionWorker proj) {
     var globalCurves = global.smoothed.get();
     var nodes = new LocalNode[global.numNodes];
+
     var curves = new ArrayList<List<Bezier>>(global.numSegments);
 
-    var globalNode = global.nodes.get(0);
-    var localNode = proj.global2local(globalNode);
-    Bezier lastLocalCurve = null;
+    var localNode = proj.global2local(global.nodes.get(0));
     for( int i=0; i<global.numSegments; i++ ) {
-      Bezier globalCurve = globalCurves.get(i);
-      List<Bezier> localCurves;
+      var nextLocalNode = proj.global2local(global.nodes.get(i+1));
+      var globalCurve = globalCurves.get(i);
+      BezierChain localCurve;
       if( global.kinds.get(i).showStraightDespiteWarp() )
-        localCurves = List.of(Bezier.line(
-            proj.global2local(globalCurve.p1),
-            proj.global2local(globalCurve.p4)));
+        localCurve = Bezier.line(localNode, nextLocalNode);
       else
-        localCurves = proj.global2local(globalCurve);
-      Bezier firstLocalCurve = localCurves.get(0);
-      lastLocalCurve = localCurves.get(localCurves.size()-1);
+        localCurve = proj.global2local(globalCurve);
+      List<Bezier> toDraw = localCurve.curves();
 
-      nodes[i] =
-          new LocalNode(localNode, firstLocalCurve.dir1().turnRight());
-      if( !globalNode.is(globalCurve.p1) ) {
-        var line = Bezier.line(localNode, firstLocalCurve.p1);
-        localCurves = TreeList.concat(singletonList(line), localCurves);
+      Bezier first = localCurve.firstCurveOrNull();
+      if( first != null ) {
+        if( nodes[i] == null )
+          nodes[i] = new LocalNode(localNode, first.dir1().turnRight());
+        if( !globalCurve.p1.is(global.nodes.get(i)) ) {
+          first = Bezier.line(localNode, first.p1);
+          toDraw = TreeList.concat(List.of(first), toDraw);
+        }
+        nodes[i].dOut = first.dir1();
       }
 
-      globalNode = global.nodes.get(i+1);
-      localNode = proj.global2local(globalNode);
-      if( !globalNode.is(globalCurve.p4) ) {
-        var line = Bezier.line(lastLocalCurve.p4, localNode);
-        localCurves = TreeList.concat(localCurves, singletonList(line));
+      localNode = nextLocalNode;
+
+      Bezier last = localCurve.lastCurveOrNull();
+      if( last != null ) {
+        nodes[i+1] = new LocalNode(localNode, last.dir4().turnRight());
+        if( !globalCurve.p4.is(global.nodes.get(i+1)) ) {
+          last = Bezier.line(last.p4, localNode);
+          toDraw = TreeList.concat(toDraw, List.of(last));
+        }
+        nodes[i+1].dIn = last.dir4();
       }
 
-      curves.add(localCurves);
+      curves.add(toDraw);
     }
-    if( lastLocalCurve != null ) {
-      nodes[global.numSegments] =
-          new LocalNode(localNode, lastLocalCurve.dir4().turnRight());
-    } else {
-      // We must be a single-point chain ...
-      nodes[global.numSegments] =
-          new LocalNode(localNode, Vector.of(1,0).normalize());
+    for( int i=0; i<nodes.length; i++ ) {
+      if( nodes[i] == null ) {
+        Point local = proj.global2local(global.nodes.get(i));
+        if( nodes.length == 1 || proj.isGoodLocalPoint(local))
+          nodes[i] = new LocalNode(local, UnitVector.RIGHT);
+      }
     }
-    for( int i=0; i<nodes.length; i++ )
-      if( nodes[i] != null && !proj.isGoodLocalPoint(nodes[i]) )
-        nodes[i] = null;
     calculateCrosshairDistances(nodes);
 
     IntPredicate boundDiscarder;

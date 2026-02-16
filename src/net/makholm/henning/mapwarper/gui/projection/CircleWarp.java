@@ -6,6 +6,7 @@ import java.util.List;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Bezier;
+import net.makholm.henning.mapwarper.geometry.BezierChain;
 import net.makholm.henning.mapwarper.geometry.LineSeg;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
@@ -98,7 +99,7 @@ public class CircleWarp extends BaseProjection {
       }
 
       @Override
-      public List<Bezier> global2local(Bezier global) {
+      public BezierChain global2local(Bezier global) {
         Point l1 = global2local(global.p1);
         Point l4 = global2local(global.p4);
         double z1 = center.signedDistanceFromNormal(global.p1);
@@ -122,14 +123,14 @@ public class CircleWarp extends BaseProjection {
             var x = Math.copySign(180/(degxscale*xscale), z1);
             var y = -yy/yscale;
             var split = global.split(tMid);
-            return TreeList.concat(
+            return BezierChain.list2chain(TreeList.concat(
                 global2local(0, l1, split.front(), Point.at(x,y)),
                 List.of(Bezier.cubic(Point.at(x,0), Point.at(x,-y),
                     Point.at(-x,-y), Point.at(-x,0))),
-                global2local(0, Point.at(-x,y), split.back(), l4));
+                global2local(0, Point.at(-x,y), split.back(), l4)));
           }
         }
-        return global2local(0, l1, global, l4);
+        return BezierChain.list2chain(global2local(0, l1, global, l4));
       }
 
       private List<Bezier> global2local(int recLevel,

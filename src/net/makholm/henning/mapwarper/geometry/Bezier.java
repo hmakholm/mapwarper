@@ -7,7 +7,7 @@ import net.makholm.henning.mapwarper.util.Lazy;
 import net.makholm.henning.mapwarper.util.LongHashed;
 import net.makholm.henning.mapwarper.util.TreeList;
 
-public final class Bezier extends LongHashed {
+public final class Bezier extends LongHashed implements BezierChain {
 
   public final Point p1, p2, p3, p4;
   public final LineSeg displacement;
@@ -54,9 +54,11 @@ public final class Bezier extends LongHashed {
     bbox = toReverse.bbox;
   }
 
+  @Override
   public Bezier reverse() {
     return new Bezier(this);
   }
+
   public static Bezier cubic(Point p1, Point p2, Point p3, Point p4) {
     Vector md = p1.minus(p4);
     Vector dv1 = md.plus(3, p2.minus(p1));
@@ -80,6 +82,7 @@ public final class Bezier extends LongHashed {
         q1, err2.scale(9).plus(-4.5,err3), err2.scale(4.5).plus(-9,err3), q4);
   }
 
+  @Override
   public Bezier transform(AffineTransform at, TransformHelper scratch) {
     return new Bezier(
         scratch.apply(at, p1),
@@ -212,6 +215,10 @@ public final class Bezier extends LongHashed {
           split.back().offset(rightDist, wantMid, newP4));
     }
   }
+
+  @Override public Bezier firstCurveOrNull() { return this; }
+  @Override public List<Bezier> curves() { return List.of(this); }
+  @Override public Bezier lastCurveOrNull() { return this; }
 
   @Override
   protected long longHashImpl() {

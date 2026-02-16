@@ -1,10 +1,10 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
 import java.awt.geom.AffineTransform;
-import java.util.List;
 import java.util.function.IntPredicate;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
+import net.makholm.henning.mapwarper.geometry.BezierChain;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.track.SegmentChain;
@@ -22,7 +22,7 @@ public interface ProjectionWorker {
 
   public abstract Point global2localWithHint(Point global, Point nearbyLocal);
 
-  public abstract List<Bezier> global2local(Bezier global);
+  public abstract BezierChain global2local(Bezier global);
 
   public default Point local2globalForEditing(Point local) {
     return local2global(local);

@@ -118,7 +118,7 @@ public final class TrackPainter extends LongHashed {
       for( var chain: show.chains() )
         if( chain.isTrack() ) {
           var local = chain.localizePerhapsTiny(translator);
-          if( local.segmentTree.get().intersects(widened) )
+          if( widened.intersects(local.segmentTree.get()) )
             g.draw(chain2Path(local, 0, local.curves.size()));
         }
 
@@ -286,8 +286,8 @@ public final class TrackPainter extends LongHashed {
           locals[i] = translator.global2localWithHint(toShow[i],
               i < CURVATURE_SAMPLES/2 ? l1 : l4);
         }
-        append(Bezier.through(locals[6], locals[5], locals[4], locals[3]));
-        append(Bezier.through(locals[3], locals[2], locals[1], locals[0]));
+        lineTo(Bezier.through(locals[6], locals[5], locals[4], locals[3]));
+        lineTo(Bezier.through(locals[3], locals[2], locals[1], locals[0]));
         g.fill(endPath());
       }
     }
@@ -305,26 +305,35 @@ public final class TrackPainter extends LongHashed {
   private void drawBoundOutline(LocalSegmentChain chain,
       IntPredicate discarder) {
     g.setColor(new Color(0x50_CCEE00, true));
-    List<Bezier> outline = List.of();
-    for( int i=0; i<=chain.curves.size(); i++ ) {
-      if( i < chain.curves.size() && !discarder.test(i) ) {
+    var outliner = new OutlineDrawer();
+    for( int i=0; i<chain.curves.size(); i++ ) {
+      if( !discarder.test(i) ) {
         for( var c : chain.curves.get(i) )
-          outline = TreeList.concat(
-              c.reverse().offset(10),
-              outline,
-              List.of(c));
-      } else {
-        if( !outline.isEmpty() ) {
-          startPath(outline.get(0).p1);
-          outline.forEach(this::append);
-          currentPath.closePath();
-          g.fill(endPath());
-          outline = List.of();
-        }
-        if( i == chain.curves.size() )
-          return;
-        else
-          continue;
+          outliner.give(c);
+      }
+    }
+    outliner.flush();
+  }
+
+  private class OutlineDrawer {
+    Point last;
+    List<Bezier> outline;
+
+    void give(Bezier curve) {
+      if( last != null && !last.is(curve.p1) )
+        flush();
+      outline = TreeList.concat(curve.reverse().offset(10), outline,
+          List.of(curve));
+      last = curve.p4;
+    }
+    void flush() {
+      if( outline != null ) {
+        startPath();
+        outline.forEach(TrackPainter.this::lineTo);
+        currentPath.closePath();
+        g.fill(endPath());
+        outline = null;
+        last = null;
       }
     }
   }
@@ -386,7 +395,7 @@ public final class TrackPainter extends LongHashed {
           chain.nodes.get(i).locksDirection() )
         drawDirectedCrosshair(curPoint, size);
       else
-        drawOneCrosshair(curPoint, size, localCurves.curves, i);
+        drawOneCrosshair(curPoint, size);
     }
   }
 
@@ -396,33 +405,28 @@ public final class TrackPainter extends LongHashed {
    */
   private static final UnitVector DIAG = Vector.of(1,1).normalize();
 
-  private void drawOneCrosshair(PointWithNormal p, double size,
-      FrozenArray<List<Bezier>> curves, int index) {
+  private void drawOneCrosshair(LocalSegmentChain.LocalNode p, double size) {
     int W = linewidth;
     long x = (long)(Math.round(p.x - W*0.5));
     long y = (long)(Math.round(p.y - W*0.5));
     int arm = Math.max(W, (int)(size/2));
     int gap = arm * 4/10;
     if( gap > W * 2 ) {
-      drawOuterCrosshair(x, y, gap, arm, curves, index);
+      drawOuterCrosshair(x, y, gap, arm, p);
       if( gap < W * 4 )
         return;
     } else if( arm > W ) {
-      drawOuterCrosshair(x, y, W, arm, curves, index);
+      drawOuterCrosshair(x, y, W, arm, p);
     }
     fillRect(x-W, y, 3*W, W);
     fillRect(x, y-W, W, 3*W);
   }
 
   public void drawOuterCrosshair(long x, long y, int gap, int arm,
-      FrozenArray<List<Bezier>> curves, int index) {
+      LocalSegmentChain.LocalNode node) {
     // Omit the outer arms if they would clobber parts of the track.
-    UnitVector dIn = DIAG, dOut = DIAG;
-    if( index > 0 ) {
-      var cl = curves.get(index-1); dIn = cl.get(cl.size()-1).dir4();
-    }
-    if( index < curves.size() )
-      dOut = curves.get(index).get(0).dir1();
+    UnitVector dIn = node.dIn == null ? DIAG : node.dIn;
+    UnitVector dOut = node.dOut == null ? DIAG : node.dOut;
     double cosl = 0.95;
     int W = linewidth;
     if( dIn.x<cosl && dOut.x>-cosl ) fillRect(x-arm,   y, arm-gap, W);
@@ -504,8 +508,13 @@ public final class TrackPainter extends LongHashed {
     }
   }
 
-  private void append(Bezier c) {
+  private void lineTo(Bezier c) {
     lineTo(c.p1);
+    append(c);
+  }
+
+  private void append(Bezier c) {
+    moveTo(c.p1);
     if( c.isPracticallyALine() )
       lineTo(c.p4);
     else {

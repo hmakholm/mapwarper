@@ -47,7 +47,7 @@ public final class WarpedProjection extends BaseProjection {
   final LinkedHashMap<GlobalPoint, EasyPoint> easyPoints =
       new LinkedHashMap<>();
   /** These are all straight in warped coords <em>by construction</em>. */
-  final LinkedHashSet<Bezier> easyCurves;
+  final LinkedHashMap<Bezier, Boolean> easyCurves = new LinkedHashMap<>();
 
   @SuppressWarnings("serial")
   public static final class CannotWarp extends Exception {
@@ -111,6 +111,7 @@ public final class WarpedProjection extends BaseProjection {
     for( int i=0; i<track.numSegments; i++ ) {
       nodeLeftings[i] = t;
       var curve = curves.get(i);
+      easyCurves.put(curve, isNonskippingSegment(i));
       easyPoints.putIfAbsent(GlobalPoint.of(curve.p1),
           new EasyPoint(i, t, curves.segmentSlew(i), tangent));
       t += lengths[i];
@@ -122,8 +123,6 @@ public final class WarpedProjection extends BaseProjection {
       nodesWithNormals[i+1] = new PointWithNormal(node, tangent.turnRight());
     }
     nodeLeftings[track.numSegments] = totalLength = t;
-
-    easyCurves = new LinkedHashSet<>(curves);
 
     TrackNode n0 = track.nodes.get(0);
     pseudofirst = Bezier.line(n0, n0.plus(curves.get(0).dir1()));
@@ -138,6 +137,11 @@ public final class WarpedProjection extends BaseProjection {
       if( WarpMargins.get(this).skips.isEmpty() )
         this.withSkips = this;
     }
+  }
+
+  boolean isNonskippingSegment(int segment) {
+    return segment < 0 || segment >= track.numSegments ||
+        track.kinds.get(segment).isTrack();
   }
 
   @Override

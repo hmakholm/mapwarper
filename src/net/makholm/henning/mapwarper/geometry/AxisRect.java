@@ -131,7 +131,7 @@ public class AxisRect {
   }
 
   public boolean intersects(AxisRect other) {
-    return
+    return other != null &&
         other.xmin <= xmax &&
         other.xmax >= xmin &&
         other.ymin <= ymax &&

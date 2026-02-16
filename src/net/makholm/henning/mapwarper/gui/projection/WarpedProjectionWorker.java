@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.function.IntPredicate;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
+import net.makholm.henning.mapwarper.geometry.BezierChain;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
@@ -14,7 +15,6 @@ import net.makholm.henning.mapwarper.geometry.Vector;
 import net.makholm.henning.mapwarper.gui.FindClosest;
 import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.track.SegmentChain;
-import net.makholm.henning.mapwarper.util.ListMapper;
 import net.makholm.henning.mapwarper.util.MathUtil;
 import net.makholm.henning.mapwarper.util.RootFinder;
 import net.makholm.henning.mapwarper.util.TreeList;
@@ -198,76 +198,118 @@ implements ProjectionWorker {
     return new LocalPoint(segment, lefting, local.y*yscale, currentNormal());
   }
 
+  private static final BezierChain INVISIBLE = BezierChain.list2chain(List.of());
+
   @Override
-  public List<Bezier> global2local(Bezier global) {
+  public BezierChain global2local(Bezier global) {
     LocalPoint l1 = global2local(global.p1);
     LocalPoint l4 = global2local(global.p4);
-    if( warp.easyCurves.contains(global) ) {
-      return List.of(Bezier.line(l1, l4));
-    } else if( l1.segment == l4.segment ) {
-      return global2localOneSegment(l1.segment, l1, global, l4, 0);
-    } else if( l4.segment == l1.segment+1 &&
-        l4.lefting == warp.nodeLeftings[l4.segment] ) {
-      // Another important easy case is when a segment of the existing
-      // warp gets new _tangents_ due to nearby changes, but keeps its
-      // _endpoints_.
-      return global2localOneSegment(l1.segment, l1, global, l4, 0);
-    } else if( l1.segment < l4.segment ) {
-      return global2local(l1.segment, l1, global, l4, l4.segment);
-    } else {
-      var revglobal = global.reverse();
-      var revlocal = global2local(l4.segment, l4, revglobal, l1, l1.segment);
-      return ListMapper.reverse(ListMapper.map(revlocal, Bezier::reverse));
+
+    var easy = warp.easyCurves.get(global);
+    if( easy != null )
+      return easy ? Bezier.line(l1, l4) : INVISIBLE;
+
+    if( l1.segment <= l4.segment )
+      return skippingGlobal2local(l1.segment, l1, global, l4, l4.segment);
+    else {
+      global = global.reverse();
+      return skippingGlobal2local(l4.segment, l4, global, l1, l1.segment)
+          .reverse();
     }
   }
 
-  private List<Bezier> global2local(int seg1, LocalPoint l1, Bezier global,
-      LocalPoint l4, int seg4) {
+  private BezierChain skippingGlobal2local(
+      int seg1, LocalPoint l1, Bezier global, LocalPoint l4, int seg4) {
+
+    if( seg4 > seg1 && (l4.x-1) * xscale < warp.nodeLeftings[seg4] ) seg4--;
+
+    BezierChain result = null;
+    do {
+      var nonskipping = warp.isNonskippingSegment(seg1);
+      var smid = seg1;
+      while( smid < seg4 && warp.isNonskippingSegment(smid+1) == nonskipping )
+        smid++;
+      SplitResult split;
+      if( smid == seg4 )
+        split = new SplitResult(global, l4, null);
+      else
+        split = splitAtNode(smid+1, l1, global, l4);
+
+      if( !nonskipping )
+        result = BezierChain.concat(result, INVISIBLE);
+      else {
+        var got = global2local(seg1, l1, split.front(), split.mid, smid);
+        result = BezierChain.concat(result, BezierChain.list2chain(got));
+      }
+
+      global = split.back();
+      l1 = split.mid();
+      seg1 = smid+1;
+    } while( global != null );
+    // result is not null now, because a split operation never results in
+    // both null parts both front and back.
+    return result;
+  }
+
+  private List<Bezier> global2local(
+      int seg1, LocalPoint l1, Bezier global, LocalPoint l4, int seg4) {
+    if( global == null )
+      return List.of();
+
     if( Math.abs(l4.x - l1.x) < 3 )
       return List.of(Bezier.line(l1, l4));
+
     while( seg1 < warp.nodeLeftings.length-1 &&
         warp.nodeLeftings[seg1+1] < l1.lefting+xscale ) seg1++;
     while( seg4 >= 0 && warp.nodeLeftings[seg4] > l4.lefting-xscale ) seg4--;
-    if( seg1 >= seg4 )
-      return global2localOneSegment(seg1, l1, global, l4, 0);
 
-    // Divide the curve along a node line in the middle
-    int node = (seg1+seg4+1)/2;
+    if( seg1 >= seg4 ) {
+      return global2localOneSegment(seg1, l1, global, l4, 0);
+    } else {
+      // Divide the curve along a node line in the middle
+      int node = (seg1+seg4+1)/2;
+      var split = splitAtNode(node, l1, global, l4);
+      return TreeList.concat(
+          global2local(seg1, l1, split.front(), split.mid(), node-1),
+          global2local(node, split.mid(), split.back(), l4, seg4));
+    }
+  }
+
+  private record SplitResult(Bezier front, LocalPoint mid, Bezier back) {}
+
+  private SplitResult splitAtNode(int node,
+      LocalPoint l1, Bezier global, LocalPoint l4) {
     PointWithNormal divider = warp.nodesWithNormals[node];
     double xx1 = divider.signedDistanceFromNormal(global.p1);
     double xx4 = divider.signedDistanceFromNormal(global.p4);
-    double t;
-    if( xx1 < 0 && xx4 > 0 ) {
-      t = new RootFinder(0.01) {
-        @Override
-        protected double f(double tt) {
-          double xx = divider.signedDistanceFromNormal(global.pointAt(tt));
-          return Math.abs(xx) < xscale/4 ? 0 : xx;
-        }
-      }.rootBetween(0, xx1, 1, xx4);
-    } else {
-      // TODO these other cases are weird. Expected to happen only for
-      // segments far from the warped track, not worth bothering with?
-      return List.of(Bezier.line(l1, l4));
-    }
+
+    if( xx1 >= 0 ) return new SplitResult(null, l1, global);
+    if( xx4 <= 0 ) return new SplitResult(global, l4, null);
+
+    double t = new RootFinder(0.01) {
+      @Override
+      protected double f(double tt) {
+        double xx = divider.signedDistanceFromNormal(global.pointAt(tt));
+        return Math.abs(xx) < xscale/4 ? 0 : xx;
+      }
+    }.rootBetween(0, xx1, 1, xx4);
+
     var split = global.split(t);
     Point gMid = split.front().p4;
     LocalPoint lMid = new LocalPoint(node, warp.nodeLeftings[node],
         divider.to(gMid).dot(divider.normal) + curves.nodeSlew(node),
         divider.normal);
-    return TreeList.concat(
-        global2local(seg1, l1, split.front(), lMid, node-1),
-        global2local(node, lMid, split.back(), l4, seg4));
+    return new SplitResult(split.front(), lMid, split.back());
   }
 
   /**
    * Convert a global curve/line to local coordinates, under the assumption
    * that it's entirely within the band warped by the segment named in
-   * {@code l1}.
+   * {@code seg}.
    *
    * This implementation is not particularly exact, but it's good enough
    * for the common use cases of margins roughly parallel to a segment
-   * that doesn't curve too much.
+   * that doesn't curve too much and is not supersqueezed.
    *
    * @param l1 the already converted point p1 of {@code global}.
    * @param l4 the already converted point p4 of {@code global}.
