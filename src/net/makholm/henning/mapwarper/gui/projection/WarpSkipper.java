@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
+import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackNode;
@@ -11,6 +12,16 @@ import net.makholm.henning.mapwarper.util.BadError;
 import net.makholm.henning.mapwarper.util.RootFinder;
 
 class WarpSkipper {
+
+  /**
+   * The additional supersqueeze factor for PASS regions.
+   */
+  private static final int PASS_SUPERSQUEEZE = 15;
+
+  /**
+   * The total length in <em>meters</em> of a SKIP region.
+   */
+  private static final int SKIP_METERS = 4000 / PASS_SUPERSQUEEZE;
 
   final WarpedProjection warp;
   final MinimalWarpWorker worker;
@@ -161,6 +172,39 @@ class WarpSkipper {
     var newCurves = SegmentChain.directSmoothed(curves, slews);
     return new WarpedProjection(warp, warp.sourcename0, warp.usedFiles,
         newTrack, newCurves);
+  }
+
+  static double[] projectedLengths(SegmentChain track,
+      SegmentChain.Smoothed curves) {
+    double[] lengths = new double[track.numSegments];
+    for( int i=0; i<lengths.length; i++ )
+      lengths[i] = curves.get(i).estimateLength();
+    for( int i=0; i<lengths.length; i++ ) {
+      switch( track.kinds.get(i) ) {
+      default:
+        // the length is already good
+        break;
+      case PASS:
+        lengths[i] *= 1.0/PASS_SUPERSQUEEZE;
+        break;
+      case SKIP:
+        int i0 = i;
+        double total = lengths[i];
+        while( i < track.numSegments-1 &&
+            track.kinds.get(i+1) == SegKind.SKIP ) {
+          i++;
+          total += lengths[i];
+        }
+        double squeezeInto = SKIP_METERS *
+            WebMercator.unitsPerMeter(track.nodes.get(i0).y);
+        if( squeezeInto < total ) {
+          for( int j=i0; j<=i; j++ )
+            lengths[j] *= squeezeInto / total;
+        }
+        break;
+      }
+    }
+    return lengths;
   }
 
 }

@@ -20,7 +20,6 @@ import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
 import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer;
 import net.makholm.henning.mapwarper.track.ChainClass;
 import net.makholm.henning.mapwarper.track.FileContent;
-import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackNode;
 
@@ -108,15 +107,13 @@ public final class WarpedProjection extends BaseProjection {
     GlobalPoint node = GlobalPoint.of(track.nodes.get(0));
     easyPoints.put(node, new EasyPoint(0, 0, 0, tangent));
     nodesWithNormals[0] = new PointWithNormal(node, tangent.turnRight());
+    var lengths = WarpSkipper.projectedLengths(track, curves);
     for( int i=0; i<track.numSegments; i++ ) {
       nodeLeftings[i] = t;
       var curve = curves.get(i);
       easyPoints.put(GlobalPoint.of(curve.p1),
           new EasyPoint(i, t, curves.segmentSlew(i), tangent));
-      double length = curve.estimateLength();
-      if( track.kinds.get(i) == SegKind.PASS )
-        length /= 15;
-      t += length;
+      t += lengths[i];
       tangent = curve.dir4();
       easyPoints.put(GlobalPoint.of(curve.p4),
           new EasyPoint(i+1, t, curves.segmentSlew(i), tangent));

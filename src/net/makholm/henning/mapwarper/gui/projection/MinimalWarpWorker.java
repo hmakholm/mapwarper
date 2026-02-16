@@ -3,6 +3,7 @@ package net.makholm.henning.mapwarper.gui.projection;
 import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
+import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 
 class MinimalWarpWorker {
@@ -64,6 +65,11 @@ class MinimalWarpWorker {
     return curve.derivativeAt(parameterWithinCurve()).length() * invCurvelen;
   }
 
+  protected SegKind kindAt(double lefting) {
+    setLefting(lefting);
+    return segmentKind;
+  }
+
   protected UnitVector currentNormal() {
     if( commonNormal != null )
       return commonNormal;
@@ -78,6 +84,7 @@ class MinimalWarpWorker {
   private double validFrom, validTo;
   private Bezier curve;
   private double w0, invCurvelen;
+  protected SegKind segmentKind;
 
   private void findSegment() {
     int lowEnough, tooHigh;
@@ -119,6 +126,7 @@ class MinimalWarpWorker {
       selectPseudolast();
     } else {
       segment = wantSegment;
+      segmentKind = warp.track.kinds.get(segment);
       w0 = validFrom = warp.nodeLeftings[segment];
       validTo = warp.nodeLeftings[segment+1];
       invCurvelen = 1/(validTo - validFrom);
@@ -132,6 +140,7 @@ class MinimalWarpWorker {
 
   private void selectPseudofirst() {
     segment = -1;
+    segmentKind = SegKind.TRACK;
     validFrom = Double.NEGATIVE_INFINITY;
     w0 = validTo = 0;
     curve = warp.pseudofirst;
@@ -140,6 +149,8 @@ class MinimalWarpWorker {
   }
 
   private void selectPseudolast() {
+    segment = -1;
+    segmentKind = SegKind.TRACK;
     segment = warp.track.numSegments;
     w0 = validFrom = warp.totalLength;
     validTo = Double.POSITIVE_INFINITY;

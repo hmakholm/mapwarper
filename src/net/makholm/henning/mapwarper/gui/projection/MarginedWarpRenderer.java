@@ -6,6 +6,7 @@ import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
 import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer;
 import net.makholm.henning.mapwarper.rgb.RGB;
+import net.makholm.henning.mapwarper.track.SegKind;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 
 final class MarginedWarpRenderer extends SupersamplingRenderer {
@@ -38,8 +39,13 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
   @Override
   protected boolean renderColumn(int col, double xmid,
       int ymin, int ymax, double ybase) {
-    boolean hadAllPixels = true;
+    if( worker.kindAt(xmid-0.5) == SegKind.SKIP ||
+        worker.kindAt(xmid+0.5) == SegKind.SKIP )
+      return skipout(col, ymin, ymax);
+    var kind = worker.kindAt(xmid);
+    if( kind == SegKind.SKIP ) return skipout(col,ymin,ymax);
 
+    boolean hadAllPixels = true;
     double leftMargin, rightMargin;
     if( ignoreMargins ) {
       leftMargin = Double.NEGATIVE_INFINITY;
@@ -116,6 +122,12 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
   private void whiteout(int col, int ymin, int ymax) {
     for( int row = ymin; row <= ymax; row++ )
       target.givePixel(col, row, 0xFFCCCCCC);
+  }
+
+  private boolean skipout(int col, int ymin, int ymax) {
+    for( int row = ymin; row <= ymax; row++ )
+      target.givePixel(col, row, 0x00444444);
+    return true;
   }
 
 }
