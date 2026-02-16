@@ -1,26 +1,38 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
+import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
+import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer;
 import net.makholm.henning.mapwarper.rgb.RGB;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 
-final class MarginedWarpRenderer extends BaseWarpRenderer {
+final class MarginedWarpRenderer extends SupersamplingRenderer {
 
+  private final MinimalWarpWorker worker;
   private final WarpMargins margins;
   private final long marginChain;
   private final SegmentChain.Smoothed curves;
   private final boolean blankOutsideMargins;
+  private final boolean ignoreMargins;
 
   protected MarginedWarpRenderer(WarpedProjection warp, LayerSpec spec,
       double xpixsize, double ypixsize, RenderTarget target,
       SupersamplingRecipe supersample, WarpMargins margins, long marginChain) {
-    super(warp, spec, xpixsize, ypixsize, target, supersample);
+    super(spec, xpixsize, ypixsize, target, supersample);
+    this.worker = new MinimalWarpWorker(warp);
     this.margins = margins;
     this.marginChain = marginChain;
     this.curves = warp.curves;
+    this.ignoreMargins = Toggles.LENS_MAP.setIn(spec.flags());
     this.blankOutsideMargins = Toggles.BLANK_OUTSIDE_MARGINS.setIn(spec.flags());
+  }
+
+  @Override
+  protected PointWithNormal locateColumn(double x, double y) {
+    worker.setLefting(x);
+    return worker.pointWithNormal(worker.projected2downing(y));
   }
 
   @Override
@@ -28,10 +40,14 @@ final class MarginedWarpRenderer extends BaseWarpRenderer {
       int ymin, int ymax, double ybase) {
     boolean hadAllPixels = true;
 
-    double leftMargin =
-        (margins.leftMargin(worker, xmid) - ybase) / yscale - 0.5;
-    double rightMargin =
-        (margins.rightMargin(worker, xmid) - ybase) / yscale - 0.5;
+    double leftMargin, rightMargin;
+    if( ignoreMargins ) {
+      leftMargin = Double.NEGATIVE_INFINITY;
+      rightMargin = Double.POSITIVE_INFINITY;
+    } else {
+      leftMargin = (margins.leftMargin(worker, xmid) - ybase) / yscale - 0.5;
+      rightMargin = (margins.rightMargin(worker, xmid) - ybase) / yscale - 0.5;
+    }
 
     if( blankOutsideMargins ) {
       if( rightMargin < ymax ) {

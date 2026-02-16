@@ -12,7 +12,6 @@ import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
-import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
@@ -219,14 +218,9 @@ public final class WarpedProjection extends BaseProjection {
     FallbackChain chains = new FallbackChain(spec, xscale, yscale);
     var recipe = SupersamplingRenderer.prepareSupersampler(spec,
         xscale, yscale, chains.premiumChain, chains.standardChain);
-    if( Toggles.LENS_MAP.setIn(spec.flags()) ) {
-      return target -> new BaseWarpRenderer(this, spec,
-          xscale, yscale, target, recipe);
-    } else {
-      var margins = WarpMargins.get(this);
-      return target -> new MarginedWarpRenderer(this, spec,
-          xscale, yscale, target, recipe, margins, chains.marginChain);
-    }
+    var margins = WarpMargins.get(this);
+    return target -> new MarginedWarpRenderer(this, spec,
+        xscale, yscale, target, recipe, margins, chains.marginChain);
   }
 
   public AxisRect shrinkToMargins(AxisRect r, double scaleAlong) {
