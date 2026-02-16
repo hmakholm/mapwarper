@@ -132,6 +132,11 @@ public final class TurnedProjection extends Projection {
     }
 
     @Override
+    public boolean isGoodLocalPoint(Point local) {
+      return inner.isGoodLocalPoint(local2next(local));
+    }
+
+    @Override
     public List<Bezier> global2local(Bezier global) {
       List<Bezier> got = inner.global2local(global);
       return ListMapper.map(got, b -> b.transform(next2local, this));

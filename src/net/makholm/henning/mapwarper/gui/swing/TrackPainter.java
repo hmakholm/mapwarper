@@ -187,6 +187,10 @@ public final class TrackPainter extends LongHashed {
     Shape toDraw;
     if( hl.fromNode >= hl.toNode ) {
       PointWithNormal pn = hl.chain.localize(translator).nodes.get(hl.fromNode);
+      if( pn == null ) {
+        // This shouldn't usually happen, but survive gracefully if it does
+        return;
+      }
       double halfMinilength = linewidth;
       startPath(pn.pointOnNormal(-halfMinilength));
       lineTo(pn.pointOnNormal(halfMinilength));
@@ -222,7 +226,7 @@ public final class TrackPainter extends LongHashed {
         if( i != 0 ) strokePath();
         drawingKind = kind;
         linestyle(kind.linestyle);
-        startPath(localChain.nodes.get(i));
+        startPath(null);
       }
       for( var c : localChain.curves.get(i) ) append(c);
     }
@@ -232,18 +236,23 @@ public final class TrackPainter extends LongHashed {
   private void drawArrowhead(LocalSegmentChain lsc) {
     linestyle(SegKind.TRACK.linestyle);
 
-    Bezier first = lsc.curves.get(0).get(0);
-    var across = first.dir1().turnRight().scale(linewidth);
-    startPath(first.p1.plus(5, across));
-    lineTo(first.p1.plus(-5, across));
+    var first = lsc.nodes.get(0);
+    if( first != null ) {
+      var across = first.normal.scale(linewidth);
+      startPath(first.plus(5, across));
+      lineTo(first.plus(-5, across));
+      strokePath();
+    }
 
-    PointWithNormal pLast = lsc.nodes.last();
-    across = pLast.normal.scale(linewidth);
-    var along = across.turnLeft();
-    moveTo(pLast.plus(-9, along).plus(-4, across));
-    lineTo(pLast);
-    lineTo(pLast.plus(-9, along).plus(4, across));
-    strokePath();
+    var last = lsc.nodes.last();
+    if( last != null ) {
+      var across = last.normal.scale(linewidth);
+      var along = across.turnLeft();
+      startPath(last.plus(-9, along).plus(-4, across));
+      lineTo(last);
+      lineTo(last.plus(-9, along).plus(4, across));
+      strokePath();
+    }
   }
 
   private static final int CURVATURE_SAMPLES = 7;
@@ -353,10 +362,8 @@ public final class TrackPainter extends LongHashed {
   private Path2D chain2Path(LocalSegmentChain localChain,
       int fromNode, int toNode) {
     startPath();
-    moveTo(localChain.nodes.get(fromNode));
     for( int i = fromNode; i < toNode; i++ ) {
       for( var c : localChain.curves.get(i) ) append(c);
-      lineTo(localChain.nodes.get(i+1));
     }
     return endPath();
   }
@@ -370,11 +377,9 @@ public final class TrackPainter extends LongHashed {
 
     int max = nodes.size()-1;
     for( int i=0; i<=max; i++ ) {
-      PointWithNormal curPoint = nodes.get(i);
-      double dist = 1000;
-      if( i > 0   ) dist = Math.min(dist, curPoint.dist(nodes.get(i-1)));
-      if( i < max ) dist = Math.min(dist, curPoint.dist(nodes.get(i+1)));
-      double size = dist * 1.5;
+      var curPoint = nodes.get(i);
+      if( curPoint == null ) continue;
+      double size = curPoint.neighborDist * 1.5;
       size = maxsize - maxsize/(1+(size/maxsize));
       if( mainChain &&
           size > 8*linewidth &&
@@ -469,7 +474,8 @@ public final class TrackPainter extends LongHashed {
 
   private void startPath(Point p) {
     currentPath = new Path2D.Double();
-    currentPath.moveTo(p.x, p.y);
+    if( p != null )
+      currentPath.moveTo(p.x, p.y);
     currentPoint = p;
   }
 
@@ -508,7 +514,6 @@ public final class TrackPainter extends LongHashed {
           c.p3.x, c.p3.y,
           c.p4.x, c.p4.y);
       currentPoint = c.p4;
-
     }
   }
 

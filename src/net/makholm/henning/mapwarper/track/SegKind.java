@@ -26,15 +26,19 @@ public enum SegKind {
   }
 
   SegKind(int style, String keyword, String desc) {
-    this.klass = (style & L.TRACK) != 0 ? ChainClass.TRACK : ChainClass.BOUND;
-    this.keyword = keyword;
     this.linestyle = style;
+    this.klass = isTrack() ? ChainClass.TRACK : ChainClass.BOUND;
+    this.keyword = keyword;
     this.rgb = style & 0x00FFFFFF;
     this.desc = desc;
   }
 
   public ChainClass chainClass() {
     return klass;
+  }
+
+  public boolean isTrack() {
+    return (linestyle & L.TRACK) != 0;
   }
 
   public boolean showStraightDespiteWarp() {

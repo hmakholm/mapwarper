@@ -107,7 +107,7 @@ public class AxisRect {
   }
 
   public boolean contains(Point p) {
-    return contains(p.x, p.y);
+    return p != null && contains(p.x, p.y);
   }
 
   public boolean contains(double x, double y) {

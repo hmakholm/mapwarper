@@ -34,11 +34,11 @@ class DragSubchainSelector implements MouseAction {
     if( chain == null ) {
       b = -1;
     } else {
-      var trans = mapView.translator();
+      var local = chain.localize(mapView.translator());
       b = chain.numSegments;
-      while( b >= 0 && !rect.contains(trans.global2local(chain.nodes.get(b))) )
+      while( b >= 0 && !rect.contains(local.nodes.get(b)) )
         b--;
-      while( a < b && !rect.contains(trans.global2local(chain.nodes.get(a))) )
+      while( a < b && !rect.contains(local.nodes.get(a)) )
         a++;
     }
 

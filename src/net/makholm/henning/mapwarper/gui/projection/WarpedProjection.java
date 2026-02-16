@@ -111,7 +111,7 @@ public final class WarpedProjection extends BaseProjection {
     for( int i=0; i<track.numSegments; i++ ) {
       nodeLeftings[i] = t;
       var curve = curves.get(i);
-      easyPoints.put(GlobalPoint.of(curve.p1),
+      easyPoints.putIfAbsent(GlobalPoint.of(curve.p1),
           new EasyPoint(i, t, curves.segmentSlew(i), tangent));
       t += lengths[i];
       tangent = curve.dir4();

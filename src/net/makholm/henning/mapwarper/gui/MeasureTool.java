@@ -98,7 +98,7 @@ public final class MeasureTool extends Tool {
 
   TextOverlay mouseResponseLabel(SegmentChain chain, int i, Point mouse) {
     Bezier curve;
-    if( chain.chainClass == ChainClass.TRACK )
+    if( chain.isTrack() )
       curve = chain.smoothed().get(i);
     else
       curve = Bezier.line(chain.nodes.get(i), chain.nodes.get(i+1));

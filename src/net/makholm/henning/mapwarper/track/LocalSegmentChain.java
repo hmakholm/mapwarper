@@ -20,16 +20,28 @@ import net.makholm.henning.mapwarper.util.XyTree;
 
 public class LocalSegmentChain {
 
-  public final FrozenArray<PointWithNormal> nodes;
+  /**
+   * Beware, elements in this can be null for nodes that are not visible
+   * in the current projection.
+   */
+  public final FrozenArray<LocalNode> nodes;
+
   public final FrozenArray<List<Bezier>> curves;
   public final IntPredicate boundDiscarder;
 
   public final Lazy<XyTree<List<ChainRef<Bezier>>>> segmentTree;
   public final Lazy<XyTree<ChainRef<Point>>> nodeTree;
 
+  public static class LocalNode extends PointWithNormal {
+    LocalNode(Point p, UnitVector n) {
+      super(p.x, p.y, n);
+    }
+    public double neighborDist = 1000;
+  }
+
   static LocalSegmentChain make(SegmentChain global, ProjectionWorker proj) {
     var globalCurves = global.smoothed.get();
-    var nodes = new PointWithNormal[global.numNodes];
+    var nodes = new LocalNode[global.numNodes];
     var curves = new ArrayList<List<Bezier>>(global.numSegments);
 
     var globalNode = global.nodes.get(0);
@@ -48,7 +60,7 @@ public class LocalSegmentChain {
       lastLocalCurve = localCurves.get(localCurves.size()-1);
 
       nodes[i] =
-          new PointWithNormal(localNode, firstLocalCurve.dir1().turnRight());
+          new LocalNode(localNode, firstLocalCurve.dir1().turnRight());
       if( !globalNode.is(globalCurve.p1) ) {
         var line = Bezier.line(localNode, firstLocalCurve.p1);
         localCurves = TreeList.concat(singletonList(line), localCurves);
@@ -65,12 +77,16 @@ public class LocalSegmentChain {
     }
     if( lastLocalCurve != null ) {
       nodes[global.numSegments] =
-          new PointWithNormal(localNode, lastLocalCurve.dir4().turnRight());
+          new LocalNode(localNode, lastLocalCurve.dir4().turnRight());
     } else {
       // We must be a single-point chain ...
       nodes[global.numSegments] =
-          new PointWithNormal(localNode, Vector.of(1,0).normalize());
+          new LocalNode(localNode, Vector.of(1,0).normalize());
     }
+    for( int i=0; i<nodes.length; i++ )
+      if( nodes[i] != null && !proj.isGoodLocalPoint(nodes[i]) )
+        nodes[i] = null;
+    calculateCrosshairDistances(nodes);
 
     IntPredicate boundDiscarder;
     if( global.chainClass == ChainClass.BOUND )
@@ -82,8 +98,21 @@ public class LocalSegmentChain {
         FrozenArray.freeze(curves), boundDiscarder);
   }
 
+  private static void calculateCrosshairDistances(LocalNode[] nodes) {
+    LocalNode prev = null;
+    for( var n : nodes ) {
+      if( n != null ) {
+        if( prev != null ) {
+          n.neighborDist = n.dist(prev);
+          prev.neighborDist = Math.min(prev.neighborDist, n.neighborDist);
+        }
+        prev = n;
+      }
+    }
+  }
+
   private LocalSegmentChain(SegmentChain global,
-      FrozenArray<PointWithNormal> nodes,
+      FrozenArray<LocalNode> nodes,
       FrozenArray<List<Bezier>> curves,
       IntPredicate discarder) {
     this.nodes = nodes;
@@ -108,9 +137,12 @@ public class LocalSegmentChain {
       var joiner = XyTree.<ChainRef<Point>>leftWinsJoin();
       var tree = joiner.empty();
       for( int i=0; i<nodes.size(); i++ ) {
-        ChainRef<Point> sourced = ChainRef.of(nodes.get(i), global, i);
-        var singleton = XyTree.singleton(nodes.get(i), sourced);
-        tree = joiner.union(tree, singleton);
+        var node = nodes.get(i);
+        if( node != null ) {
+          ChainRef<Point> sourced = ChainRef.of(node, global, i);
+          var singleton = XyTree.singleton(node, sourced);
+          tree = joiner.union(tree, singleton);
+        }
       }
       return tree;
     });
@@ -134,7 +166,7 @@ public class LocalSegmentChain {
         Bezier.line(p2,p3),
         Bezier.line(p3,p4),
         Bezier.line(p4,p1));
-    var pwn = new PointWithNormal(p1, UnitVector.RIGHT);
+    var pwn = new LocalNode(p1, UnitVector.RIGHT);
     return new LocalSegmentChain(global,
         FrozenArray.of(pwn, pwn),
         FrozenArray.of(curves),

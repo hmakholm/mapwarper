@@ -70,6 +70,13 @@ class MinimalWarpWorker {
     return segmentKind;
   }
 
+  protected boolean isNonskippingLefting(double lefting) {
+    setLefting(lefting);
+    return segmentKind.isTrack() ||
+        lefting == validFrom &&
+        (segment <= 0 || warp.track.kinds.get(segment-1).isTrack());
+  }
+
   protected UnitVector currentNormal() {
     if( commonNormal != null )
       return commonNormal;

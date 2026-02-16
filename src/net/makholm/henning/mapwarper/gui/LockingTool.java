@@ -35,7 +35,7 @@ final class LockingTool extends GenericEditTool {
     if( found == null )
       return null;
     var chain = found.chain();
-    if( chain.chainClass != ChainClass.TRACK )
+    if( !chain.isTrack() )
       return null;
     int i = found.index();
     var oldNode = chain.nodes.get(i);

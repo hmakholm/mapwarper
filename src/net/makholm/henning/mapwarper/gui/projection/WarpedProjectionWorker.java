@@ -87,6 +87,11 @@ implements ProjectionWorker {
     }
   }
 
+  @Override
+  public boolean isGoodLocalPoint(Point local) {
+    return isNonskippingLefting(local.x * xscale);
+  }
+
   private LocalPoint cacheLookup(GlobalPoint global) {
     LocalPoint local = global2localCache.get(global);
     if( local != null ) return local;
