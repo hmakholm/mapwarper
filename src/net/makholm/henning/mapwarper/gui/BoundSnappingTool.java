@@ -63,4 +63,15 @@ class BoundSnappingTool extends EditTool {
     return node == lastSnapped;
   }
 
+  @Override
+  public void enterAction() {
+    if( editingChain() == null ) return;
+    for( var kind : editingChain().kinds ) {
+      if( kind == SegKind.PASS || kind == SegKind.SKIP ) {
+        mapView().refreshWarp(true);
+        return;
+      }
+    }
+  }
+
 }

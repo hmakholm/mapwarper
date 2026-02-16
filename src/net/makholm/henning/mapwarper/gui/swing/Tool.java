@@ -31,6 +31,10 @@ public abstract class Tool extends Command implements MouseAction {
     switchToPreviousTool();
   }
 
+  public void enterAction() {
+    // nothing by default
+  }
+
   protected Tool(Commands owner, String codename, String niceName) {
     super(owner, codename, niceName);
     toolCursor = Cursor.getDefaultCursor();

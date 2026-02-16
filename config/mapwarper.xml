@@ -172,7 +172,7 @@
 <keybind name="F8" value="showCurvature"/>
 <keybind name="F9" value="showBounds"/>
 <keybind name="F10" value="showCrosshairs"/>
-<keybind name="F11" value="showTrack"/>
+<keybind name="F11" value="toggleFastforward"/>
 <keybind name="F12" value="explore"/>
 
 <keybind name="`" value="newchain"/>
@@ -213,7 +213,7 @@
 <keybind name="G" value="getTile"/>
 <keybind name="H" value="lock"/>
 <keybind name="L" value="lens"/>
-<!-- Enter is hardcoded to the file pane -->
+<!-- Enter is multi-functional and hardcoded -->
 
 <keybind name="Z" value="zoom"/>
 <keybind name="X" value="delete"/>

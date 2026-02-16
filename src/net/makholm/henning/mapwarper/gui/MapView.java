@@ -21,6 +21,7 @@ import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
+import net.makholm.henning.mapwarper.gui.projection.Affinoid;
 import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
@@ -145,6 +146,12 @@ public final class MapView {
       cancelLens();
       lensTiles = tiles;
     }
+  }
+
+  public void modifyAffinoid(Consumer<Affinoid> action) {
+    var aff = projection.getAffinoid();
+    action.accept(aff);
+    setProjection(projection.base().apply(aff));
   }
 
   /**
@@ -376,7 +383,10 @@ public final class MapView {
     for( String problem : problems ) {
       System.err.println("Ignoring save problem: "+problem);
     }
+    refreshWarp(false);
+  }
 
+  void refreshWarp(boolean forceSkips) {
     if( projection.base() instanceof WarpedProjection wp ) {
       VectFile vf;
       if( wp.sourcename0 != null )
@@ -386,7 +396,9 @@ public final class MapView {
       try {
         var newWarp = WarpedProjection.create(vf, files.cache,
             editingChain, wp.track);
-        var proj = newWarp.apply(projection.getAffinoid());
+        Affinoid aff = projection.getAffinoid();
+        aff.useSkips |= forceSkips;
+        var proj = newWarp.apply(aff);
         setProjection(proj);
       } catch( CannotWarp e ) {
         // Hmm, showing a box in this case might be too invasive.
@@ -556,6 +568,8 @@ public final class MapView {
     var baseWarp = makeWarpedProjection();
 
     var aff = projection.getAffinoid();
+    if( !aff.squeezable && currentTool instanceof SkipEditTool )
+      aff.useSkips = false;
     squeeze.setSqueeze(aff, false);
     aff.scaleAcross = Math.min(aff.scaleAcross,
         Coords.zoom2pixsize(tiles.guiTargetZoom));

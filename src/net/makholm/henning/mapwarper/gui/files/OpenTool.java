@@ -110,6 +110,12 @@ public class OpenTool extends TrackHidingTool {
     }
   }
 
+  @Override
+  public void enterAction() {
+    if( owner.window.filePaneVisible() )
+      owner.files.selectTree();
+  }
+
   // ------------------------------------------------------------------------
 
   @Override

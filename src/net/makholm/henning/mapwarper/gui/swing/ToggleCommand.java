@@ -36,6 +36,7 @@ public abstract class ToggleCommand extends Command {
       item.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick",
           Boolean.TRUE);
     item.setSelected(getCurrentState());
+    item.setEnabled(makesSenseNow());
     return item;
   }
 

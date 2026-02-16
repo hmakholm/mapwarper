@@ -78,8 +78,8 @@ public class Commands {
   public final Tool boundTool = new BoundEditTool(this, SegKind.BOUND);
   private final Tool localBoundTool =
       new BoundSnappingTool(this, SegKind.LBOUND);
-  private final Tool passTool = new BoundEditTool(this, SegKind.PASS);
-  private final Tool skipTool = new BoundSnappingTool(this, SegKind.SKIP);
+  private final Tool passTool = new SkipEditTool(this, SegKind.PASS);
+  private final Tool skipTool = new SkipEditTool(this, SegKind.SKIP);
   private final Tool delete = new DeleteTool(this);
   private final Tool lock = new LockingTool(this);
   final OpenTool openTool = new OpenTool(this);
@@ -126,6 +126,8 @@ public class Commands {
       self -> self.mapView.squeeze.stepCommand(-1));
   private final Cmd unsqueeze = simple("unsqueeze", "Flip between squeezed and not",
       self -> self.mapView.squeeze.unsqueezeCommand());
+
+  private final Command fastforwardToggle = new SkipEditTool.ToggleState(this);
 
   final Cmd lensPlus = check("lensPlus", "Increase lens resoltion",
       self -> self.lens.lensPlusCommand());
@@ -293,6 +295,8 @@ public class Commands {
   public void defineKeyBindings(BiConsumer<String, Command> keymap) {
     keymap.accept("Escape", simple("esc", "Escape",
         self -> self.mapView.escapePressed()));
+    keymap.accept("Enter", simple("enter", "Enter",
+        self -> self.mapView.currentTool.enterAction()));
 
     // Make sure some commands with likely key bindings
     mapView.undoList.redo.getCommand(this, 1);
@@ -314,7 +318,6 @@ public class Commands {
     keymap.accept("Down", files("down...", f -> f.moveSelection(1), v -> v.scrollByKey(0, 1)));
     keymap.accept("Left", files("left...", FilePane::collapseTree, v -> v.scrollByKey(-1, 0)));
     keymap.accept("Right", files("right...", FilePane::expandTree, v -> v.scrollByKey(1, 0)));
-    keymap.accept("Enter", files("fileEnter", FilePane::selectTree, v -> {}));
 
     keymap.accept("S-Up", simple("UP", null, self -> self.mapView.scrollShifted(0,-1)));
     keymap.accept("S-Down", simple("DOWN", null, self -> self.mapView.scrollShifted(0,1)));
@@ -369,7 +372,7 @@ public class Commands {
     view.add(refresh);
     view.addSeparator();
 
-    view.add(Toggles.MAIN_TRACK.command(this));
+    view.add(fastforwardToggle);
     view.add(Toggles.CROSSHAIRS.command(this));
     view.add(Toggles.EXT_BOUNDS.command(this));
     view.add(Toggles.CURVATURE.command(this));
