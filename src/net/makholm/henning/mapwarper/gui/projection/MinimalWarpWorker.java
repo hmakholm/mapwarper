@@ -77,6 +77,22 @@ class MinimalWarpWorker {
         (segment <= 0 || warp.track.kinds.get(segment-1).isTrack());
   }
 
+  protected void setNearestNonskippingLefting(double lefting) {
+    if( !isNonskippingLefting(lefting) ) {
+      int prev = segment;
+      while( prev > 0 && !warp.track.kinds.get(prev-1).isTrack() )
+        prev--;
+      double left = warp.nodeLeftings[prev];
+      int max = warp.track.numNodes;
+      int next = segment+1;
+      while( next < max && !warp.track.kinds.get(next).isTrack() )
+        next++;
+      double right = warp.nodeLeftings[next];
+      lefting = lefting-left < right-lefting ? left : right;
+    }
+    setLefting(lefting);
+  }
+
   protected UnitVector currentNormal() {
     if( commonNormal != null )
       return commonNormal;

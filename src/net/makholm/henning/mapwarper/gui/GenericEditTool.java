@@ -64,7 +64,7 @@ implements StandardAction.Context {
   // -------------------------------------------------------------------------
 
   protected TrackNode local2node(Point local) {
-    return global2node(translator().local2global(local));
+    return global2node(translator().local2globalForEditing(local));
   }
 
   protected static TrackNode global2node(Point global) {

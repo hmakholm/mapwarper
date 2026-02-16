@@ -24,6 +24,10 @@ public interface ProjectionWorker {
 
   public abstract List<Bezier> global2local(Bezier global);
 
+  public default Point local2globalForEditing(Point local) {
+    return local2global(local);
+  }
+
   public default boolean isGoodLocalPoint(Point local) {
     return true;
   }

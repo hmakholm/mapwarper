@@ -235,12 +235,14 @@ class StandardAction implements ProposedAction {
     if( rgb == Context.NO_CURSOR ) return null;
     Point local = mapView.mouseLocal;
     if( newNode != null ) {
+      Point realLocal =
+          mapView.translator().global2localWithHint(newNode, local);
       int diameter = mapView.gaugeInPixels(newNode);
       if( snapped && diameter < 10 ) diameter = 10;
-      if( diameter > 15 || snapped ) {
-        return new CircleOverlay(rgb, diameter,
-            mapView.translator().global2localWithHint(newNode, local));
-      }
+      if( diameter > 15 || snapped)
+        return new CircleOverlay(rgb, diameter, realLocal);
+      else if( local.sqDist(realLocal) > 2 )
+        return new CircleOverlay(rgb, 10, realLocal);
     }
     return new CircleOverlay(rgb, 10, Point.at(local.x+10, local.y+10));
   }

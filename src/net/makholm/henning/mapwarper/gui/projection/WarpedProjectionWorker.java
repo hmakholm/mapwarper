@@ -56,6 +56,12 @@ implements ProjectionWorker {
   }
 
   @Override
+  public Point local2globalForEditing(Point local) {
+    setNearestNonskippingLefting(local.x * xscale);
+    return pointWithNormal(projected2downing(local.y * yscale));
+  }
+
+  @Override
   public LocalPoint global2local(Point global) {
     GlobalPoint key = GlobalPoint.of(global);
     LocalPoint local = cacheLookup(key);

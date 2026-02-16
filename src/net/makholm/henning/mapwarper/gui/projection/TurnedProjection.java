@@ -132,6 +132,11 @@ public final class TurnedProjection extends Projection {
     }
 
     @Override
+    public Point local2globalForEditing(Point local) {
+      return inner.local2globalForEditing(local2next(local));
+    }
+
+    @Override
     public boolean isGoodLocalPoint(Point local) {
       return inner.isGoodLocalPoint(local2next(local));
     }
