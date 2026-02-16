@@ -9,7 +9,7 @@ import net.makholm.henning.mapwarper.util.MathUtil;
 
 public abstract class SupersamplingRenderer extends SimpleRenderer {
 
-  final SupersamplingRecipe supersample;
+  protected final SupersamplingRecipe supersample0;
 
   /**
    * @param source
@@ -44,7 +44,7 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
       double xpixsize, double ypixsize, RenderTarget target,
       SupersamplingRecipe supersample) {
     super(spec, xpixsize, ypixsize, target);
-    this.supersample = supersample;
+    this.supersample0 = supersample;
     if( supersample.numSamples > 1 )
       this.renderPassesWanted = 3;
   }
@@ -52,6 +52,11 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
   @Override
   protected boolean renderColumn(int col, double xmid,
       int ymin, int ymax, double ybase) {
+    return supersampleColumn(col, xmid, ymin, ymax, ybase, supersample0);
+  }
+
+  protected final boolean supersampleColumn(int col, double xmid,
+      int ymin, int ymax, double ybase, SupersamplingRecipe supersample) {
     if( supersample.numSamples == 1 || renderPassesCompleted < 2 )
       return renderWithoutSupersampling(
           col, xmid, ymin, ymax, ybase, supersample.source | supersample.fallback, 0);

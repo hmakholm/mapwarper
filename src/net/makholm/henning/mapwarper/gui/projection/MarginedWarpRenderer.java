@@ -12,6 +12,7 @@ import net.makholm.henning.mapwarper.track.SegmentChain;
 final class MarginedWarpRenderer extends SupersamplingRenderer {
 
   private final MinimalWarpWorker worker;
+  private final SupersamplingRecipe ffRecipe;
   private final WarpMargins margins;
   private final long marginChain;
   private final SegmentChain.Smoothed curves;
@@ -20,9 +21,11 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
 
   protected MarginedWarpRenderer(WarpedProjection warp, LayerSpec spec,
       double xpixsize, double ypixsize, RenderTarget target,
-      SupersamplingRecipe supersample, WarpMargins margins, long marginChain) {
+      SupersamplingRecipe supersample, SupersamplingRecipe ffRecipe,
+      WarpMargins margins, long marginChain) {
     super(spec, xpixsize, ypixsize, target, supersample);
     this.worker = new MinimalWarpWorker(warp);
+    this.ffRecipe = ffRecipe;
     this.margins = margins;
     this.marginChain = marginChain;
     this.curves = warp.curves;
@@ -44,10 +47,11 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
       return skipout(col, ymin, ymax);
     var kind = worker.kindAt(xmid);
     if( kind == SegKind.SKIP ) return skipout(col,ymin,ymax);
+    boolean fastForward = kind == SegKind.PASS;
 
     boolean hadAllPixels = true;
     double leftMargin, rightMargin;
-    if( ignoreMargins ) {
+    if( ignoreMargins && !fastForward ) {
       leftMargin = Double.NEGATIVE_INFINITY;
       rightMargin = Double.POSITIVE_INFINITY;
     } else {
@@ -55,7 +59,7 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
       rightMargin = (margins.rightMargin(worker, xmid) - ybase) / yscale - 0.5;
     }
 
-    if( blankOutsideMargins ) {
+    if( blankOutsideMargins || fastForward ) {
       if( rightMargin < ymax ) {
         int start = (int)Math.max(ymin, rightMargin);
         whiteout(col, start, ymax);
@@ -111,7 +115,8 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
       if( end == ymax ) return hadAllPixels; else ymin = end+1;
     }
 
-    return hadAllPixels & super.renderColumn(col, xmid, ymin, ymax, ybase);
+    return hadAllPixels & supersampleColumn(col, xmid, ymin, ymax, ybase,
+        fastForward ? ffRecipe : supersample0);
   }
 
   private void blackout(int col, int ymin, int ymax) {

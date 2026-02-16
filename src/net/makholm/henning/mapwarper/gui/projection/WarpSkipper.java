@@ -16,7 +16,7 @@ class WarpSkipper {
   /**
    * The additional supersqueeze factor for PASS regions.
    */
-  private static final int PASS_SUPERSQUEEZE = 15;
+  static final int PASS_SUPERSQUEEZE = 15;
 
   /**
    * The total length in <em>meters</em> of a SKIP region.

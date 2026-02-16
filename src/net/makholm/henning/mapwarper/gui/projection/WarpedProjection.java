@@ -215,9 +215,12 @@ public final class WarpedProjection extends BaseProjection {
     FallbackChain chains = new FallbackChain(spec, xscale, yscale);
     var recipe = SupersamplingRenderer.prepareSupersampler(spec,
         xscale, yscale, chains.premiumChain, chains.standardChain);
+    var passRecipe = SupersamplingRenderer.prepareSupersampler(spec,
+        xscale * WarpSkipper.PASS_SUPERSQUEEZE, yscale,
+        chains.premiumChain, FallbackChain.noFallback(chains.standardChain));
     var margins = WarpMargins.get(this);
     return target -> new MarginedWarpRenderer(this, spec,
-        xscale, yscale, target, recipe, margins, chains.marginChain);
+        xscale, yscale, target, recipe, passRecipe, margins, chains.marginChain);
   }
 
   public AxisRect shrinkToMargins(AxisRect r, double scaleAlong) {

@@ -247,6 +247,14 @@ public class FallbackChain {
     return chain;
   }
 
+  public static long noFallback(long chain) {
+    for( int shift = 0; shift < 64; shift += BITS_PER_ATTEMPT) {
+      if( (chain & ((long)FALLBACK_BIT << shift)) != 0 )
+        chain &= ~((long)ATTEMPT_MASK << shift);
+    }
+    return chain;
+  }
+
   public static String toString(long v) {
     if( v == 0 ) return "(no tiles at all)";
     StringBuilder sb = new StringBuilder();
