@@ -12,6 +12,8 @@ import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
 import net.makholm.henning.mapwarper.geometry.Vector;
+import net.makholm.henning.mapwarper.georaster.Coords;
+import net.makholm.henning.mapwarper.georaster.WebMercator;
 import net.makholm.henning.mapwarper.gui.FindClosest;
 import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.track.SegmentChain;
@@ -96,6 +98,22 @@ implements ProjectionWorker {
   @Override
   public boolean isGoodLocalPoint(Point local) {
     return isNonskippingLefting(local.x * xscale);
+  }
+
+  @Override
+  public List<String> describeFastforwardAt(Point local) {
+    if( isNonskippingLefting(local.x * xscale) )
+      return List.of();
+    int i = segment, j = segment;
+    while( !warp.isNonskippingSegment(i-1) ) i--;
+    while( !warp.isNonskippingSegment(j+1) ) j++;
+    double length = 0;
+    for( int k=i; k<=j; k++ )
+      length += warp.curves.get(k).estimateLength();
+    length /= WebMercator.unitsPerMeter(
+        (warp.nodesWithNormals[i].y + warp.nodesWithNormals[j+1].y)/2);
+    return List.of(String.format(Locale.ROOT, "%s %s section covers %s nodes",
+        Coords.showlength(length), warp.track.kinds.get(segment), j-i));
   }
 
   private LocalPoint cacheLookup(GlobalPoint global) {

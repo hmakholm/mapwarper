@@ -1,6 +1,7 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
 import java.awt.geom.AffineTransform;
+import java.util.List;
 import java.util.function.IntPredicate;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
@@ -30,6 +31,10 @@ public interface ProjectionWorker {
 
   public default boolean isGoodLocalPoint(Point local) {
     return true;
+  }
+
+  public default List<String> describeFastforwardAt(Point local) {
+    return List.of();
   }
 
   public default Point perhapsMoreInterestingLocal(Point local) {

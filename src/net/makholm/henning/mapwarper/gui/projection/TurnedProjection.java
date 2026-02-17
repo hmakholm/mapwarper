@@ -1,6 +1,7 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
 import java.awt.geom.AffineTransform;
+import java.util.List;
 import java.util.function.IntPredicate;
 
 import net.makholm.henning.mapwarper.geometry.Bezier;
@@ -138,6 +139,11 @@ public final class TurnedProjection extends Projection {
     @Override
     public boolean isGoodLocalPoint(Point local) {
       return inner.isGoodLocalPoint(local2next(local));
+    }
+
+    @Override
+    public List<String> describeFastforwardAt(Point local) {
+      return inner.describeFastforwardAt(local2next(local));
     }
 
     @Override

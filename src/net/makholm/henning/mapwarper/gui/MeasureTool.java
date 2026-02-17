@@ -192,6 +192,10 @@ public final class MeasureTool extends Tool {
     if( !bearingShown )
       text.add(bearing);
 
+    if( chain.kinds.get(i) == SegKind.PASS ||
+        chain.kinds.get(i) == SegKind.SKIP )
+      text.addAll(translator().describeFastforwardAt(mouse));
+
     var unplaced = TextOverlay.of(owner.window, text);
     if( !locatePrecisely )
       return placeLabel(curve, mouse, unplaced);
