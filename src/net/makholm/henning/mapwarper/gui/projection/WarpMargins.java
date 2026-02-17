@@ -98,7 +98,7 @@ class WarpMargins {
           switch( chain.kinds.get(i) ) {
           case BOUND:
             LineSeg ls = prevNode.to(nextNode);
-            thisSeg = (local, global) -> global.intersectWithNormal(ls);
+            thisSeg = w -> w.acceptGlobal(ls);
             break;
           case PASS:
           case SKIP:
@@ -106,7 +106,7 @@ class WarpMargins {
             // in any case, fall through
           case LBOUND:
             ls = prevLocal.to(nextLocal);
-            thisSeg = (local, gobal) -> local.intersectWithNormal(ls);
+            thisSeg = w -> w.acceptLocal(ls);
             break;
           default:
             // anything else is not a bound at all
@@ -150,19 +150,13 @@ class WarpMargins {
       return toDiscard::get;
   }
 
-  interface MarginSource {
-    abstract double get(PointWithNormal pwnLocal, PointWithNormal pwnGlobal);
-  }
+  interface MarginSource { void accept(Worker worker); }
 
   private static final XyTree.Unioner<MarginSource> treeJoiner =
       new XyTree.Unioner<MarginSource>() {
     @Override
     protected MarginSource combine(MarginSource a, MarginSource b) {
-      return (local, global) -> {
-        double aa = a.get(local, global);
-        double bb = b.get(local, global);
-        return aa >= 0 && aa < bb ? aa : bb;
-      };
+      return w -> { a.accept(w); b.accept(w); };
     }
   };
 
@@ -214,7 +208,17 @@ class WarpMargins {
 
     @Override
     public void accept(MarginSource source) {
-      double got = source.get(pwnLocal, pwnGlobal);
+      source.accept(this);
+    }
+
+    void acceptGlobal(LineSeg ls) {
+      double got = pwnGlobal.intersectWithNormal(ls);
+      if( got >= 0 && got < closest )
+        closest = got;
+    }
+
+    void acceptLocal(LineSeg ls) {
+      double got = pwnLocal.intersectWithNormal(ls);
       if( got >= 0 && got < closest )
         closest = got;
     }
