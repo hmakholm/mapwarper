@@ -35,7 +35,6 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
     if( kind == SegKind.SKIP ) return skipout(col,ymin,ymax);
     boolean fastForward = kind == SegKind.PASS;
 
-    boolean hadAllPixels = true;
     double leftMargin, rightMargin;
     if( !fastForward && common.ignoreMargins ) {
       leftMargin = Double.NEGATIVE_INFINITY;
@@ -44,6 +43,11 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
       marginWorker.setLefting(xmid);
       leftMargin = marginWorker.findLeft() - 0.5;
       rightMargin = marginWorker.findRight() - 0.5;
+      if( marginWorker.seenSkip ) {
+        // render everything like outside-margins, but without dimming
+        return renderWithoutSupersampling(col, xmid,
+            ymin, ymax, common.marginChain, 0);
+      }
     }
 
     if( fastForward || common.blankOutsideMargins ) {
@@ -87,6 +91,8 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
         ymin = lastBad+1;
       }
     }
+
+    boolean hadAllPixels = true;
 
     // Use lower-quality rendering (especially without downloading
     // anything but also without supersampling) outside the margins.

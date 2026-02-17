@@ -95,7 +95,7 @@ class WarpMargins {
             continue;
 
           MarginSource thisSeg;
-          switch( chain.kinds.get(i) ) {
+          switch( kind ) {
           case BOUND:
             LineSeg ls = prevNode.to(nextNode);
             thisSeg = w -> w.acceptGlobal(ls);
@@ -106,7 +106,7 @@ class WarpMargins {
             // in any case, fall through
           case LBOUND:
             ls = prevLocal.to(nextLocal);
-            thisSeg = w -> w.acceptLocal(ls);
+            thisSeg = w -> w.acceptLocal(ls, kind);
             break;
           default:
             // anything else is not a bound at all
@@ -167,6 +167,8 @@ class WarpMargins {
     private PointWithNormal pwnCommon;
     private PointWithNormal pwnGlobal, pwnLocal;
 
+    public boolean seenSkip;
+
     public Worker(MinimalWarpWorker worker, double ybase, double yscale) {
       this.worker = worker;
       this.ybase = ybase;
@@ -177,6 +179,7 @@ class WarpMargins {
       this.lefting = lefting;
       this.pwnCommon = worker.normalAt(lefting);
       this.slew = owner.curves.segmentSlew(worker.segment);
+      this.seenSkip = false;
     }
 
     public double findLeft() {
@@ -205,6 +208,7 @@ class WarpMargins {
     }
 
     private double closest;
+    private SegKind closestKind;
 
     @Override
     public void accept(MarginSource source) {
@@ -213,20 +217,29 @@ class WarpMargins {
 
     void acceptGlobal(LineSeg ls) {
       double got = pwnGlobal.intersectWithNormal(ls);
-      if( got >= 0 && got < closest )
+      if( got >= 0 && got < closest ) {
         closest = got;
+        closestKind = SegKind.BOUND;
+      }
     }
 
-    void acceptLocal(LineSeg ls) {
+    void acceptLocal(LineSeg ls, SegKind kind) {
       double got = pwnLocal.intersectWithNormal(ls);
-      if( got >= 0 && got < closest )
+      if( got >= 0 && got < closest ) {
         closest = got;
+        closestKind = kind;
+      }
     }
 
     private double findMargin(XyTree<MarginSource> tree) {
       closest = maxMargin;
       XyTree.recurse(tree, Point.ORIGIN, this);
-      return closest >= maxMargin ? defaultMargin : closest;
+      if( closest >= maxMargin ) {
+        return defaultMargin;
+      } else {
+        seenSkip |= closestKind == SegKind.SKIP;
+        return closest;
+      }
     }
   }
 
