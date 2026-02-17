@@ -10,12 +10,14 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
 
   private final WarpedProjection.WarpRenderFactory common;
   private final MinimalWarpWorker worker;
+  private final WarpMargins.Worker marginWorker;
 
   protected MarginedWarpRenderer(WarpedProjection.WarpRenderFactory common,
       RenderTarget target) {
     super(common.spec, common.xscale, common.yscale, target, common.mainRecipe);
     this.common = common;
     this.worker = new MinimalWarpWorker(common.warp);
+    this.marginWorker = common.margins.new Worker(worker, ybase, common.yscale);
   }
 
   @Override
@@ -39,9 +41,9 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
       leftMargin = Double.NEGATIVE_INFINITY;
       rightMargin = Double.POSITIVE_INFINITY;
     } else {
-      var margins = common.margins;
-      leftMargin = (margins.leftMargin(worker, xmid) - ybase) / yscale - 0.5;
-      rightMargin = (margins.rightMargin(worker, xmid) - ybase) / yscale - 0.5;
+      marginWorker.setLefting(xmid);
+      leftMargin = marginWorker.findLeft() - 0.5;
+      rightMargin = marginWorker.findRight() - 0.5;
     }
 
     if( fastForward || common.blankOutsideMargins ) {

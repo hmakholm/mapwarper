@@ -6,6 +6,7 @@ public class UnitVector extends Vector {
 
   public static final UnitVector RIGHT = new UnitVector(1,0);
   public static final UnitVector DOWN = new UnitVector(0,1);
+  public static final UnitVector UP = new UnitVector(0,-1);
 
   private UnitVector(double x, double y) {
     super(x, y);

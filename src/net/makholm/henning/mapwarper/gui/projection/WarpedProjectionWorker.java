@@ -383,11 +383,10 @@ implements ProjectionWorker {
   @Override
   public Point perhapsMoreInterestingLocal(Point local) {
     var x = MathUtil.clamp(0, local.x, warp.totalLength/xscale);
-    var margins = WarpMargins.get(warp);
+    var margins = WarpMargins.get(warp).new Worker(this, 0, yscale);
     var lefting = x*xscale;
-    var downing = local.y*yscale;
-    if( margins.leftMargin(this, lefting) <= downing &&
-        downing < margins.rightMargin(this,lefting) )
+    margins.setLefting(lefting);
+    if( margins.findLeft() <= local.y && local.y < margins.findRight() )
       return Point.at(x, local.y);
     else {
       setLefting(lefting);
