@@ -12,12 +12,16 @@ import net.makholm.henning.mapwarper.geometry.Bezier;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.geometry.UnitVector;
+import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
+import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
+import net.makholm.henning.mapwarper.gui.maprender.RenderWorker;
 import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer;
+import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer.SupersamplingRecipe;
 import net.makholm.henning.mapwarper.track.ChainClass;
 import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.track.SegmentChain;
@@ -216,15 +220,42 @@ public final class WarpedProjection extends BaseProjection {
   @Override
   protected RenderFactory makeRenderFactory(LayerSpec spec,
       double xscale, double yscale) {
-    FallbackChain chains = new FallbackChain(spec, xscale, yscale);
-    var recipe = SupersamplingRenderer.prepareSupersampler(spec,
-        xscale, yscale, chains.premiumChain, chains.standardChain);
-    var passRecipe = SupersamplingRenderer.prepareSupersampler(spec,
-        xscale * WarpSkipper.PASS_SUPERSQUEEZE, yscale,
-        chains.premiumChain, FallbackChain.noFallback(chains.standardChain));
-    var margins = WarpMargins.get(this);
-    return target -> new MarginedWarpRenderer(this, spec,
-        xscale, yscale, target, recipe, passRecipe, margins, chains.marginChain);
+    return new WarpRenderFactory(spec, xscale, yscale);
+  }
+
+  final class WarpRenderFactory implements RenderFactory {
+    final WarpedProjection warp = WarpedProjection.this;
+    final LayerSpec spec;
+    final double xscale, yscale;
+    final WarpMargins margins;
+    final SupersamplingRecipe mainRecipe, passRecipe;
+    final long marginChain;
+
+    final boolean blankOutsideMargins;
+    final boolean ignoreMargins;
+
+    WarpRenderFactory(LayerSpec spec, double xscale, double yscale) {
+      this.spec = spec;
+      this.xscale = xscale;
+      this.yscale = yscale;
+      margins = WarpMargins.get(WarpedProjection.this);
+
+      FallbackChain chains = new FallbackChain(spec, xscale, yscale);
+      mainRecipe = SupersamplingRenderer.prepareSupersampler(
+          spec, xscale, yscale, chains.premiumChain, chains.standardChain);
+      passRecipe = SupersamplingRenderer.prepareSupersampler(
+          spec, xscale * WarpSkipper.PASS_SUPERSQUEEZE, yscale,
+          chains.premiumChain, FallbackChain.noFallback(chains.standardChain));
+      marginChain = chains.marginChain;
+
+      blankOutsideMargins = Toggles.BLANK_OUTSIDE_MARGINS.setIn(spec.flags());
+      ignoreMargins = Toggles.LENS_MAP.setIn(spec.flags());
+    }
+
+    @Override
+    public RenderWorker makeWorker(RenderTarget target) {
+      return new MarginedWarpRenderer(this, target);
+    }
   }
 
   public AxisRect shrinkToMargins(AxisRect r, double scaleAlong) {

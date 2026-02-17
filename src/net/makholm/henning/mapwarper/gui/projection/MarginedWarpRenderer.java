@@ -1,36 +1,21 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
-import net.makholm.henning.mapwarper.gui.Toggles;
-import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
 import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer;
 import net.makholm.henning.mapwarper.rgb.RGB;
 import net.makholm.henning.mapwarper.track.SegKind;
-import net.makholm.henning.mapwarper.track.SegmentChain;
 
 final class MarginedWarpRenderer extends SupersamplingRenderer {
 
+  private final WarpedProjection.WarpRenderFactory common;
   private final MinimalWarpWorker worker;
-  private final SupersamplingRecipe ffRecipe;
-  private final WarpMargins margins;
-  private final long marginChain;
-  private final SegmentChain.Smoothed curves;
-  private final boolean blankOutsideMargins;
-  private final boolean ignoreMargins;
 
-  protected MarginedWarpRenderer(WarpedProjection warp, LayerSpec spec,
-      double xpixsize, double ypixsize, RenderTarget target,
-      SupersamplingRecipe supersample, SupersamplingRecipe ffRecipe,
-      WarpMargins margins, long marginChain) {
-    super(spec, xpixsize, ypixsize, target, supersample);
-    this.worker = new MinimalWarpWorker(warp);
-    this.ffRecipe = ffRecipe;
-    this.margins = margins;
-    this.marginChain = marginChain;
-    this.curves = warp.curves;
-    this.ignoreMargins = Toggles.LENS_MAP.setIn(spec.flags());
-    this.blankOutsideMargins = Toggles.BLANK_OUTSIDE_MARGINS.setIn(spec.flags());
+  protected MarginedWarpRenderer(WarpedProjection.WarpRenderFactory common,
+      RenderTarget target) {
+    super(common.spec, common.xscale, common.yscale, target, common.mainRecipe);
+    this.common = common;
+    this.worker = new MinimalWarpWorker(common.warp);
   }
 
   @Override
@@ -51,15 +36,16 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
 
     boolean hadAllPixels = true;
     double leftMargin, rightMargin;
-    if( ignoreMargins && !fastForward ) {
+    if( !fastForward && common.ignoreMargins ) {
       leftMargin = Double.NEGATIVE_INFINITY;
       rightMargin = Double.POSITIVE_INFINITY;
     } else {
+      var margins = common.margins;
       leftMargin = (margins.leftMargin(worker, xmid) - ybase) / yscale - 0.5;
       rightMargin = (margins.rightMargin(worker, xmid) - ybase) / yscale - 0.5;
     }
 
-    if( blankOutsideMargins || fastForward ) {
+    if( fastForward || common.blankOutsideMargins ) {
       if( rightMargin < ymax ) {
         int start = (int)Math.max(ymin, rightMargin);
         whiteout(col, start, ymax);
@@ -73,8 +59,9 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
     }
 
     // Handle curvature singularities
+    double slew = common.warp.curves.segmentSlew(worker.segment);
     double radius = 1/worker.curvatureAt(xmid);
-    double curvecenter = (radius + curves.segmentSlew(worker.segment) - ybase)
+    double curvecenter = (radius + slew - ybase)
         / yscale - 0.5;
     if( radius > 0 ) {
       if( curvecenter > ymax ) {
@@ -105,18 +92,18 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
     if( rightMargin < ymax ) {
       int start = (int)Math.max(ymin, rightMargin);
       hadAllPixels &= renderWithoutSupersampling(col, xmid,
-          start, ymax, ybase, marginChain, -1);
+          start, ymax, ybase, common.marginChain, -1);
       if( start == ymin ) return hadAllPixels; else ymax = start-1;
     }
     if( leftMargin > ymin ) {
       int end = (int)Math.min(ymax, Math.ceil(leftMargin));
       hadAllPixels &= renderWithoutSupersampling(col, xmid,
-          ymin, end, ybase, marginChain, -1);
+          ymin, end, ybase, common.marginChain, -1);
       if( end == ymax ) return hadAllPixels; else ymin = end+1;
     }
 
     return hadAllPixels & supersampleColumn(col, xmid, ymin, ymax, ybase,
-        fastForward ? ffRecipe : supersample0);
+        fastForward ? common.passRecipe : supersample0);
   }
 
   private void blackout(int col, int ymin, int ymax) {
