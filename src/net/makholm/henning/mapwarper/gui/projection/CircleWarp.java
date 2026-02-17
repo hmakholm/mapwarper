@@ -189,14 +189,14 @@ public class CircleWarp extends BaseProjection {
             return local2global(x, y);
           }
           @Override
-          protected boolean renderColumn(int col, double xmid, int ymin,
-              int ymax, double ybase) {
+          protected boolean renderColumn(int col, double xmid,
+              int ymin, int ymax) {
             while( ybase + ymin * yscale <= 0 && ymin <= ymax ) {
               target.givePixel(col, ymin, RGB.SINGULARITY);
               if( ymin == ymax ) return true;
               ymin++;
             }
-            return super.renderColumn(col, xmid, ymin, ymax, ybase);
+            return super.renderColumn(col, xmid, ymin, ymax);
           }
         };
   }

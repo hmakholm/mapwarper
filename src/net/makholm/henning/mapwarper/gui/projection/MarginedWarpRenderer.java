@@ -25,8 +25,7 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
   }
 
   @Override
-  protected boolean renderColumn(int col, double xmid,
-      int ymin, int ymax, double ybase) {
+  protected boolean renderColumn(int col, double xmid, int ymin, int ymax) {
     if( worker.kindAt(xmid-0.5) == SegKind.SKIP ||
         worker.kindAt(xmid+0.5) == SegKind.SKIP )
       return skipout(col, ymin, ymax);
@@ -92,17 +91,17 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
     if( rightMargin < ymax ) {
       int start = (int)Math.max(ymin, rightMargin);
       hadAllPixels &= renderWithoutSupersampling(col, xmid,
-          start, ymax, ybase, common.marginChain, -1);
+          start, ymax, common.marginChain, -1);
       if( start == ymin ) return hadAllPixels; else ymax = start-1;
     }
     if( leftMargin > ymin ) {
       int end = (int)Math.min(ymax, Math.ceil(leftMargin));
       hadAllPixels &= renderWithoutSupersampling(col, xmid,
-          ymin, end, ybase, common.marginChain, -1);
+          ymin, end, common.marginChain, -1);
       if( end == ymax ) return hadAllPixels; else ymin = end+1;
     }
 
-    return hadAllPixels & supersampleColumn(col, xmid, ymin, ymax, ybase,
+    return hadAllPixels & supersampleColumn(col, xmid, ymin, ymax,
         fastForward ? common.passRecipe : supersample0);
   }
 

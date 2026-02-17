@@ -31,6 +31,7 @@ abstract class CommonRenderer implements RenderWorker {
   protected final LayerSpec spec;
   protected final double xscale;
   protected final double yscale;
+  protected final double ybase;
   protected final RenderTarget target;
   protected final PixelAddresser tilegrid;
 
@@ -51,6 +52,7 @@ abstract class CommonRenderer implements RenderWorker {
     this.spec = spec;
     this.xscale = xscale;
     this.yscale = yscale;
+    this.ybase = target.top() * yscale;
     this.target = target;
     mainTiles = spec.mainTiles();
     fallbackTiles = spec.fallbackTiles();
@@ -117,7 +119,7 @@ abstract class CommonRenderer implements RenderWorker {
       Arrays.fill(localCacheIndex, 0);
 
       boolean renderResult = renderColumn(x, left + (x+0.5)*xscale,
-          0, target.rows()-1, target.top() * yscale);
+          0, target.rows()-1);
       if( renderResult )
         dirtyColumns.clear(x);
       columnsWaitingForTiles.set(x, currentColumnWaitsForTiles);
@@ -140,7 +142,7 @@ abstract class CommonRenderer implements RenderWorker {
    * even if it might be with fallback tiles.
    */
   protected abstract boolean renderColumn(int col, double xmid,
-      int ymin, int ymax, double ybase);
+      int ymin, int ymax);
 
   private int currentColumn;
 

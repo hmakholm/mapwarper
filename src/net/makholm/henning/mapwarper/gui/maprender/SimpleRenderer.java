@@ -35,7 +35,7 @@ public abstract class SimpleRenderer extends CommonRenderer {
   }
 
   protected final boolean renderWithoutSupersampling(int col, double xmid,
-      int ymin, int ymax, double ybase, long fallbackChain, int dimmask) {
+      int ymin, int ymax, long fallbackChain, int dimmask) {
     dimmask &= 0x7F7F7F;
     PointWithNormal pwn = locateColumn(xmid, ybase + yscale/2);
     boolean hadAllPixels = true;

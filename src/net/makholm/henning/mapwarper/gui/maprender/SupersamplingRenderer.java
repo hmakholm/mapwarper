@@ -51,15 +51,15 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
 
   @Override
   protected boolean renderColumn(int col, double xmid,
-      int ymin, int ymax, double ybase) {
-    return supersampleColumn(col, xmid, ymin, ymax, ybase, supersample0);
+      int ymin, int ymax) {
+    return supersampleColumn(col, xmid, ymin, ymax, supersample0);
   }
 
   protected final boolean supersampleColumn(int col, double xmid,
-      int ymin, int ymax, double ybase, SupersamplingRecipe supersample) {
+      int ymin, int ymax, SupersamplingRecipe supersample) {
     if( supersample.numSamples == 1 || renderPassesCompleted < 2 )
       return renderWithoutSupersampling(
-          col, xmid, ymin, ymax, ybase, supersample.source | supersample.fallback, 0);
+          col, xmid, ymin, ymax, supersample.source | supersample.fallback, 0);
 
     long downloadlessChain = FallbackChain.neverDownload(supersample.source);
 
