@@ -1,5 +1,6 @@
 coords web-mercator 2^30
 usebounds bound.vect
+usebounds ../mUlheim/bound.vect
 node 557367638::357374181
   straight
 node 557358393::357359116
