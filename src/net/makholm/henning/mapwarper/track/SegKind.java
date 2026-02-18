@@ -8,7 +8,7 @@ public enum SegKind {
   MAGIC   (L.TRACK   | 0xDD5500, "connect",  "arc joiner"),
   BOUND   (L.SOLID   | 0x99F488, "bounds",   "bound line"),
   LBOUND  (L.DASHED  | 0x99F488, "local",    "locally straight bound"),
-  PASS    (L.DASHED  | 0xF977DD, "pass",     "fast-forward bound"),
+  PASS    (L.DASHED  | 0xFFF044, "pass",     "fast-forward bound"),
   SKIP    (L.FATDASH | 0xFF00AA, "skip",     "skip bound");
 
   public final ChainClass klass;

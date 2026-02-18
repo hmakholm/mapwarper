@@ -3,10 +3,14 @@ package net.makholm.henning.mapwarper.gui.projection;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
 import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer;
-import net.makholm.henning.mapwarper.rgb.RGB;
 import net.makholm.henning.mapwarper.track.SegKind;
 
 final class MarginedWarpRenderer extends SupersamplingRenderer {
+
+  static final int RGB_MARGIN      = 0xFFCCCCCC;
+  static final int RGB_PASS        = 0xFFC5C5AA;
+  static final int RGB_SKIP        = 0xFFDDDDDD;
+  static final int RGB_SINGULARITY = 0xFF222222;
 
   private final WarpedProjection.WarpRenderFactory common;
   private final MinimalWarpWorker worker;
@@ -30,9 +34,10 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
   protected boolean renderColumn(int col, double xmid, int ymin, int ymax) {
     if( worker.kindAt(xmid-0.5) == SegKind.SKIP ||
         worker.kindAt(xmid+0.5) == SegKind.SKIP )
-      return skipout(col, ymin, ymax);
+      return blankout(col, ymin, ymax, RGB_SKIP);
     var kind = worker.kindAt(xmid);
-    if( kind == SegKind.SKIP ) return skipout(col,ymin,ymax);
+    if( kind == SegKind.SKIP )
+      return blankout(col, ymin, ymax, RGB_SKIP);
     boolean fastForward = kind == SegKind.PASS;
 
     double leftMargin, rightMargin;
@@ -50,15 +55,18 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
       }
     }
 
-    if( fastForward || common.blankOutsideMargins ) {
+    int outsideMargins = fastForward ? RGB_PASS :
+      common.blankOutsideMargins ? RGB_MARGIN :
+        0;
+    if( outsideMargins != 0 ) {
       if( rightMargin < ymax ) {
         int start = (int)Math.max(ymin, rightMargin);
-        whiteout(col, start, ymax);
+        blankout(col, start, ymax, outsideMargins);
         if( start == ymin ) return true; else ymax = start-1;
       }
       if( leftMargin > ymin ) {
         int end = (int)Math.min(ymax, Math.ceil(leftMargin));
-        whiteout(col, ymin, end);
+        blankout(col, ymin, end, outsideMargins);
         if( end == ymax ) return true; else ymin = end+1;
       }
     }
@@ -72,22 +80,20 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
       if( curvecenter > ymax ) {
         // OK
       } else if( curvecenter <= ymin ) {
-        blackout(col, ymin, ymax);
-        return true;
+        return blankout(col, ymin, ymax, RGB_SINGULARITY);
       } else {
         int firstBad = (int)Math.ceil(curvecenter);
-        blackout(col, firstBad, ymax);
+        blankout(col, firstBad, ymax, RGB_SINGULARITY);
         ymax = firstBad-1;
       }
     } else {
       if( curvecenter < ymin ) {
         // OK
       } else if( curvecenter >= ymax ) {
-        blackout(col, ymin, ymax);
-        return true;
+        return blankout(col, ymin, ymax, RGB_SINGULARITY);
       } else {
         int lastBad = (int)Math.floor(curvecenter);
-        blackout(col, ymin, lastBad);
+        blankout(col, ymin, lastBad, RGB_SINGULARITY);
         ymin = lastBad+1;
       }
     }
@@ -113,19 +119,9 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
         fastForward ? common.passRecipe : supersample0);
   }
 
-  private void blackout(int col, int ymin, int ymax) {
+  private boolean blankout(int col, int ymin, int ymax, int rgb) {
     for( int row = ymin; row <= ymax; row++ )
-      target.givePixel(col, row, RGB.SINGULARITY);
-  }
-
-  private void whiteout(int col, int ymin, int ymax) {
-    for( int row = ymin; row <= ymax; row++ )
-      target.givePixel(col, row, 0xFFCCCCCC);
-  }
-
-  private boolean skipout(int col, int ymin, int ymax) {
-    for( int row = ymin; row <= ymax; row++ )
-      target.givePixel(col, row, 0x00444444);
+      target.givePixel(col, row, rgb);
     return true;
   }
 

@@ -8,8 +8,6 @@ public class RGB {
 
   public static final int OTHER_BOUND     = 0x80C080 | OPAQUE;
 
-  public static final int SINGULARITY = 0x222222 | OPAQUE;
-
   // ----------------------------------------------------------------
 
   public static final boolean isTransparent(int rgb) {
