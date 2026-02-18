@@ -26,7 +26,6 @@ import java.util.PriorityQueue;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Flow.Subscription;
 import java.util.function.Consumer;
-import java.util.function.LongConsumer;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -35,6 +34,8 @@ import javax.imageio.stream.ImageInputStreamImpl;
 
 import net.makholm.henning.mapwarper.georaster.CompoundShortcode;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
+import net.makholm.henning.mapwarper.tiles.Tileset;
+import net.makholm.henning.mapwarper.tiles.Tileset.DownloadCallback;
 import net.makholm.henning.mapwarper.util.MemoryMapped;
 import net.makholm.henning.mapwarper.util.NiceError;
 
@@ -239,16 +240,6 @@ public class CompoundDecoder {
   // Code to watch a download in progress and signal when each minitile
   // it can produce has been received.
 
-  /**
-   * If this is overridden to sometimes return false, the snooper may
-   * throw {@code GotEverythingWanted} when it has seen all of the
-   * wanted tiles.
-   */
-  protected boolean isOtherMinitileWanted(long wantedTile,
-      long foundTile, int endOffset) {
-    return true;
-  }
-
   @SuppressWarnings("serial")
   public static class GotEverythingWanted extends RuntimeException {}
 
@@ -256,18 +247,20 @@ public class CompoundDecoder {
 
   public class DownloadSnooper implements Consumer<ByteBuffer> {
     private final long tilespec;
-    private final LongConsumer callback;
+    private final DownloadCallback callback;
 
+    private static final int DOWNLOAD_AT_LEAST = 1048576;
     private static final int HEADLEN = 10_000;
     private int bytesSeen;
     private ByteBuffer headBuffer;
     private PriorityQueue<Milestone> milestones = new PriorityQueue<>(
         (a,b) -> Integer.compare(a.bytes(), b.bytes()));
-    private int bytesWanted = Integer.MAX_VALUE;
+    private PriorityQueue<Integer> stopPoints = new PriorityQueue<>();
+    private int maxEndOffset;
 
-    public DownloadSnooper(long tilespec, LongConsumer callback) {
+    public DownloadSnooper(long tilespec, DownloadCallback callback2) {
       this.tilespec = tilespec;
-      this.callback = callback;
+      this.callback = callback2;
     }
 
     @Override
@@ -302,11 +295,30 @@ public class CompoundDecoder {
       }
       while( !milestones.isEmpty() &&
           bytesSeen >= milestones.peek().bytes() )
-        callback.accept(milestones.remove().tilespec());
-      if( bytesSeen >= bytesWanted ) {
-        System.err.println("We have "+bytesSeen+" bytes, more than the "+bytesWanted+" we want.");
-        throw new GotEverythingWanted();
+        callback.tileIsNowLoadable(milestones.remove().tilespec());
+
+      if( !stopPoints.isEmpty() && bytesSeen >= stopPoints.peek() ) {
+        do {
+          stopPoints.remove();
+        } while( !stopPoints.isEmpty() && bytesSeen >= stopPoints.peek() );
+        // only cut the download short if we can save at least 1/8 of the work
+        if( bytesSeen < maxEndOffset - (maxEndOffset>>3) )
+          throwIfDone();
       }
+    }
+
+    private void throwIfDone() {
+      for( var milestone : milestones ) {
+        if( callback.isTileInDemand(milestone.tilespec) ) {
+          System.err.println("Continuing download after "+bytesSeen+
+              " bytes, because we still want tile "+
+              CompoundShortcode.tilename(milestone.tilespec));
+          return;
+        }
+      }
+      System.err.println("We have "+bytesSeen+" of "+maxEndOffset+
+          ", which seems to be enough");
+      throw new GotEverythingWanted();
     }
 
     private void analyzeHead(ByteBuffer buf) {
@@ -319,9 +331,7 @@ public class CompoundDecoder {
         throw NiceError.of("The TIFF is not head-heavy");
       int tilex = tilex(tilespec);
       int tiley = tiley(tilespec);
-      int maxEndOffset = 0;
-      int maxWanted = 0;
-      boolean anyUnwanted = false;
+      int maxSmallEndOffset = 0;
       for( int idtCount=0; ; tiff = tiff.next(), idtCount++ ) {
         if( tiff == null )
           throw NiceError.of("TIFF is truncated after "+idtCount+" images");
@@ -329,6 +339,7 @@ public class CompoundDecoder {
         int height = tiff.getNumber(Tiff.IMAGE_HEIGHT, 0).intValue();
         if( width == height && width > 0 && width < 65535 &&
             otherwiseGoodLayer(tiff) ) {
+          int localMaxEndOffset = 0;
           int twidth = tiff.getNumber(Tiff.TILE_WIDTH, 0).intValue();
           int theight = tiff.getNumber(Tiff.TILE_HEIGHT, 0).intValue();
           int log2tsize = Integer.numberOfTrailingZeros(twidth);
@@ -345,23 +356,25 @@ public class CompoundDecoder {
                     tiff.getNumber(Tiff.TILE_BYTE_COUNTS, tidx, 0).intValue();
                 long tspec = codemaker.makeShortcode(tilex, tiley, x, y);
                 milestones.add(new Milestone(endOffset, tspec));
-
-                if( endOffset > maxEndOffset ) maxEndOffset = endOffset;
-                if( tspec == this.tilespec ||
-                    isOtherMinitileWanted(this.tilespec, tspec, endOffset) ) {
-                  if( endOffset > maxWanted ) maxWanted = endOffset;
-                } else {
-                  anyUnwanted = true;
-                }
+                if( endOffset > localMaxEndOffset )
+                  localMaxEndOffset = endOffset;
+                if( endOffset <= DOWNLOAD_AT_LEAST &&
+                    endOffset > maxSmallEndOffset )
+                  maxSmallEndOffset = endOffset;
               }
           }
+          if( localMaxEndOffset > maxEndOffset )
+            maxEndOffset = localMaxEndOffset;
+          if( localMaxEndOffset >= DOWNLOAD_AT_LEAST )
+            stopPoints.add(localMaxEndOffset);
         }
         if( !tiff.hasNext() )
           break;
       }
-      // Only cut the download short if we can save at least 1/8 of the work
-      if( anyUnwanted && maxWanted < maxEndOffset - (maxEndOffset>>3) ) {
-        bytesWanted = maxWanted;
+      if( maxSmallEndOffset != 0 )
+        stopPoints.add(maxSmallEndOffset);
+      for( var sp : stopPoints ) {
+        System.out.println("stop point at "+sp);
       }
     }
   }
@@ -371,7 +384,7 @@ public class CompoundDecoder {
     final HttpResponse.BodySubscriber<T> next;
 
     public HttpDownloadSnooper(HttpResponse.BodySubscriber<T> next,
-        long tilespec, LongConsumer callback) {
+        long tilespec, Tileset.DownloadCallback callback) {
       super(tilespec, callback);
       this.next = next;
     }

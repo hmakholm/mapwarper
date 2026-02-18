@@ -9,13 +9,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
-import java.util.function.LongConsumer;
 
 import org.w3c.dom.Element;
 
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.CompoundAddresser;
-import net.makholm.henning.mapwarper.georaster.CompoundShortcode;
 import net.makholm.henning.mapwarper.georaster.PixelAddresser;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.georaster.UTM;
@@ -72,16 +70,7 @@ public class GeoDanmark extends Tileset {
     return s;
   }
 
-  private static final CompoundDecoder decoder = new CompoundDecoder() {
-    @Override
-    protected boolean isOtherMinitileWanted(long wantedTile,
-        long foundTile, int endOffset) {
-      int wantSize = CompoundShortcode.maxisize(wantedTile);
-      int foundSize = CompoundShortcode.maxisize(foundTile);
-      return foundSize <= wantSize || foundSize <= 1000 ||
-          endOffset <= 1048576;
-    }
-  };
+  private final CompoundDecoder decoder = new CompoundDecoder();
 
   @Override
   protected TileBitmap loadTile(long tile) throws IOException {
@@ -105,7 +94,7 @@ public class GeoDanmark extends Tileset {
   }
 
   @Override
-  protected void downloadTile(long tile, LongConsumer callback)
+  protected void downloadTile(long tile, DownloadCallback callback)
       throws IOException, TryDownloadLater {
     var dest = fileForMaxitile(tile);
     // Take the lock so we won't make the file disappear under the feet

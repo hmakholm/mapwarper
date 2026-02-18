@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.function.LongConsumer;
 
 import javax.imageio.ImageIO;
 
@@ -94,7 +93,7 @@ public abstract class DiskCachedTileset extends Tileset {
   }
 
   @Override
-  public void downloadTile(long tile, LongConsumer callback)
+  public void downloadTile(long tile, DownloadCallback callback)
       throws IOException, TryDownloadLater {
     Path file = fileForTile(tile);
     try( var locked = downloadLock.takeWriter(file) ) {

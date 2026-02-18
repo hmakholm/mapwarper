@@ -1,7 +1,5 @@
 package net.makholm.henning.mapwarper.tiles;
 
-import java.util.function.LongConsumer;
-
 import org.w3c.dom.Element;
 
 import net.makholm.henning.mapwarper.geometry.Point;
@@ -38,7 +36,7 @@ public class NomapTiles extends Tileset {
   }
 
   @Override
-  public void downloadTile(long tile, LongConsumer callback) {
+  public void downloadTile(long tile, DownloadCallback callback) {
     // Do nothing; the tile can always be loaded!
   }
 

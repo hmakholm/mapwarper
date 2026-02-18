@@ -12,7 +12,8 @@ import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.util.BackgroundThread;
 import net.makholm.henning.mapwarper.util.BadError;
 
-class TileDownloader extends BackgroundThread {
+class TileDownloader extends BackgroundThread
+implements Tileset.DownloadCallback {
 
   final Tileset tileset;
   final TileContext context;
@@ -96,7 +97,7 @@ class TileDownloader extends BackgroundThread {
       TileBitmap got = cache.getTile(toDownload, true);
       if( got == null ) {
         try {
-          tileset.downloadTile(toDownload.shortcode, this::downloadCallback);
+          tileset.downloadTile(toDownload.shortcode, this);
         } catch( IOException e ) {
           scheduleAbort(e, null);
           return;
@@ -120,7 +121,7 @@ class TileDownloader extends BackgroundThread {
         // twice is not a problem, because the invalidation only takes effect
         // if the tile _cannot_ be loaded.
         got = cache.invalidateMissingAndGet(toDownload, true);
-        if( got == null )
+        if( got == null && isTileInDemand(toDownload.shortcode) )
           throw BadError.of("Failed to load %s even after downloading",
               tileset.tilename(toDownload.shortcode));
         backoffSecs = backoffSecs / 2;
@@ -129,7 +130,16 @@ class TileDownloader extends BackgroundThread {
     }
   }
 
-  private void downloadCallback(long tile) {
+  @Override
+  public boolean isTileInDemand(long tile) {
+    var tilespec = new TileSpec(tileset, tile);
+    synchronized(this) {
+      return queue.containsKey(tilespec);
+    }
+  }
+
+  @Override
+  public void tileIsNowLoadable(long tile) {
     System.err.println("    (received "+tileset.tilename(tile)+")");
     context.progressiveLoader.execute(() -> {
       var spec = new TileSpec(tileset, tile);
