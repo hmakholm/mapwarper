@@ -35,12 +35,18 @@ public abstract class SimpleRenderer extends CommonRenderer {
   }
 
   protected final boolean renderWithoutSupersampling(int col, double xmid,
+      int ymin, int ymax, long fallbackChain) {
+    return renderWithoutSupersampling(col, locateColumn(xmid, ybase),
+        ymin, ymax, fallbackChain, 0);
+  }
+
+  protected final boolean renderWithoutSupersampling(int col,
+      PointWithNormal pwn,
       int ymin, int ymax, long fallbackChain, int dimmask) {
     dimmask &= 0x7F7F7F;
-    PointWithNormal pwn = locateColumn(xmid, ybase + yscale/2);
     boolean hadAllPixels = true;
     for( int y=ymin; y<=ymax; y++ ) {
-      Point p = pwn.pointOnNormal(y * yscale);
+      Point p = pwn.pointOnNormal((y+0.5) * yscale);
       int rgb = getPixel(p, fallbackChain);
       if( rgb == RGB.OUTSIDE_BITMAP )
         hadAllPixels = false;

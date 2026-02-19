@@ -43,11 +43,17 @@ class MinimalWarpWorker {
     return y - curves.segmentSlew(segment);
   }
 
-  protected PointWithNormal pointWithNormal(double downing) {
-    UnitVector normal = currentNormal();
-    return new PointWithNormal(
-        x + normal.x*downing, y + normal.y*downing,
-        normal);
+  protected static class PointWithNormalAndKind extends PointWithNormal {
+    public SegKind kind;
+    private PointWithNormalAndKind(MinimalWarpWorker mww,
+        UnitVector normal, double downing) {
+      super(mww.x + normal.x*downing, mww.y + normal.y*downing, normal);
+      kind = mww.segmentKind;
+    }
+  }
+
+  protected PointWithNormalAndKind pointWithNormal(double downing) {
+    return new PointWithNormalAndKind(this, currentNormal(), downing);
   }
 
   protected PointWithNormal normalAt(double lefting) {

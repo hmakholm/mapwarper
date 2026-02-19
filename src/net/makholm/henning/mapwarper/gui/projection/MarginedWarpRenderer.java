@@ -1,8 +1,8 @@
 package net.makholm.henning.mapwarper.gui.projection;
 
-import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
 import net.makholm.henning.mapwarper.gui.maprender.SupersamplingRenderer;
+import net.makholm.henning.mapwarper.gui.projection.MinimalWarpWorker.PointWithNormalAndKind;
 import net.makholm.henning.mapwarper.track.SegKind;
 
 final class MarginedWarpRenderer extends SupersamplingRenderer {
@@ -18,27 +18,28 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
 
   protected MarginedWarpRenderer(WarpedProjection.WarpRenderFactory common,
       RenderTarget target) {
-    super(common.spec, common.xscale, common.yscale, target, common.mainRecipe);
+    super(common.spec, common.xscale, common.yscale, target, common.recipes);
     this.common = common;
     this.worker = new MinimalWarpWorker(common.warp);
     this.marginWorker = common.margins.new Worker(worker, ybase, common.yscale);
   }
 
   @Override
-  protected PointWithNormal locateColumn(double x, double y) {
+  protected PointWithNormalAndKind locateColumn(double x, double y) {
     worker.setLefting(x);
     return worker.pointWithNormal(worker.projected2downing(y));
   }
 
   @Override
   protected boolean renderColumn(int col, double xmid, int ymin, int ymax) {
-    if( worker.kindAt(xmid-0.5) == SegKind.SKIP ||
-        worker.kindAt(xmid+0.5) == SegKind.SKIP )
-      return blankout(col, ymin, ymax, RGB_SKIP);
-    var kind = worker.kindAt(xmid);
-    if( kind == SegKind.SKIP )
-      return blankout(col, ymin, ymax, RGB_SKIP);
-    boolean fastForward = kind == SegKind.PASS;
+    var pwn0 = locateColumn(xmid-0.5*xscale, ybase);
+    if( pwn0.kind == SegKind.SKIP ) return blankout(col, ymin, ymax, RGB_SKIP);
+    var pwnM = locateColumn(xmid, ybase);
+    if( pwnM.kind == SegKind.SKIP ) return blankout(col, ymin, ymax, RGB_SKIP);
+    var pwn1 = locateColumn(xmid+0.5*xscale, ybase);
+    if( pwn1.kind == SegKind.SKIP ) return blankout(col, ymin, ymax, RGB_SKIP);
+
+    boolean fastForward = pwnM.kind == SegKind.PASS;
 
     double leftMargin, rightMargin;
     if( !fastForward && common.ignoreMargins ) {
@@ -51,7 +52,7 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
       if( marginWorker.seenSkip ) {
         // render everything like outside-margins, but without dimming
         return renderWithoutSupersampling(col, xmid,
-            ymin, ymax, common.marginChain, 0);
+            ymin, ymax, common.marginChain);
       }
     }
 
@@ -104,18 +105,18 @@ final class MarginedWarpRenderer extends SupersamplingRenderer {
     // anything but also without supersampling) outside the margins.
     if( rightMargin < ymax ) {
       int start = (int)Math.max(ymin, rightMargin);
-      hadAllPixels &= renderWithoutSupersampling(col, xmid,
+      hadAllPixels &= renderWithoutSupersampling(col, pwnM,
           start, ymax, common.marginChain, -1);
       if( start == ymin ) return hadAllPixels; else ymax = start-1;
     }
     if( leftMargin > ymin ) {
       int end = (int)Math.min(ymax, Math.ceil(leftMargin));
-      hadAllPixels &= renderWithoutSupersampling(col, xmid,
+      hadAllPixels &= renderWithoutSupersampling(col, pwnM,
           ymin, end, common.marginChain, -1);
       if( end == ymax ) return hadAllPixels; else ymin = end+1;
     }
 
-    return hadAllPixels & supersampleColumn(col, xmid, ymin, ymax,
+    return hadAllPixels & supersampleColumn(col, pwn0, pwnM, pwn1, ymin, ymax,
         fastForward ? common.passRecipe : supersample0);
   }
 

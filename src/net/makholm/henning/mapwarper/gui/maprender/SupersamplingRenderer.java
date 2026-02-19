@@ -10,6 +10,7 @@ import net.makholm.henning.mapwarper.util.MathUtil;
 public abstract class SupersamplingRenderer extends SimpleRenderer {
 
   protected final SupersamplingRecipe supersample0;
+  private final double[] scratch;
 
   /**
    * @param source
@@ -36,59 +37,65 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
     double tilePixelsPerDisplayPixel = xscale * yscale / MathUtil.sqr(pixsize);
 
     int idealSamples = (int)(1.61 * tilePixelsPerDisplayPixel + 5);
-    return new SupersamplingRecipe(Math.min(idealSamples, 40),
-        source, fallback);
+    int actualSamples = Math.min(idealSamples, 40);
+    return new SupersamplingRecipe(actualSamples, source, fallback);
+
   }
 
   protected SupersamplingRenderer(LayerSpec spec,
       double xpixsize, double ypixsize, RenderTarget target,
-      SupersamplingRecipe supersample) {
+      SupersamplingRecipe... recipes) {
     super(spec, xpixsize, ypixsize, target);
-    this.supersample0 = supersample;
-    if( supersample.numSamples > 1 )
-      this.renderPassesWanted = 3;
+    this.supersample0 = recipes[0];
+
+    int scratchSize = 0;
+    for( var recipe : recipes ) {
+      if( recipe.numSamples > 1 ) {
+        this.renderPassesWanted = 3;
+        scratchSize = Math.max(scratchSize, recipe.scratchLengthNeeded());
+      }
+    }
+    scratch = new double[scratchSize+3];
   }
 
   @Override
   protected boolean renderColumn(int col, double xmid,
       int ymin, int ymax) {
-    return supersampleColumn(col, xmid, ymin, ymax, supersample0);
+    return supersampleColumn(col,
+        locateColumn(xmid-0.5*xscale, ybase),
+        locateColumn(xmid,            ybase),
+        locateColumn(xmid+0.5*xscale, ybase),
+        ymin, ymax, supersample0);
   }
 
-  protected final boolean supersampleColumn(int col, double xmid,
+  protected final boolean supersampleColumn(int col,
+      PointWithNormal pwn0, PointWithNormal pwnM, PointWithNormal pwn1,
       int ymin, int ymax, SupersamplingRecipe supersample) {
     if( supersample.numSamples == 1 || renderPassesCompleted < 2 )
-      return renderWithoutSupersampling(
-          col, xmid, ymin, ymax, supersample.source | supersample.fallback, 0);
+      return renderWithoutSupersampling(col, pwnM,
+          ymin, ymax, supersample.source | supersample.fallback, 0);
 
     long downloadlessChain = FallbackChain.neverDownload(supersample.source);
 
-    float[] colMultipliers = supersample.multipliers[col%8];
+    supersample.interpolate(scratch, col, pwn0, pwnM, pwn1, yscale);
     int numSamples = supersample.numSamples;
 
-    PointWithNormal midBase = null;
-    PointWithNormal leftBase = locateColumn(xmid - xscale/2, ybase);
-    PointWithNormal rightBase = locateColumn(xmid + xscale/2, ybase);
-    double bx = leftBase.x, by = leftBase.y;
-    double mx = rightBase.x - bx, my = rightBase.y - by;
-    double dx = leftBase.normal.x * yscale, dy = leftBase.normal.y * yscale;
-    double dmx = rightBase.normal.x * yscale - dx;
-    double dmy = rightBase.normal.y * yscale - dy;
-
     boolean hadAllPixels = true;
+    int patternStartIndex = ((ymin-1)&7) * numSamples * 4;
     rowloop: for( int row = ymin; row <= ymax; row++ ) {
-      double nwX = bx + row*dx, acrossX = mx + row*dmx;
-      double nwY = by + row*dy, acrossY = my + row*dmy;
+      if( (row&7) == 0 )
+        patternStartIndex = 0;
+      else
+        patternStartIndex += numSamples * 4;
+      var patternEndIndex = patternStartIndex + numSamples * 4;
 
-      int patternStartIndex = (row%8) * numSamples * 2;
+      if( patternStartIndex < 0 && patternEndIndex+3 >= scratch.length )
+        throw new ArrayIndexOutOfBoundsException();
       int rbSum = 0;
       int gSum = 0;
-      for( int i = 0; i<numSamples; i++ ) {
-        double lefting = colMultipliers[patternStartIndex + 2*i + 0];
-        double downing = colMultipliers[patternStartIndex + 2*i + 1];
-        double product = lefting*downing;
-        double sx = nwX + lefting*acrossX + downing*dx + product*dmx;
-        double sy = nwY + lefting*acrossY + downing*dy + product*dmy;
+      for( int i = patternStartIndex; i<patternEndIndex; i+=4 ) {
+        double sx = scratch[i+0] + scratch[i+2] * row;
+        double sy = scratch[i+1] + scratch[i+3] * row;
         int rgb = getPixel(sx, sy, downloadlessChain);
         if( RGB.anyTransparency(rgb) ) {
           // Either missing or (partially) transparent.
@@ -98,9 +105,7 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
           // supersampling layers -- since that happens at the official
           // mid-pixel coordinates so we don't risk downloading something
           // outside the margins.
-          if( midBase == null )
-            midBase = locateColumn(xmid, ybase+yscale/2);
-          Point p = midBase.pointOnNormal(row * yscale);
+          Point p = pwnM.pointOnNormal((row+0.5) * yscale);
           rgb = getPixel(p, supersample.source | supersample.fallback);
           if( rgb == RGB.OUTSIDE_BITMAP )
             hadAllPixels = false;
@@ -121,9 +126,7 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
           ((gScaled >> 16) & 0x00FF00) |
           (bScaled >> 16);
       if( tilegrid != null ) {
-        Point mid = Point.at(
-            nwX + acrossX/2 + dx/2 + dmx/4,
-            nwY + acrossY/2 + dy/2 + dmy/4);
+        Point mid = pwnM.pointOnNormal((row+0.5)*yscale);
         rgb = applyTilegrid(mid, rgb);
       }
       target.givePixel(col, row, rgb);
@@ -150,9 +153,10 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
       this.source = source;
       this.fallback = fallback;
 
-      // Create sample points as a 2-Hammersley set scaled up to 8×8 pixel
+      // Create sample points as a base 2-Hammersley net scaled up to 8×8 pixel
       // boxes. This ought to be less sensitive to sharp edges almost parallel
       // to the axes than a rectangular sampling grid is.
+      // https://en.wikipedia.org/wiki/Low-discrepancy_sequence#Hammersley_set
       multipliers = new float[8][8*numSamples*2];
       int counter = 20241227;
       for( int column = 0; column < 8; column++ ) {
@@ -169,6 +173,41 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
       }
 
       oversampleScaler = 0xFF_FF_FF / (0xFF * numSamples);
+    }
+
+    public int scratchLengthNeeded() {
+      return 4 * 8 * numSamples;
+    }
+
+    /**
+     * Precompute lines that interpolate cubically between the three given
+     * ones (for the left, center, and right side of a pixel column) to produce
+     * 8 sets of numSamples sample points.
+     *
+     * The output is delivered in the {@link scratch} array, in a sequence
+     * of quadruples (xBase, yBase, dx, dy).
+     */
+    void interpolate(double[] scratch, int column,
+        PointWithNormal pwn0, PointWithNormal pwnM, PointWithNormal pwn1,
+        double yscale) {
+      var colMultipliers = this.multipliers[column%8];
+      var n0 = pwn0.normal.scale(yscale);
+      var nM = pwnM.normal.scale(yscale);
+      var n1 = pwn1.normal.scale(yscale);
+      for( int i = 0; i<8*numSamples; i++ ) {
+        double t = colMultipliers[2*i+0];
+        double u = colMultipliers[2*i+1];
+        double c0 = (t-1) * (2*t-1), c1 = t * (2*t-1);
+        double cM = 1 - (c0 + c1);
+        var dx = c0*n0.x + cM*nM.x + c1*n1.x;
+        var dy = c0*n0.y + cM*nM.y + c1*n1.y;
+        var x = c0*pwn0.x + cM*pwnM.x + c1*pwn1.x + u*dx;
+        var y = c0*pwn0.y + cM*pwnM.y + c1*pwn1.y + u*dy;
+        scratch[4*i+0] = x;
+        scratch[4*i+1] = y;
+        scratch[4*i+2] = dx;
+        scratch[4*i+3] = dy;
+      }
     }
   }
 

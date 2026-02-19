@@ -14,7 +14,7 @@ public abstract class BasicRenderer extends SimpleRenderer {
   protected boolean renderColumn(int col, double xmid,
       int ymin, int ymax) {
     return renderWithoutSupersampling(col, xmid, ymin, ymax,
-        sourceChain, 0);
+        sourceChain);
   }
 
 }

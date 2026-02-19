@@ -228,7 +228,8 @@ public final class WarpedProjection extends BaseProjection {
     final LayerSpec spec;
     final double xscale, yscale;
     final WarpMargins margins;
-    final SupersamplingRecipe mainRecipe, passRecipe;
+    final SupersamplingRecipe passRecipe;
+    final SupersamplingRecipe[] recipes;
     final long marginChain;
 
     final boolean blankOutsideMargins;
@@ -241,11 +242,12 @@ public final class WarpedProjection extends BaseProjection {
       margins = WarpMargins.get(WarpedProjection.this);
 
       FallbackChain chains = new FallbackChain(spec, xscale, yscale);
-      mainRecipe = SupersamplingRenderer.prepareSupersampler(
+      var mainRecipe = SupersamplingRenderer.prepareSupersampler(
           spec, xscale, yscale, chains.premiumChain, chains.standardChain);
       passRecipe = SupersamplingRenderer.prepareSupersampler(
           spec, xscale * WarpSkipper.PASS_SUPERSQUEEZE, yscale,
           chains.premiumChain, FallbackChain.noFallback(chains.standardChain));
+      recipes = new SupersamplingRecipe[] { mainRecipe, passRecipe };
       marginChain = chains.marginChain;
 
       blankOutsideMargins = Toggles.BLANK_OUTSIDE_MARGINS.setIn(spec.flags());
