@@ -16,7 +16,7 @@ public abstract class SimpleRenderer extends CommonRenderer {
   protected SimpleRenderer(LayerSpec spec, double xpixsize, double ypixsize,
       RenderTarget target) {
     super(spec, xpixsize, ypixsize, target);
-    if( !target.isUrgent() || spec.mainTiles().context.ramCache.isEmpty() ) {
+    if( spec.mainTiles().context.ramCache.isEmpty() ) {
       // Pretend we have already completed the from-RAM-only pass
       renderPassesCompleted ++;
     }
@@ -26,6 +26,7 @@ public abstract class SimpleRenderer extends CommonRenderer {
 
   @Override
   public final void doSomeWork() throws AbortRendering {
+    adjustForNonUrgency();
     loadTiles = renderPassesCompleted > 0;
     oneRenderPass();
     renderPassesCompleted++;
@@ -61,10 +62,25 @@ public abstract class SimpleRenderer extends CommonRenderer {
 
   @Override
   public int priority() {
+    adjustForNonUrgency();
     if( renderPassesCompleted < renderPassesWanted )
       return 1000 - renderPassesCompleted;
     else
       return super.priority();
+  }
+
+  /**
+   * This adjustment really should have taken place in the constructor,
+   * except that subclass constructors can modify {@link renderPassesWanted},
+   * so that would be too early to do it correctly.
+   */
+  private void adjustForNonUrgency() {
+    if( renderPassesCompleted < renderPassesWanted && !target.isUrgent() ) {
+      // Since there's already _some_ kind of map shown, there's no need
+      // (and it might even look bad!) to do any initial lower-quality
+      // rendering passes.
+      renderPassesCompleted = renderPassesWanted-1;
+    }
   }
 
 }

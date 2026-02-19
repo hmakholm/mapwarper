@@ -132,7 +132,7 @@ public class Exporter extends Command {
           @Override public long top() { return ymin; }
           @Override public int columns() { return w0; }
           @Override public int rows() { return height; }
-          @Override public boolean isUrgent() { return true; }
+          @Override public boolean isUrgent() { return false; }
           @Override public void checkCanceled() { }
 
           boolean darken = Toggles.DARKEN_MAP.setIn(spec.flags()) &&

@@ -9,6 +9,11 @@ public interface RenderTarget {
   int columns();
   int rows();
 
+  /**
+   * This should return true if it is important to get <em>something</em>
+   * shown quickly, even at the expense of lower quality that needs
+   * additional render passes later.
+   */
   boolean isUrgent();
 
   void checkCanceled() throws AbortRendering;
