@@ -73,6 +73,10 @@ public class XmlConfig {
 
   public void setSystemProperties() {
     for( var prop : tagmap("systemProperty").keySet() ) {
+      if( System.getProperty(prop) != null &&
+          !element("systemProperty",prop).getAttribute("important")
+          .equals("true") )
+        continue;
       String val = string("systemProperty", prop);
       if( !prop.isEmpty() && val != null )
         System.setProperty(prop, val);
