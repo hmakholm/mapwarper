@@ -64,7 +64,8 @@ public class GuiMain extends JFrame {
     var frame = new GuiMain(tiles, args.isEmpty() ? null : args.get(0));
     System.out.println();
     frame.setVisible(true);
-    frame.setTilesetPaneVisible(true);
+    frame.setTilesetPaneVisible(
+        !"false".equals(System.getProperty("mapwarper.tilePaneAtStartup")));
   }
 
   public void showErrorBox(String fmt, Object... params) {
