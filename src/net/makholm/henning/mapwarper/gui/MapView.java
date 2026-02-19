@@ -590,7 +590,7 @@ public final class MapView {
     }
   }
 
-  private void perhapsMoveToInterestingPoint() {
+  void perhapsMoveToInterestingPoint() {
     Point adjusted = translator().perhapsMoreInterestingLocal(mouseLocal);
     if( adjusted.is(mouseLocal) )
       return;

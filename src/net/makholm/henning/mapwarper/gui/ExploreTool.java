@@ -15,7 +15,15 @@ final class ExploreTool extends TrackHidingTool {
 
   @Override
   public int retouchDisplayFlags(int orig) {
-    return orig & ~Toggles.DARKEN_MAP.bit();
+    orig &= ~Toggles.DARKEN_MAP.bit();
+    orig |= Toggles.BLANK_OUTSIDE_MARGINS.bit();
+    return orig;
+  }
+
+  @Override
+  public void whenSelected() {
+    super.whenSelected();
+    mapView().perhapsMoveToInterestingPoint();
   }
 
   @Override
