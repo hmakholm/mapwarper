@@ -28,7 +28,7 @@ final class ExploreTool extends TrackHidingTool {
 
   @Override
   public ToolResponse mouseResponse(Point pos, int modifiers) {
-    if( shiftHeld(modifiers) ) return NO_RESPONSE;
+    // if( shiftHeld(modifiers) ) return NO_RESPONSE;
     return myResponse;
   }
 
