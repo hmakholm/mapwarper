@@ -168,6 +168,7 @@
 <keybind name="S-F3" value="nearestNode"/>
 <keybind name="F5" value="downloadMap"/>
 <keybind name="F6" value="supersample"/>
+<keybind name="S-F6" value="supersampleDebugger"/>
 <keybind name="F7" value="darkenMap"/>
 <keybind name="F8" value="showCurvature"/>
 <keybind name="F9" value="showBounds"/>

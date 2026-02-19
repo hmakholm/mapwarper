@@ -69,6 +69,7 @@ public class Commands {
   public final Tool move = new MoveTool(this);
 
   private final Tool nearestNodeTool = new NearestNodeDebugTool(this);
+  private final Tool supersampleDebugTool = new SupersampleDebugger(this);
 
   private final Tool weakTrackTool = new TrackEditTool(this, SegKind.WEAK);
   public final Tool trackTool = new TrackEditTool(this, SegKind.TRACK);
@@ -419,6 +420,7 @@ public class Commands {
     var debug = menu.addSubmenu("Debug");
     debug.add(forceGC);
     debug.add(nearestNodeTool);
+    debug.add(supersampleDebugTool);
     debug.add(tdebugPlus);
     debug.add(tdebugMinus);
   }

@@ -19,6 +19,7 @@ import java.util.Map;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.PixelAddresser;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
+import net.makholm.henning.mapwarper.gui.SupersampleDebugger;
 import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.rgb.RGB;
 import net.makholm.henning.mapwarper.tiles.TileSpec;
@@ -153,6 +154,8 @@ abstract class CommonRenderer implements RenderWorker {
   }
 
   protected final int getPixel(double x, double y, long fallbackSpec) {
+    if( target instanceof SupersampleDebugger.SampleTarget st )
+      return st.sample(x,y);
     for(; fallbackSpec != 0; fallbackSpec >>= BITS_PER_ATTEMPT) {
       int aspec = (int)fallbackSpec & ATTEMPT_MASK;
       int zoom = (int)(aspec >> ZOOM_SHIFT);
