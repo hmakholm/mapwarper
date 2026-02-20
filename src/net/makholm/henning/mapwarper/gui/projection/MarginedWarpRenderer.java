@@ -7,8 +7,8 @@ import net.makholm.henning.mapwarper.track.SegKind;
 
 final class MarginedWarpRenderer extends SupersamplingRenderer {
 
-  static final int RGB_MARGIN      = 0xFFCCCCCC;
-  static final int RGB_PASS        = 0xFFC5C5AA;
+  static final int RGB_MARGIN      = 0xFFAAAAAA;
+  static final int RGB_PASS        = 0xFFCCBB99;
   static final int RGB_SKIP        = 0xFFDDDDDD;
   static final int RGB_SINGULARITY = 0xFF222222;
 

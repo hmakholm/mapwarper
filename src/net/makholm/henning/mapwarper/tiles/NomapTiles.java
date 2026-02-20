@@ -32,7 +32,7 @@ public class NomapTiles extends Tileset {
 
   @Override
   public TileBitmap loadTile(long tile) {
-    return TileBitmap.blank(0xFFAAAAAA);
+    return TileBitmap.blank(0xFFA6A6A6);
   }
 
   @Override
