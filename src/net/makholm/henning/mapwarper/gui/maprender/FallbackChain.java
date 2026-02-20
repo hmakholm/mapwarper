@@ -51,6 +51,9 @@ public class FallbackChain {
   /**
    * These are the <em>intended</em> tiles that should be rendered with
    * supersampling in projections where that makes sense.
+   *
+   * These are only ever from the main tileset, so application of its
+   * transfer function can be deferred until after supersampling.
    */
   public final long premiumChain;
 

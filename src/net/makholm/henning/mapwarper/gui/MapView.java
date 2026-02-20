@@ -148,6 +148,29 @@ public final class MapView {
     }
   }
 
+  public Runnable cycleTransferFunction() {
+    var options = mainTiles.transferOptions;
+    if( options.isEmpty() )
+      return null;
+    else return () -> {
+      String toUse = null;
+      for( var it = options.keySet().iterator(); it.hasNext(); ) {
+        var name = it.next();
+        if( toUse == null ) toUse = name;
+        if( options.get(name) == mainTiles.transferFunction ) {
+          if( it.hasNext() )
+            toUse = it.next();
+          break;
+        }
+      }
+      if( toUse != null ) {
+        System.err.println(mainTiles.name+" transfer function = "+toUse);
+        mainTiles.transferFunction = options.get(toUse);
+        swing.invalidateMapRendering();
+      }
+    };
+  }
+
   public void modifyAffinoid(Consumer<Affinoid> action) {
     var aff = projection.getAffinoid();
     action.accept(aff);

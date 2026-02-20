@@ -1,5 +1,8 @@
 package net.makholm.henning.mapwarper.gui.maprender;
 
+import java.util.Locale;
+import java.util.Random;
+
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.PointWithNormal;
 import net.makholm.henning.mapwarper.georaster.Coords;
@@ -91,22 +94,20 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
 
       if( patternStartIndex < 0 && patternEndIndex+3 >= scratch.length )
         throw new ArrayIndexOutOfBoundsException();
-      int rbSum = 0;
-      int gSum = 0;
+      long splitSum = 0;
       for( int i = patternStartIndex; i<patternEndIndex; i+=4 ) {
         double sx = scratch[i+0] + scratch[i+2] * row;
         double sy = scratch[i+1] + scratch[i+3] * row;
-        int rgb = getPixel(sx, sy, downloadlessChain);
-        if( RGB.anyTransparency(rgb) ) {
-          // Either missing or (partially) transparent.
-          // We can't supersample transparency, so in both cases
-          // fall back to no supersampling.
-          // This is also the place where we request _download_ of the
-          // supersampling layers -- since that happens at the official
-          // mid-pixel coordinates so we don't risk downloading something
-          // outside the margins.
+        int pixel = getRawPixel(sx, sy, downloadlessChain, false);
+        if( pixel != RGB.OUTSIDE_BITMAP ) {
+          splitSum += splitChannels(pixel);
+        } else {
+          // The fallback to no supersampling is also the place where we
+          // request _download_ of the supersampling layers -- since that
+          // happens at the official mid-pixel coordinates so we don't
+          // risk downloading something outside the margins.
           Point p = pwnM.pointOnNormal((row+0.5) * yscale);
-          rgb = getPixel(p, supersample.source | supersample.fallback);
+          int rgb = getPixel(p, supersample.source | supersample.fallback);
           if( rgb == RGB.OUTSIDE_BITMAP )
             hadAllPixels = false;
           else {
@@ -115,16 +116,9 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
           }
           continue rowloop;
         }
-        rbSum += rgb & 0xFF00FF;
-        gSum += rgb & 0x00FF00;
       }
-      int rScaled = (rbSum >>> 16) * supersample.oversampleScaler;
-      int gScaled = gSum * supersample.oversampleScaler;
-      int bScaled = (rbSum & 0xFFFF) * supersample.oversampleScaler;
-      int rgb = RGB.OPAQUE |
-          (rScaled & 0xFF0000) |
-          ((gScaled >> 16) & 0x00FF00) |
-          (bScaled >> 16);
+      int pixel = combineChannels(splitSum, supersample.oversampleScaler);
+      int rgb = mainTiles.transferFunction.toARGB(pixel);
       if( tilegrid != null ) {
         Point mid = pwnM.pointOnNormal((row+0.5)*yscale);
         rgb = applyTilegrid(mid, rgb);
@@ -132,6 +126,49 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
       target.givePixel(col, row, rgb);
     }
     return hadAllPixels;
+  }
+
+  // These two functions cleverly (?) facilitate averaging 4 channels in one
+  // using 64-bit integer arithmetic and bit fiddling instead of SIMD:
+
+  private static long splitChannels(int pixel) {
+    // Transform ABCD to 0A0C0B0D
+    return (pixel & 0x00FF00FFL) + ((pixel & 0xFF00FF00L) << 24);
+  }
+
+  private static int combineChannels(long splitSum, int scaler) {
+    // splitSum is AACCBBDD
+    int scaledA = (char)(splitSum >>> 48) * scaler;
+    int scaledB = (char)(splitSum >>> 16) * scaler;
+    int scaledC = (char)(splitSum >>> 32) * scaler;
+    int scaledD = (char)(splitSum       ) * scaler;
+    int iA000 = (scaledA << 8) & 0xFF000000;
+    int i0B00 = (scaledB     ) & 0x00FF0000;
+    int i00C0 = (scaledC >> 8) & 0x0000FF00;
+    int i000D = (scaledD >> 16);
+    return iA000 | i0B00 | i00C0 | i000D;
+  }
+
+  private static int makeScaler(int numSamples) {
+    return 0xFF_FF_FF / (0xFF * numSamples);
+  }
+
+  /** A quick unit test... */
+  public static void mainx(String[] args) {
+    Random r = new Random();
+    for( int i = 0; i<10000; i++ ) {
+      int goal = r.nextInt();
+      int count = r.nextInt(40)+1;
+      int scaler = makeScaler(count);
+      long split = splitChannels(goal);
+      long splitSum = split * count;
+      int got = combineChannels(splitSum, scaler);
+      if( got != goal ) {
+        System.out.printf(Locale.ROOT,
+            "%d %08x -> %016x x%d -> %016x -> %08x\n",
+            i, goal, split, count, splitSum, got);
+      }
+    }
   }
 
   public static class SupersamplingRecipe {
@@ -172,7 +209,7 @@ public abstract class SupersamplingRenderer extends SimpleRenderer {
         }
       }
 
-      oversampleScaler = 0xFF_FF_FF / (0xFF * numSamples);
+      oversampleScaler = makeScaler(numSamples);
     }
 
     public int scratchLengthNeeded() {

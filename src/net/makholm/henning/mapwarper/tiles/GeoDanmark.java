@@ -43,6 +43,9 @@ public class GeoDanmark extends Tileset {
     urlTemplate = withApikey(stringAttr("tileurl"));
     extension = stringAttr("extension");
     http = makeHttpClient();
+    transferOptions.put("Color as delivered", GeoDanmark::RGBItoARGB);
+    transferOptions.put("Vividified colors", GeoDanmark::RGBItoVividColor);
+    transferFunction = GeoDanmark::RGBItoVividColor;
   }
 
   private static final UTM UTM32 = UTM.WGS84(32,true);
@@ -71,32 +74,33 @@ public class GeoDanmark extends Tileset {
     return s;
   }
 
-  boolean falsecolor = true;
+  private final CompoundDecoder decoder = new CompoundDecoder();
 
-  private final CompoundDecoder decoder = new CompoundDecoder() {
-    @Override
-    protected void pixelsToRGB(int[] pixdata) {
-      if( !falsecolor ) {
-        super.pixelsToRGB(pixdata);
-      } else {
-        for( int i=0; i<pixdata.length; i++ ) {
-          int r = (pixdata[i] >> 24) & 0xFF;
-          int g = (pixdata[i] >> 16) & 0xFF;
-          int b = (pixdata[i] >> 8) & 0xFF;
-          int ir = (pixdata[i]) & 0xFF;
-          int y = 77*r + 150*g + 29*b;
-          int cb = -43*r - 85*g + 128*b;
-          int cr = 128*r - 107*g - 21*b;
-          y = Math.min(y, 256*ir); // use near IR channel to improve contrast
-          cb *= 2; cr *= 2; // jack up saturation
-          r = MathUtil.clamp(0, 256*y + 359*cr, 0xFFFFFF);
-          g = MathUtil.clamp(0, 256*y - 88*cb - 183*cr, 0xFFFFFF);
-          b = MathUtil.clamp(0, 256*y + 454*cb, 0xFFFFFF);
-          pixdata[i] = (r & 0xFF0000) + ((g >> 8) & 0xFF00) + (b >> 16);
-        }
-      }
-    }
-  };
+  private static int RGBItoARGB(int pixel) {
+    return (pixel >> 8) | 0xFF000000;
+  }
+
+  private static int RGBItoVividColor(int pixel) {
+    int r = (pixel >> 24) & 0xFF;
+    int g = (pixel >> 16) & 0xFF;
+    int b = (pixel >> 8) & 0xFF;
+    int ir = (pixel) & 0xFF;
+    int y = (54*r + 186*g + 18*b) >> 8;
+    // (Those coefficients, derived from sRGB -> CIE Y luminance,
+    // sum to 257, balancing out the rounding towards zero of >>8).
+    r -= y; g -= y; b -= y;
+    // In an actual YCrCb conversion we would now rescale r and b to
+    // fit in a byte each (and let g be implicit, since r,g,b at this
+    // point satisfy 54r+185g+18b=0, up to rounding).
+    // But since we'll convert back presently anyway, that will be
+    // easier if we just keep them as signed values with weird ranges.
+    r *= 2; g *= 2; b *= 2; // jack up saturation
+    y = ir < y ? ir : y - (ir-y)/5; // use the IR channel to improve contrast
+    r = MathUtil.clamp(0, y+r, 255);
+    g = MathUtil.clamp(0, y+g, 255);
+    b = MathUtil.clamp(0, y+b, 255);
+    return 0xFF000000 | (r << 16) | (g << 8) | b;
+  }
 
   @Override
   protected TileBitmap loadTile(long tile) throws IOException {

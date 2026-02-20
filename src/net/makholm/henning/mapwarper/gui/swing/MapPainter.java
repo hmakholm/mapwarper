@@ -86,14 +86,18 @@ class MapPainter {
           projection, newSpec.projection());
     } else {
       spec = new FrozenLayerSpec(newSpec);
-      factory = projection.makeRenderFactory(spec);
-      buffers.values().forEach(b -> {
-        synchronized(b) {
-          b.wantInstance = null;
-        }
-      });
+      invalidateEverything();
       return true;
     }
+  }
+
+  void invalidateEverything() {
+    factory = projection.makeRenderFactory(spec);
+    buffers.values().forEach(b -> {
+      synchronized(b) {
+        b.wantInstance = null;
+      }
+    });
   }
 
   void discardInvisibleBuffers() {

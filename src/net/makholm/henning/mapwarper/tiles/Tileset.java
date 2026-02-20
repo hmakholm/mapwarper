@@ -9,7 +9,9 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -23,6 +25,7 @@ import net.makholm.henning.mapwarper.georaster.CoordsParser;
 import net.makholm.henning.mapwarper.georaster.PixelAddresser;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
+import net.makholm.henning.mapwarper.rgb.RGB;
 import net.makholm.henning.mapwarper.util.NiceError;
 
 public abstract class Tileset {
@@ -43,6 +46,10 @@ public abstract class Tileset {
   protected final Path cacheRoot;
   protected final String webUrlTemplate;
   final TileDownloader downloader;
+
+  public RGB.TransferFunction transferFunction;
+  public final Map<String, RGB.TransferFunction> transferOptions =
+      new LinkedHashMap<>();
 
   /**
    * Create a pixel addresser for a particular resolution and area.
@@ -189,6 +196,8 @@ public abstract class Tileset {
     this.allowOrtho =
         !isOverlayMap && !"false".equals(xml.getAttribute("useAsBackground"));
     this.darkenMap = "true".equals(xml.getAttribute("darkenMap"));
+
+    this.transferFunction = isOverlayMap ? RGB.ARGB : RGB.OPAQUIFY;
 
     AxisRect bbox = null;
     var content = xml.getChildNodes();

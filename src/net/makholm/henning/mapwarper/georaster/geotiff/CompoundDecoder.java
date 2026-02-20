@@ -226,17 +226,10 @@ public class CompoundDecoder {
         throw NiceError.of("Got %d pixels, expected %d", pixdata.length,
             minisize*minisize);
       ibuf.get(pixdata);
-      pixelsToRGB(pixdata);
       return new TileBitmap(pixdata);
     } else {
       throw NiceError.of("Data buffer was a %s, not a DataBufferByte",
           buffer.getClass().getTypeName());
-    }
-  }
-
-  protected void pixelsToRGB(int[] pixdata) {
-    for( int i=0; i<pixdata.length; i++ ) {
-      pixdata[i] = (pixdata[i] >> 8) | 0xFF000000;
     }
   }
 

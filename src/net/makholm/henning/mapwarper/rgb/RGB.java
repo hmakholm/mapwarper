@@ -22,4 +22,13 @@ public class RGB {
     return (rgb >> 24) == -1;
   }
 
+  // ----------------------------------------------------------------
+
+  public interface TransferFunction {
+    int toARGB(int pixel);
+  }
+
+  public static final TransferFunction OPAQUIFY = pixel -> pixel | OPAQUE;
+  public static final TransferFunction ARGB = pixel -> pixel;
+
 }

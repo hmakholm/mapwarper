@@ -36,8 +36,8 @@ abstract class CommonRenderer implements RenderWorker {
   protected final RenderTarget target;
   protected final PixelAddresser tilegrid;
 
-  private final Tileset mainTiles;
-  private final Tileset fallbackTiles;
+  protected final Tileset mainTiles;
+  protected final Tileset fallbackTiles;
 
   private final Point globalMidpoint;
 
@@ -150,10 +150,11 @@ abstract class CommonRenderer implements RenderWorker {
   protected boolean loadTiles = false;
 
   protected final int getPixel(Point p, long fallbackSpec) {
-    return getPixel(p.x, p.y, fallbackSpec);
+    return getRawPixel(p.x, p.y, fallbackSpec, true);
   }
 
-  protected final int getPixel(double x, double y, long fallbackSpec) {
+  protected final int getRawPixel(double x, double y,
+      long fallbackSpec, boolean useTransferFunction) {
     if( target instanceof SupersampleDebugger.SampleTarget st )
       return st.sample(x,y);
     for(; fallbackSpec != 0; fallbackSpec >>= BITS_PER_ATTEMPT) {
@@ -204,7 +205,11 @@ abstract class CommonRenderer implements RenderWorker {
         localCacheIndex[lci] = cacheTag(aspec, shortcode);
       }
       if( bitmap != null ) {
-        return addresser.getPixel(bitmap);
+        int pixel = addresser.getPixel(bitmap);
+        if( useTransferFunction )
+          return tilesetFor(aspec).transferFunction.toARGB(pixel);
+        else
+          return pixel;
       }
     }
     return RGB.OUTSIDE_BITMAP;

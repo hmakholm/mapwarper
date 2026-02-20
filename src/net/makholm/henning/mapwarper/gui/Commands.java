@@ -175,6 +175,10 @@ public class Commands {
     }
   };
 
+  private final Cmd cycleTransferFunction =
+      check("pixeltransfer", "Change pixel transfer function",
+          self -> self.mapView.cycleTransferFunction());
+
   private class TilesetCommand extends Command {
     final Predicate<MapView> enable;
     final BiConsumer<MapView, Tileset> doIt;
@@ -192,10 +196,11 @@ public class Commands {
   }
 
   private class TilesetCommands {
+    final Tileset tiles;
     final Command just, weakOrtho, lens;
     final Command setmap, setmapm, setwarp, setwarpm;
     TilesetCommands(String name) {
-      Tileset tiles = mapView.tiles.tilesets.get(name);
+      tiles = mapView.tiles.tilesets.get(name);
       if( tiles != null ) {
         if( tiles.isOverlayMap ) {
           just = weakOrtho = setmap = setmapm = setwarp = setwarpm = null;
@@ -247,6 +252,10 @@ public class Commands {
       menu.addSeparator();
       if( just != null ) menu.add(just);
       if( weakOrtho != null ) menu.add(weakOrtho);
+      if( !tiles.transferOptions.isEmpty() && tiles == mapView.mainTiles ) {
+        menu.addSeparator();
+        menu.add(cycleTransferFunction);
+      }
     }
   }
 

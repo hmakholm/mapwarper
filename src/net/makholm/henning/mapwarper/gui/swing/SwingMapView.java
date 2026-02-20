@@ -592,6 +592,11 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   //     P A I N T I N G
   // ------------------------------------------------------------------
 
+  public void invalidateMapRendering() {
+    currentMapPainter.invalidateEverything();
+    repaint();
+  }
+
   @Override
   public void paint(Graphics g0) {
     readViewportRect();
