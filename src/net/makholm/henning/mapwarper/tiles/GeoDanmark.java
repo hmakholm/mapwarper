@@ -22,6 +22,7 @@ import net.makholm.henning.mapwarper.georaster.geotiff.CompoundDecoder;
 import net.makholm.henning.mapwarper.georaster.geotiff.TrivialZip;
 import net.makholm.henning.mapwarper.util.BadError;
 import net.makholm.henning.mapwarper.util.KeyedLock;
+import net.makholm.henning.mapwarper.util.MathUtil;
 import net.makholm.henning.mapwarper.util.NiceError;
 
 public class GeoDanmark extends Tileset {
@@ -70,7 +71,32 @@ public class GeoDanmark extends Tileset {
     return s;
   }
 
-  private final CompoundDecoder decoder = new CompoundDecoder();
+  boolean falsecolor = true;
+
+  private final CompoundDecoder decoder = new CompoundDecoder() {
+    @Override
+    protected void pixelsToRGB(int[] pixdata) {
+      if( !falsecolor ) {
+        super.pixelsToRGB(pixdata);
+      } else {
+        for( int i=0; i<pixdata.length; i++ ) {
+          int r = (pixdata[i] >> 24) & 0xFF;
+          int g = (pixdata[i] >> 16) & 0xFF;
+          int b = (pixdata[i] >> 8) & 0xFF;
+          int ir = (pixdata[i]) & 0xFF;
+          int y = 77*r + 150*g + 29*b;
+          int cb = -43*r - 85*g + 128*b;
+          int cr = 128*r - 107*g - 21*b;
+          y = Math.min(y, 256*ir); // use near IR channel to improve contrast
+          cb *= 2; cr *= 2; // jack up saturation
+          r = MathUtil.clamp(0, 256*y + 359*cr, 0xFFFFFF);
+          g = MathUtil.clamp(0, 256*y - 88*cb - 183*cr, 0xFFFFFF);
+          b = MathUtil.clamp(0, 256*y + 454*cb, 0xFFFFFF);
+          pixdata[i] = (r & 0xFF0000) + ((g >> 8) & 0xFF00) + (b >> 16);
+        }
+      }
+    }
+  };
 
   @Override
   protected TileBitmap loadTile(long tile) throws IOException {
