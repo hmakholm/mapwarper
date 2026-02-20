@@ -227,14 +227,12 @@ class MapPainter {
     boolean dead;
 
     /**
-     * Thread-shared, so accesses must take the {@link RenderBuffer} lock.
+     * All updates to this field happens in the UI thread with the
+     * {@link RenderBuffer} lock held.
      *
-     * This is initialized to a non-null value in the UI thread by
-     * {@link #updateWantInstance()} before the buffer is first given
-     * to the render queue. After that has happened, once the field gets
-     * set to {@code null} (to indicate that the buffer will never be
-     * used again), it stays {@code null} for ever, so it is admissible
-     * to check <em>that</em> without taking the lock.
+     * The field can be <em>checked</em> from other threads without
+     * taking the lock, but if the value is <em>used</em>, the lock
+     * should be taken before reading it.
      */
     RenderInstance wantInstance;
 
@@ -281,10 +279,8 @@ class MapPainter {
 
     /** Runs in the UI thread */
     void updateWantInstance() {
-      if( buffer == null ) return;
+      if( buffer == null || wantInstance != null ) return;
       synchronized( RenderBuffer.this ) {
-        if( wantInstance != null )
-          return ;
         wantInstance = new RenderInstance(this, MapPainter.this.spec);
       }
       owner.renderQueue.enqueue(this);
@@ -444,10 +440,8 @@ class MapPainter {
 
     @Override
     public void checkCanceled() throws AbortRendering {
-      synchronized( buffer ) {
-        if( buffer.wantInstance != this )
-          throw new AbortRendering();
-      }
+      if( buffer.wantInstance != this )
+        throw new AbortRendering();
       if( System.nanoTime() > repaintNanosThreshold ) {
         flushRepainting();
         clearQueuedRepaints();
