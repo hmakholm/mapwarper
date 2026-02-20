@@ -1,7 +1,9 @@
 package net.makholm.henning.mapwarper.tiles;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -256,6 +258,10 @@ public abstract class Tileset {
       return template.substring(0,i)+key+template.substring(i+8);
   }
 
+  // -------------------------------------------------------------------------
+  //  Shared helper functions for HTTP
+  // -------------------------------------------------------------------------
+
   protected HttpClient makeHttpClient() {
     if( "true".equals(xmldef.getAttribute("disableHttpsValidation")) ) {
       var builder = HttpClient.newBuilder();
@@ -282,6 +288,10 @@ public abstract class Tileset {
     } else {
       return context.http;
     }
+  }
+
+  protected void dump(PrintStream ps, HttpHeaders headers) {
+    headers.map().forEach((name, value) -> ps.println(name+": "+value));
   }
 
 }

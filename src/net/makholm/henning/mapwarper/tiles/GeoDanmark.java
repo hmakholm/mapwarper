@@ -127,7 +127,7 @@ public class GeoDanmark extends Tileset {
         return HttpResponse.BodySubscribers.<Path>replacing(null);
       } else {
         System.err.println("Got "+rspInfo.statusCode()+" when fetching "+maxiname);
-        System.err.println(rspInfo.headers());
+        dump(System.err, rspInfo.headers());
         Path bodyFile = Paths.get("httpErrorBody");
         DiskCachedTileset.tryDeleteFile(bodyFile);
         return HttpResponse.BodySubscribers.ofFile(bodyFile);
@@ -136,7 +136,13 @@ public class GeoDanmark extends Tileset {
     try {
       var response = http.send(request.build(), handler);
       int code = response.statusCode();
-      if( code != 200 && code != 404 ) {
+      switch( code ) {
+      case 200:
+      case 404:
+        break;
+      case 500:
+        throw new TryDownloadLater("Got HTTP response "+code);
+      default:
         throw new IOException("Tile fetching failed for "+url);
       }
       if( !Files.isRegularFile(dest) ) {
@@ -144,7 +150,7 @@ public class GeoDanmark extends Tileset {
       }
       long length = Files.size(dest);
       if( length == 0 ) {
-        throw new IOException("Got 200 for "+url+" but zero bytes!");
+        throw new IOException("Got "+code+" for "+url+" but zero bytes!");
       }
     } catch( InterruptedException e ) {
       throw new RuntimeException("This shouldn't happen", e);

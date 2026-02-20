@@ -42,7 +42,7 @@ public abstract class HttpTileset extends DiskCachedTileset {
         return HttpResponse.BodySubscribers.ofFile(dest);
       } else {
         System.err.println("Got "+rspInfo.statusCode()+" when fetching "+url);
-        System.err.println(rspInfo.headers());
+        dump(System.err, rspInfo.headers());
         Path bodyFile = Paths.get("httpErrorBody");
         tryDeleteFile(bodyFile);
         return HttpResponse.BodySubscribers.ofFile(bodyFile);
@@ -50,7 +50,13 @@ public abstract class HttpTileset extends DiskCachedTileset {
     };
     try {
       var response = http.send(request.build(), handler);
-      if( response.statusCode() != 200 ) {
+      int code = response.statusCode();
+      switch( code ) {
+      case 200:
+        break;
+      case 500:
+        throw new TryDownloadLater("Got HTTP response "+code);
+      default:
         throw new IOException("Tile fetching failed for "+url);
       }
       if( !Files.isRegularFile(dest) ) {
