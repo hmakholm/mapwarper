@@ -11,6 +11,16 @@ class SkipEditTool extends BoundEditTool {
   }
 
   @Override
+  public void whenSelected() {
+    super.whenSelected();
+    if( kind == SegKind.PASS ) {
+      // Unconditionally deselect the editing chain; this kind of lines is
+      // generally not useful in chains.
+      mapView().setEditingChain(null);
+    }
+  }
+
+  @Override
   public void enterAction() {
     mapView().refreshWarp(true);
   }
