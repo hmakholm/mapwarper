@@ -285,6 +285,9 @@ public class Commands {
   private final Cmd saveAll = simple("saveAll", "Save",
       self -> self.files.saveAllCommand());
 
+  private final Cmd close = check("close", "Close current",
+      self -> self.files.closeCommand());
+
   private final Cmd revert = simple("revert", "Reread all from disk",
       self -> self.files.revertCommand());
 
@@ -342,6 +345,7 @@ public class Commands {
     files.add(saveAll);
     files.add(revert);
     files.add(openTool.selectionlessAlias());
+    files.add(close);
     files.addSeparator();
     files.add(exportLens);
     files.add(export);

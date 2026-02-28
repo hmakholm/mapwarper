@@ -278,11 +278,36 @@ public class FilePane {
     }
   }
 
-  public void newCommand() {
-    if( showBoxIfSavingIsNeeded() ) return;
+  public boolean newCommand() {
+    if( showBoxIfSavingIsNeeded() ) return false;
     VectFile vf = new VectFile(cache, null);
     vf.setContentHarshly(new FileContent(null, List.of(), List.of()));
     setActiveFile(vf);
+    return true;
+  }
+
+  public Runnable closeCommand() {
+    if( activeFile.path == null &&
+        activeFile.content().equals(FileContent.EMPTY) &&
+        showtracks.isEmpty() )
+      return null;
+    else return () -> {
+      if( activeFile.path != null && activeFile.isModified() ) {
+        if( window.showYesCancelBox("Current file is modified",
+            "Discard recent edits to %s?",
+            activeFile.path.getFileName()) ) {
+          activeFile.revertHardToDisk();
+        } else {
+          return;
+        }
+      }
+      if( newCommand() ) {
+        showtracks.clear();
+        if( !mapView.projection.base().isOrtho() )
+          mapView.orthoCommand(null, true);
+        mapView.selectTool(window.commands.move);
+      }
+    };
   }
 
   private void openFile(Entry e) {
@@ -316,10 +341,18 @@ public class FilePane {
     updateView();
   }
 
+  /**
+   * @return {@code true} to <em>cancel</em> the proposed operation.
+   */
   private boolean showBoxIfSavingIsNeeded() {
     if( unnamedFileNeedsSaving() ) {
-      return !window.showYesCancelBox("You may want to save",
-          "Discard contents of current anonymous file?");
+      if( window.showYesCancelBox("You may want to save",
+          "Discard contents of current anonymous file?") ) {
+        activeFile.revertHardToDisk();
+        return false;
+      } else {
+        return true;
+      }
     } else {
       return false;
     }

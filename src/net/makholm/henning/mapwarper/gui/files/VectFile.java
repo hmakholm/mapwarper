@@ -116,6 +116,10 @@ public class VectFile {
     }
   }
 
+  public void revertHardToDisk() {
+    changeContentNoUndo(currentContent, onDisk);
+  }
+
   /**
    * Content will only actually be forgotten if the undoMap is non-null.
    */
@@ -203,6 +207,10 @@ public class VectFile {
       onDisk = currentContent;
       sendChangePoke();
     }
+  }
+
+  void forgetBeingModified() {
+    owner.modifiedFiles.remove(this);
   }
 
   /**

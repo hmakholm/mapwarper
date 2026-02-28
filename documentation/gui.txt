@@ -81,6 +81,7 @@
      Ctrl-S: Gem
      Ctrl-R: Genlæs
      Ctrl-N: Ny fil
+     Ctrl-W: Luk fil (næsten det samme som "ny fil", men vælger også ortho)
      Ctrl-Q: Afslut programmet
 
      SPACE: Gem og opfrisk warp

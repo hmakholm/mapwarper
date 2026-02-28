@@ -505,7 +505,7 @@ public final class MapView {
     window.tilesetPane.repaint();
   }
 
-  void orthoCommand(Tileset targetTiles, boolean downloading) {
+  public void orthoCommand(Tileset targetTiles, boolean downloading) {
     if( targetTiles == null )
       targetTiles = downloading ? mapTiles : warpTiles;
     int logPixsize = Coords.zoom2logPixsize(targetTiles.guiTargetZoom);
