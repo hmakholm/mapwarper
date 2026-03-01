@@ -5,6 +5,7 @@ import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
+import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackHighlight;
 
@@ -29,20 +30,17 @@ implements DragSubchainSelector.Callback {
 
   @Override
   public ToolResponse mouseResponse(Point local, int modifiers) {
-    if( editingChain() == null ) {
-      var found = pickSegmentAnyChain(local);
-      if( found != null )
-        return selectEditingChain(found).freeze();
-    } else {
-      var found = pickSegmentInActive(local);
-      if( found != null ) {
-        var action = draggedSubchain(found.chain(),
-            found.index(), found.index()+1);
-        if( shiftHeld(modifiers) )
-          action = action.withPreview();
-        return action.freeze();
-      }
+    ChainRef<?> found = pickSegmentInActive(local);
+    if( found != null ) {
+      var action = draggedSubchain(found.chain(),
+          found.index(), found.index()+1);
+      if( shiftHeld(modifiers) )
+        action = action.withPreview();
+      return action.freeze();
     }
+    found = pickSegmentAnyChain(local);
+    if( found != null )
+      return selectEditingChain(found).freeze();
     var box = new BoxOverlay(new AxisRect(local).grow(10), DELETE_HIGHLIGHT);
     return new WrappedToolResponse(Tool.NO_RESPONSE) {
       @Override public VectorOverlay previewOverlay() { return box; }
