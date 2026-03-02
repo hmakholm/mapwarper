@@ -150,7 +150,7 @@ public final class MeasureTool extends Tool {
     if( !curve.isPracticallyALine() ) {
       var angle = mcurve.v1.bearing() - mcurve.v4.bearing();
       length += String.format(Locale.ROOT, " spanning %.1f\u00B0",
-          Math.abs((angle+180) % 360 - 180));
+          Math.abs((angle+540) % 360 - 180));
     }
     text.add(length);
 
