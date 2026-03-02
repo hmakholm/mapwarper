@@ -44,8 +44,8 @@ public class GeoDanmark extends Tileset {
     extension = stringAttr("extension");
     http = makeHttpClient();
     transferOptions.put("Color as delivered", GeoDanmark::RGBItoARGB);
-    transferOptions.put("Vividified colors", GeoDanmark::RGBItoVividColor);
-    transferFunction = GeoDanmark::RGBItoVividColor;
+    transferOptions.put("Improved color", transferFunction = GeoDanmark::RGBItoVividColor);
+    transferOptions.put("Supersaturated color", GeoDanmark::RGBItoVividerColor);
   }
 
   private static final UTM UTM32 = UTM.WGS84(32,true);
@@ -94,8 +94,23 @@ public class GeoDanmark extends Tileset {
     // point satisfy 54r+185g+18b=0, up to rounding).
     // But since we'll convert back presently anyway, that will be
     // easier if we just keep them as signed values with weird ranges.
-    r *= 2; g *= 2; b *= 2; // jack up saturation
+    r += r/4; g += g/4; b += b/4; // inrease saturation a bit
     y = ir < y ? ir : y - (ir-y)/5; // use the IR channel to improve contrast
+    r = MathUtil.clamp(0, y+r, 255);
+    g = MathUtil.clamp(0, y+g, 255);
+    b = MathUtil.clamp(0, y+b, 255);
+    return 0xFF000000 | (r << 16) | (g << 8) | b;
+  }
+
+  private static int RGBItoVividerColor(int pixel) {
+    int r = (pixel >> 24) & 0xFF;
+    int g = (pixel >> 16) & 0xFF;
+    int b = (pixel >> 8) & 0xFF;
+    int ir = (pixel) & 0xFF;
+    int y = (54*r + 186*g + 18*b) >> 8;
+    r -= y; g -= y; b -= y;
+    r = r*7/3; g = g*7/3; b = b*7/3; // jack up saturation even more
+    y = ir < y ? ir : y - (ir-y)/5;
     r = MathUtil.clamp(0, y+r, 255);
     g = MathUtil.clamp(0, y+g, 255);
     b = MathUtil.clamp(0, y+b, 255);
