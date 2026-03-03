@@ -49,6 +49,20 @@ public class LocalSegmentChain {
     for( int i=0; i<global.numSegments; i++ ) {
       var nextLocalNode = proj.global2local(global.nodes.get(i+1));
       var globalCurve = globalCurves.get(i);
+
+      if( global.kinds.get(i) == SegKind.SLEW &&
+          globalCurve.displacement.sqnorm() < 0.09*0.09 ) {
+        // Special case for very short slews, possibly ones that were
+        // prevented from going backwards
+        var g1 = i==0 ? global.nodes.get(i) : globalCurves.get(i-1).p4;
+        var g2 = i==global.numSegments-1 ?
+            global.nodes.get(i+1) : globalCurves.get(i+1).p1;
+        var c = Bezier.line(proj.global2local(g1), proj.global2local(g2));
+        curves.add(List.of(c));
+        localNode = nextLocalNode;
+        continue;
+      }
+
       BezierChain localCurve;
       if( global.kinds.get(i).showStraightDespiteWarp() )
         localCurve = Bezier.line(localNode, nextLocalNode);

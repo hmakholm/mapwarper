@@ -108,23 +108,20 @@ public final class WarpedProjection extends BaseProjection {
     nodeLeftings = new double[track.numNodes];
     double t = 0;
     UnitVector tangent = curves.get(0).dir1();
-    GlobalPoint node = GlobalPoint.of(track.nodes.get(0));
-    easyPoints.put(node, new EasyPoint(0, 0, 0, tangent));
-    nodesWithNormals[0] = new PointWithNormal(node, tangent.turnRight());
     var lengths = WarpSkipper.projectedLengths(track, curves);
     for( int i=0; i<track.numSegments; i++ ) {
       nodeLeftings[i] = t;
       var curve = curves.get(i);
-      easyCurves.put(curve, isNonskippingSegment(i));
+      var easy1 = placeNode(i, t, curve.p1, tangent);
       easyPoints.putIfAbsent(GlobalPoint.of(curve.p1),
           new EasyPoint(i, t, curves.segmentSlew(i), tangent));
       t += lengths[i];
       tangent = curve.dir4();
       easyPoints.put(GlobalPoint.of(curve.p4),
           new EasyPoint(i+1, t, curves.segmentSlew(i), tangent));
-      node = GlobalPoint.of(track.nodes.get(i+1));
-      easyPoints.put(node, new EasyPoint(i+1, t, curves.nodeSlew(i+1), tangent));
-      nodesWithNormals[i+1] = new PointWithNormal(node, tangent.turnRight());
+      var easy4 = placeNode(i+1, t, curve.p4, tangent);
+      if( easy1 && easy4 )
+        easyCurves.put(curve, isNonskippingSegment(i));
     }
     nodeLeftings[track.numSegments] = totalLength = t;
 
@@ -141,6 +138,27 @@ public final class WarpedProjection extends BaseProjection {
       if( WarpMargins.get(this).skips.isEmpty() )
         this.withSkips = this;
     }
+  }
+
+  private boolean placeNode(int i,
+      double t, Point cpoint, UnitVector dir) {
+    var node = track.nodes.get(i);
+    if( cpoint != node ) {
+      var dist = node.to(cpoint).dot(dir);
+      if( Math.abs(dist) > 0.1 ) {
+        if( nodesWithNormals[i] == null ) {
+          Point npoint = node.plus(dist, dir);
+          nodesWithNormals[i] = new PointWithNormal(npoint, dir.turnRight());
+        }
+        return false;
+      }
+    }
+
+    if( nodesWithNormals[i] == null )
+      nodesWithNormals[i] = new PointWithNormal(node, dir.turnRight());
+    easyPoints.putIfAbsent(GlobalPoint.of(node),
+        new EasyPoint(i, t, curves.nodeSlew(i), dir));
+    return true;
   }
 
   boolean isNonskippingSegment(int segment) {

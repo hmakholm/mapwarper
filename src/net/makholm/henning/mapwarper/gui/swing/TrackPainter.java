@@ -281,6 +281,7 @@ public final class TrackPainter extends LongHashed {
         Point l4 = translator.global2local(curve.p4);
         startPath(l1);
         localCurves.get(j).forEach(this::append);
+        lineTo(l4);
         Point[] locals = new Point[CURVATURE_SAMPLES];
         for( int i=0; i<CURVATURE_SAMPLES; i++ ) {
           locals[i] = translator.global2localWithHint(toShow[i],
@@ -288,6 +289,7 @@ public final class TrackPainter extends LongHashed {
         }
         lineTo(Bezier.through(locals[6], locals[5], locals[4], locals[3]));
         lineTo(Bezier.through(locals[3], locals[2], locals[1], locals[0]));
+        lineTo(l1);
         g.fill(endPath());
       }
     }

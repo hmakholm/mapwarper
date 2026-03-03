@@ -71,10 +71,10 @@ implements ProjectionWorker {
 
     var refref = FindClosest.point(warp.track.nodeTree.get(), ChainRef::data,
         Double.POSITIVE_INFINITY, global);
-    var ref = warp.easyPoints.get(GlobalPoint.of(refref.data()));
+    var lefting = warp.nodeLeftings[refref.index()];
     selectCurve(refref.index());
 
-    local = locateWithLeftingRef(key, ref.lefting());
+    local = locateWithLeftingRef(key, lefting);
     global2localCache.put(key, local);
     return local;
   }

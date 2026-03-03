@@ -25,6 +25,7 @@ class Smoother {
       Collections.sort(smoother.subchains);
       smoother.subchains.forEach(smoother::decideSubchain);
     }
+    smoother.placeNodes();
     smoother.makeCurves();
     return smoother.wrapUp();
   }
@@ -36,6 +37,7 @@ class Smoother {
 
   private final SegmentChain chain;
   private final UnitVector[] tangents;
+  private final Point[] nodes;
 
   private final Bezier[] curves;
   private final double[] nodeSlews;
@@ -76,6 +78,7 @@ class Smoother {
     this.chain = chain;
     this.tangents = new UnitVector[chain.numNodes];
     this.curves = new Bezier[chain.numSegments];
+    this.nodes = new Point[chain.numNodes];
     this.nodeSlews = new double[chain.numNodes];
     this.segmentSlews = new double[chain.numSegments];
   }
@@ -276,6 +279,57 @@ class Smoother {
 
   // -----------------------------------------------------------------------
 
+  /**
+   * This phase moves nodes <em>along</em> the track as necessary to avoid
+   * plain slews going backawards.
+   */
+  private void placeNodes() {
+    if( chain.chainClass != ChainClass.TRACK ) {
+      chain.nodes.toArray(nodes);
+      return;
+    }
+
+    for( var subchain : subchains ) {
+      int max = subchain.nodes.size()-1;
+      for( int i=0; i<=max; i++ ) {
+        placeNodes(i>0, subchain.nodes.get(i), i<max);
+      }
+    }
+  }
+
+  private void placeNodes(
+      boolean canMoveFirst, MultiNode mnode, boolean canMoveLast) {
+    if( nodes[mnode.firstNode] != null ) return;
+
+    // It's unclear how to hand chains of several slew segments, so we only deal
+    // with MultiNodes that have exactly one slew
+    if( mnode.lastNode == mnode.firstNode+1 ) {
+      var a = chain.nodes.get(mnode.firstNode);
+      var b = chain.nodes.get(mnode.lastNode);
+      var dir = mnode.get();
+      var len = a.to(b).dot(dir);
+      if( len <= 0.03 ) {
+        var shortenBy = 0.06 - len;
+        double aspace = 0.0, bspace = 0.0;
+        if( canMoveFirst )
+          aspace = chain.nodes.get(mnode.firstNode-1).to(a).dot(dir)/2;
+        if( canMoveLast )
+          bspace = b.to(chain.nodes.get(mnode.lastNode+1)).dot(dir)/2;
+        if( aspace + bspace > shortenBy ) {
+          var factor = shortenBy / (aspace+bspace);
+          nodes[mnode.firstNode] = a.plus(-aspace*factor, dir);
+          nodes[mnode.lastNode] = b.plus(bspace*factor, dir);
+          return;
+        }
+      }
+    }
+    // We either can't or don't need to move anything
+    for( int i=mnode.firstNode; i<=mnode.lastNode; i++ )
+      nodes[i] = chain.nodes.get(i);
+  }
+
+  // -----------------------------------------------------------------------
+
   double slewBefore, slewAfter;
 
   private void makeCurves() {
@@ -283,11 +337,11 @@ class Smoother {
     for( int seg=0; seg<chain.numSegments; seg++ ) {
       slewBefore = slewAfter = 0;
       curves[seg] = makeCurve(
-          chain.nodes.get(seg),
+          nodes[seg],
           tangents[seg],
           chain.kinds.get(seg),
           tangents[seg+1],
-          chain.nodes.get(seg+1));
+          nodes[seg+1]);
       accumulatedSlew += slewBefore;
       segmentSlews[seg] = accumulatedSlew;
       accumulatedSlew += slewAfter;
