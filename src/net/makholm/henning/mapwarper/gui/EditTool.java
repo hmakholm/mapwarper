@@ -225,7 +225,7 @@ class EditTool extends GenericEditTool {
 
   protected ProposedAction actionWithNoEditingChain(
       Point p1, int mod1, Point p2, int mod2) {
-    if( altHeld(mod1) ) return null;
+    if( altHeld(mod1, mod2) ) return null;
     if( p1.dist(p2) < 5 ) {
       TrackNode n = local2node(p1);
       return createChain("Create new node", singletonChain(n)).with(n);
@@ -239,7 +239,7 @@ class EditTool extends GenericEditTool {
 
   protected ProposedAction actionInFreeSpace(
       Point p1, int mod1, Point p2, int mod2) {
-    if( altHeld(mod1) ) return null;
+    if( altHeld(mod1, mod2) ) return null;
     SegmentChain chain = editingChain();
     if( chain.numNodes == 1 ) {
       TrackNode n1 = chain.nodes.get(0);

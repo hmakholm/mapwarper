@@ -84,6 +84,10 @@ public abstract class Tool extends Command implements MouseAction {
     return (flags & InputEvent.ALT_DOWN_MASK) != 0;
   }
 
+  public static boolean altHeld(int mod1, int mod2) {
+    return altHeld(mod1 | mod2);
+  }
+
   public static boolean isQuickCommand(int flags) {
     return (flags & QUICK_COM_MASK) != 0;
   }

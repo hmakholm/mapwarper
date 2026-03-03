@@ -24,7 +24,7 @@ class BoundEditTool extends BoundSnappingTool {
   @Override
   protected ProposedAction actionForDraggingNode(int index, int mod1,
       Point p2, int mod2) {
-    if( !altHeld(mod2) )
+    if( !(altHeld(mod1, mod2)) )
       return super.actionForDraggingNode(index, mod1, p2, mod2);
     var chain = editingChain();
 
@@ -57,7 +57,7 @@ class BoundEditTool extends BoundSnappingTool {
   @Override
   protected ProposedAction actionInFreeSpace(
       Point l1, int mod1, Point l2, int mod2) {
-    if( !altHeld(mod2) )
+    if( !altHeld(mod1, mod2) )
       return super.actionInFreeSpace(l1, mod1, l2, mod2);
     var chain = editingChain();
 
@@ -163,7 +163,7 @@ class BoundEditTool extends BoundSnappingTool {
   @Override
   protected ProposedAction actionFromEditingSegment(int index,
       Point p1, int mod1, Point p2, int mod2) {
-    if( !altHeld(mod2) )
+    if( !altHeld(mod1, mod2) )
       return super.actionFromEditingSegment(index, p1, mod1, p2, mod2);
     var chain = editingChain();
     if( index <= 0 || index >= chain.numSegments-1 )

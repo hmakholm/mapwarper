@@ -17,7 +17,7 @@ class TrackEditTool extends EditTool {
   @Override
   protected ProposedAction actionForDraggingNode(int index, int mod1,
       Point p2, int mod2) {
-    if( !altHeld(mod2) )
+    if( !altHeld(mod1, mod2) )
       return super.actionForDraggingNode(index, mod1, p2, mod2);
     var chain = editingChain();
     var smoothed = chain.smoothed.get();
