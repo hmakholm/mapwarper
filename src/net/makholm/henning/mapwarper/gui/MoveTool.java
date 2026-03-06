@@ -8,7 +8,7 @@ import net.makholm.henning.mapwarper.gui.swing.Tool;
 final class MoveTool extends Tool {
 
   protected MoveTool(Commands logic) {
-    super(logic, "Mapwarper v3", "Move the map");
+    super(logic, "move", "Move the map");
     toolCursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
   }
 

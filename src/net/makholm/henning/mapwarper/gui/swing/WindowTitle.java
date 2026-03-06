@@ -62,7 +62,10 @@ public class WindowTitle {
       lensZoom = lensZoom0;
 
       StringBuffer sb = new StringBuffer();
-      sb.append(tool.codename);
+      if( "move".equals(tool.codename) )
+        sb.append("Mapwarper v3");
+      else
+        sb.append(tool.codename);
       sb.append(" \u2013 ");
       sb.append(file);
       sb.append(" \u2013 ");
