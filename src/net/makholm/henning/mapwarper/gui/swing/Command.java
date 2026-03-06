@@ -18,7 +18,6 @@ import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.util.BadError;
 
-@SuppressWarnings("serial")
 public abstract class Command {
 
   public final Commands owner;
