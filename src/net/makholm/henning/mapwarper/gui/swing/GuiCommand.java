@@ -1,4 +1,4 @@
-package net.makholm.henning.mapwarper;
+package net.makholm.henning.mapwarper.gui.swing;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -8,11 +8,11 @@ import java.util.List;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-import net.makholm.henning.mapwarper.gui.swing.GuiMain;
+import net.makholm.henning.mapwarper.Mapwarper;
 
 public class GuiCommand extends Mapwarper.Command {
 
-  GuiCommand(Mapwarper common) {
+  public GuiCommand(Mapwarper common) {
     super(common);
   }
 
@@ -29,7 +29,7 @@ public class GuiCommand extends Mapwarper.Command {
 
     try {
       SwingUtilities.invokeAndWait(() ->
-      GuiMain.main(common.tileContext, args));
+      MainFrame.main(common.tileContext, args));
     } catch (Exception e) {
       if( e instanceof InvocationTargetException ite &&
           ite.getCause() instanceof Exception re )

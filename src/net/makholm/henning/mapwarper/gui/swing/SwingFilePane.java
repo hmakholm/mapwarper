@@ -23,6 +23,7 @@ import net.makholm.henning.mapwarper.rgb.RGB;
 @SuppressWarnings("serial")
 public class SwingFilePane extends JComponent {
 
+  final MainFrame window;
   public final FilePane logic;
 
   public static final int OVERLAP = 3;
@@ -40,6 +41,7 @@ public class SwingFilePane extends JComponent {
   private final BufferedImage eyeIcon;
 
   public SwingFilePane(FilePane logic) {
+    this.window = (MainFrame)logic.window;
     this.logic = logic;
     italicFont = SwingUtils.getANiceItalicFont();
     Font font = SwingUtils.getANiceDefaultFont();
@@ -69,7 +71,7 @@ public class SwingFilePane extends JComponent {
 
     @Override
     public void mousePressed(MouseEvent e) {
-      logic.window.anyUserInputYet = true;
+      window.anyUserInputYet = true;
       FilePane.Entry entry = locate(e);
       switch( e.getButton() ) {
       case 1:

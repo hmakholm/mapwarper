@@ -7,6 +7,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -17,16 +18,19 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.makholm.henning.mapwarper.gui.Commands;
 import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.FilePane;
+import net.makholm.henning.mapwarper.gui.hairy.GuiMain;
 import net.makholm.henning.mapwarper.tiles.TileContext;
 import net.makholm.henning.mapwarper.util.BackgroundThread;
 import net.makholm.henning.mapwarper.util.BadError;
@@ -34,7 +38,7 @@ import net.makholm.henning.mapwarper.util.Regexer;
 import net.makholm.henning.mapwarper.util.XyTree;
 
 @SuppressWarnings("serial")
-public class GuiMain extends JFrame {
+class MainFrame extends JFrame implements GuiMain {
 
   final FilePane filePane;
   final TilesetPane tilesetPane;
@@ -59,6 +63,7 @@ public class GuiMain extends JFrame {
   Optional<BufferedImage> lensIcon =
       SwingUtils.loadBundledImage(true, "icons/lens.png");
 
+  @Override
   public Commands commands() {
     return commands;
   }
@@ -72,19 +77,28 @@ public class GuiMain extends JFrame {
 
   public static void main(TileContext tiles, List<String> args) {
     System.out.print("Starting GUI ...");
-    var frame = new GuiMain(tiles, args.isEmpty() ? null : args.get(0));
+    var frame = new MainFrame(tiles, args.isEmpty() ? null : args.get(0));
     System.out.println();
     frame.setVisible(true);
     frame.setTilesetPaneVisible(
         !"false".equals(System.getProperty("mapwarper.tilePaneAtStartup")));
   }
 
+  @Override
+  public void showWarningBox(String title, String fmt, Object... params) {
+    String msg = String.format(Locale.ROOT, fmt, params);
+    JOptionPane.showMessageDialog(this, msg,
+        title, JOptionPane.WARNING_MESSAGE);
+  }
+
+  @Override
   public void showErrorBox(String fmt, Object... params) {
     String msg = String.format(Locale.ROOT, fmt, params);
     JOptionPane.showMessageDialog(this, msg,
         "Error", JOptionPane.ERROR_MESSAGE);
   }
 
+  @Override
   public boolean showYesCancelBox(String title, String fmt, Object... params) {
     String msg = String.format(Locale.ROOT, fmt, params);
     int result = JOptionPane.showConfirmDialog(this, msg, title,
@@ -92,7 +106,51 @@ public class GuiMain extends JFrame {
     return result == JOptionPane.OK_OPTION;
   }
 
-  private GuiMain(TileContext tiles, String filearg) {
+  @Override
+  public Boolean showYesNoCancelBox(String title, String fmt, Object... params) {
+    String msg = String.format(Locale.ROOT, fmt, params);
+    int result = JOptionPane.showConfirmDialog(this, msg, title,
+        JOptionPane.YES_NO_CANCEL_OPTION);
+    switch( result ) {
+    case JOptionPane.NO_OPTION: return false;
+    case JOptionPane.YES_OPTION: return true;
+    default:
+    case JOptionPane.CANCEL_OPTION: return null;
+    }
+  }
+
+  private JFileChooser fileChooser(String title, String extension, String typetext) {
+    var fc = new JFileChooser();
+    fc.setCurrentDirectory(filePane.fileChooserLocation().toFile());
+    fc.setFileFilter(new FileNameExtensionFilter(typetext, extension));
+    fc.setAcceptAllFileFilterUsed(false);
+    if( title != null ) fc.setDialogTitle(title);
+    return fc;
+  }
+
+  @Override
+  public Path showSaveDialog(String title, String extension, String typetext) {
+    var fc = fileChooser(title, extension, typetext);
+    if( fc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION )
+      return null;
+    Path p = fc.getSelectedFile().toPath();
+    String lastname = p.getFileName().toString();
+    if( lastname.endsWith("."+extension) )
+      return p;
+    else
+      return p.resolveSibling(lastname+"."+extension);
+  }
+
+  @Override
+  public Path showOpenDialog(String extension, String typetext) {
+    var fc = fileChooser(null, extension, typetext);
+    if( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION )
+      return null;
+    else
+      return fc.getSelectedFile().toPath();
+  }
+
+  private MainFrame(TileContext tiles, String filearg) {
     setMainIcon();
     setTitle("Mapwarper v3");
     selectInitialSize();
@@ -211,10 +269,12 @@ public class GuiMain extends JFrame {
 
   private int savedLeftPanePosition = SwingFilePane.PREFERRED_WIDTH;
 
+  @Override
   public boolean filePaneVisible() {
     return leftSplitter.getDividerLocation() > 10;
   }
 
+  @Override
   public void setFilePaneVisible(boolean wantVisible) {
     var savedMouse = mainLogic.hairy.saveMousePosition();
     int curpos = leftSplitter.getDividerLocation();
@@ -233,11 +293,13 @@ public class GuiMain extends JFrame {
     mainLogic.hairy.invalidateToolResponse();
   }
 
+  @Override
   public boolean tilesetPaneVisible() {
     return rightSplitter.getDividerLocation() <
         rightSplitter.getMaximumDividerLocation() - 20;
   }
 
+  @Override
   public void setTilesetPaneVisible(boolean wantVisible) {
     if( wantVisible )
       rightSplitter.setDividerLocation(
@@ -247,10 +309,12 @@ public class GuiMain extends JFrame {
       rightSplitter.setDividerLocation(1.0);
   }
 
+  @Override
   public boolean toolbarVisible() {
     return currentToolbar != null;
   }
 
+  @Override
   public void setToolbarVisible(boolean wantVisible) {
     if( !wantVisible && currentToolbar != null ) {
       topSplitter.remove(currentToolbar);
@@ -263,15 +327,18 @@ public class GuiMain extends JFrame {
     }
   }
 
+  @Override
   public void repaintToolbar(Command command) {
     if( currentToolbar != null )
       currentToolbar.perhapsRepaint(command);
   }
 
+  @Override
   public void updateTilesetPane() {
     tilesetPane.repaint();
   }
 
+  @Override
   public void quitCommand() {
     if( filePane.cache.anyUnsavedChanges() ) {
       int result = JOptionPane.showConfirmDialog(this,

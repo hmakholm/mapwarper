@@ -11,6 +11,7 @@ import java.util.List;
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.Vector;
+import net.makholm.henning.mapwarper.gui.hairy.GuiMain;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.util.BadError;
 
@@ -49,19 +50,19 @@ public class TextOverlay implements VectorOverlay {
   private static final Font defaultFont =
       SwingUtils.getANiceDefaultFont().deriveFont(13.0f);
 
-  public static TextOverlay of(Component c, String... text) {
+  public static TextOverlay of(GuiMain c, String... text) {
     return of(c, new Style(), Point.ORIGIN, Arrays.asList(text));
   }
 
-  public static TextOverlay of(Component c, List<String> text) {
+  public static TextOverlay of(GuiMain c, List<String> text) {
     return of(c, new Style(), Point.ORIGIN, text);
   }
 
-  public static TextOverlay of(Component c, Style style,
+  public static TextOverlay of(GuiMain c, Style style,
       Point nw, List<String> text) {
     style = style.clone();
     nw = round(nw);
-    var metrics = c.getFontMetrics(style.font);
+    var metrics = ((Component)c).getFontMetrics(style.font);
     int width = 0;
     int height = text.size()*metrics.getHeight();
     for( var s : text )

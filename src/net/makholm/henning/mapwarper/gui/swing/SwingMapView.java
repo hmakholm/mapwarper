@@ -42,6 +42,7 @@ public class SwingMapView extends JComponent
 implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
   public final MapView logic;
+  public final MainFrame window;
   public final JScrollPane scrollPane;
   public final JViewport viewport;
 
@@ -69,6 +70,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   private boolean everPaintedYet;
 
   public SwingMapView(MapView logic) {
+    this.window = (MainFrame)logic.window;
     this.logic = logic;
     Dimension wantedSize = new Dimension(1<<20, 1<<20);
     setMinimumSize(wantedSize);
@@ -133,8 +135,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     if( !everPaintedYet ) return;
     readViewportRect();
 
-    logic.window.windowTitle.refresh();
-    logic.window.repaintToolbar(null);
+    window.windowTitle.refresh();
+    window.repaintToolbar(null);
 
     var newTrackData = logic.collectVisibleTrackData();
     if( !newTrackData.equals(baseTrackData) ) {
@@ -433,7 +435,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
   @Override
   public void mousePressed(MouseEvent e) {
-    logic.window.anyUserInputYet = true;
+    window.anyUserInputYet = true;
     popupMousePosition = null;
     cancelDrag();
     readMousePosition(e);
@@ -441,7 +443,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     if( e.getButton() == 3 ) {
       popupMousePosition = windowMousePosition;
       PopupMenu popup = new PopupMenu();
-      logic.window.commands.defineMenu(popup);
+      window.commands.defineMenu(popup);
       popup.show(this, e.getX(), e.getY());
     } else {
       dragStartingEvent = e;
@@ -541,9 +543,9 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
       return;
     }
     if( e.getWheelRotation() < 0 )
-      logic.window.commands.zoomIn.invoke();
+      window.commands.zoomIn.invoke();
     else if( e.getWheelRotation() > 0 )
-      logic.window.commands.zoomOut.invoke();
+      window.commands.zoomOut.invoke();
     else
       return;
     refreshScene();
@@ -551,7 +553,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
   @Override
   public void keyPressed(KeyEvent e) {
-    logic.window.anyUserInputYet = true;
+    window.anyUserInputYet = true;
     modifierState = e.getModifiersEx();
     if( e.getKeyCode() == KeyEvent.VK_SHIFT ) {
       var tempProj = toolResponseTool.shiftDownProjectionSwitcher(

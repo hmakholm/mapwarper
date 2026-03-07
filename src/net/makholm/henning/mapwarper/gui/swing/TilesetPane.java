@@ -29,7 +29,7 @@ public class TilesetPane extends Box {
 
   private final Map<String, JComponent> componentMap = new LinkedHashMap<>();
 
-  TilesetPane(GuiMain window, TileContext context) {
+  TilesetPane(MainFrame window, TileContext context) {
     super(BoxLayout.Y_AXIS);
     setMinimumSize(new Dimension(0,0));
 
@@ -41,8 +41,8 @@ public class TilesetPane extends Box {
 
   private static class OneTileset extends JPanel {
     final Tileset tiles;
-    final GuiMain window;
-    OneTileset(GuiMain window, Tileset tiles, TilesetPane parent) {
+    final MainFrame window;
+    OneTileset(MainFrame window, Tileset tiles, TilesetPane parent) {
       this.tiles = tiles;
       this.window = window;
       setAlignmentX(RIGHT_ALIGNMENT);

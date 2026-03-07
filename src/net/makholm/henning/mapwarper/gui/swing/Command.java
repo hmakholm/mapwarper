@@ -70,7 +70,8 @@ public abstract class Command {
     return new AbstractAction(niceName) {
       @Override
       public void actionPerformed(ActionEvent e) {
-        owner.window.anyUserInputYet = true;
+        var mainFrame = (MainFrame)owner.window;
+        mainFrame.anyUserInputYet = true;
         String swingstring = e.getActionCommand();
         if( swingstring == null ) {
           // This seems to happen for non-character keys such as F-keys

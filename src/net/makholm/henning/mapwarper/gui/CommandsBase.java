@@ -4,8 +4,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import net.makholm.henning.mapwarper.gui.files.FilePane;
+import net.makholm.henning.mapwarper.gui.hairy.GuiMain;
 import net.makholm.henning.mapwarper.gui.swing.Command;
-import net.makholm.henning.mapwarper.gui.swing.GuiMain;
 import net.makholm.henning.mapwarper.gui.swing.SwingMapView;
 
 /**

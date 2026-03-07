@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import net.makholm.henning.mapwarper.gui.UndoList;
-import net.makholm.henning.mapwarper.gui.swing.GuiMain;
+import net.makholm.henning.mapwarper.gui.hairy.GuiMain;
 import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.track.TrackNode;

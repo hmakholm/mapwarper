@@ -9,8 +9,6 @@ import java.util.Locale;
 import java.util.concurrent.Semaphore;
 
 import javax.imageio.ImageIO;
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.gui.maprender.FrozenLayerSpec;
@@ -59,18 +57,11 @@ public class Exporter extends Command {
       return;
     }
 
-    var fc = owner.files.locatedFileChooser();
-    fc.setFileFilter(new FileNameExtensionFilter("PNG file", "png"));
-    fc.setDialogTitle("Export "+renderThread.width+" × "+renderThread.height+" pixels");
-    if( fc.showSaveDialog(owner.window) != JFileChooser.APPROVE_OPTION )
-      return;
-    Path outfile = fc.getSelectedFile().toPath();
-
-    String lastname = outfile.getFileName().toString();
-    if( !lastname.endsWith(".png") )
-      outfile = outfile.resolveSibling(lastname+".png");
-
-    renderThread.start(outfile);
+    Path outfile = owner.window.showSaveDialog(
+        "Export "+renderThread.width+" × "+renderThread.height+" pixels",
+        "png", "PNG file");
+    if( outfile != null )
+      renderThread.start(outfile);
   }
 
   public static class ExportRenderThread extends BackgroundThread {

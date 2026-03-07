@@ -12,7 +12,7 @@ class Hamburger extends JComponent {
 
   private final int margin;
 
-  Hamburger(int totalSize, int margin, GuiMain window) {
+  Hamburger(int totalSize, int margin, MainFrame window) {
     this.margin = margin;
     var dim = new Dimension(totalSize, totalSize);
     setSize(dim);

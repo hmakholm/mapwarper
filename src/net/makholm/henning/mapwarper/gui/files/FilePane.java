@@ -10,15 +10,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
 import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.UndoList;
 import net.makholm.henning.mapwarper.gui.UndoList.UndoItem;
+import net.makholm.henning.mapwarper.gui.hairy.GuiMain;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
-import net.makholm.henning.mapwarper.gui.swing.GuiMain;
 import net.makholm.henning.mapwarper.gui.swing.SwingFilePane;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.track.FileContent;
@@ -267,13 +263,9 @@ public class FilePane {
         startWhere.startsWith(activeFile.path.getParent()) )
       startWhere = activeFile.path.getParent();
 
-    var fc = new JFileChooser();
-    fc.setCurrentDirectory(startWhere.toFile());
-    fc.setFileFilter(new FileNameExtensionFilter(
-        "Vector track files", VectFile.EXTENSION.substring(1)));
-    fc.setAcceptAllFileFilterUsed(false);
-    if( fc.showOpenDialog(window) == JFileChooser.APPROVE_OPTION ) {
-      Path toOpen = fc.getSelectedFile().toPath();
+    var toOpen = window.showOpenDialog(VectFile.EXTENSION.substring(1),
+        "Vector track files");
+    if( toOpen != null ) {
       var vf = cache.getFile(toOpen);
       openFile(vf);
     }
@@ -364,31 +356,22 @@ public class FilePane {
     return active.path == null && active.isModified();
   }
 
-  public JFileChooser locatedFileChooser() {
-    var fc = new JFileChooser();
+  public Path fileChooserLocation() {
     if( activeFile.path != null )
-      fc.setCurrentDirectory(activeFile.path.getParent().toFile());
+      return activeFile.path.getParent();
     else
-      fc.setCurrentDirectory(focusDir().toFile());
-    return fc;
+      return focusDir();
   }
 
   public boolean saveAsIfNecessary() {
     if( activeFile.path != null )
       return true;
     else {
-      var fc = locatedFileChooser();
-      fc.setFileFilter(new FileNameExtensionFilter(
-          "Vector track files", VectFile.EXTENSION.substring(1)));
-      fc.setAcceptAllFileFilterUsed(false);
-
-      if( fc.showSaveDialog(window) != JFileChooser.APPROVE_OPTION ) {
+      Path toSaveTo = window.showSaveDialog(null,
+          VectFile.EXTENSION.substring(1), "Vector track files");
+      if( toSaveTo == null ) {
         return false;
       } else {
-        Path toSaveTo = fc.getSelectedFile().toPath();
-        String filename = toSaveTo.getFileName().toString();
-        if( !filename.endsWith(VectFile.EXTENSION) )
-          toSaveTo = toSaveTo.resolveSibling(filename+VectFile.EXTENSION);
         if( Files.exists(toSaveTo) ) {
           window.showErrorBox("%s already seems to exist.", toSaveTo);
           return false;
@@ -455,11 +438,10 @@ public class FilePane {
     if( count == 0 ) {
       alsoChanged = false;
     } else {
-      int answer = JOptionPane.showConfirmDialog(window,
-          "Also revert "+count+" unsaved files?",
-          "Re-read files from disk", JOptionPane.YES_NO_CANCEL_OPTION);
-      if( answer == JOptionPane.CANCEL_OPTION ) return;
-      alsoChanged = answer == JOptionPane.YES_OPTION;
+      var answer = window.showYesNoCancelBox("Re-read files from disk",
+          "Also revert %d unsaved files?", count);
+      if( answer == null ) return;
+      alsoChanged = answer;
     }
     Map<Path, FileContent> undoMap = cache.revertContent(alsoChanged);
     mapView.setEditingChain(null);
@@ -478,13 +460,12 @@ public class FilePane {
           cache.getFile(path).changeContentNoUndo(null, content);
         });
         mapView.setEditingChain(null);
-        JOptionPane.showMessageDialog(window,
-            undoMap.size()+" files have been reset to their state before "
+        window.showWarningBox("Reverting undone",
+            "%u files have been reset to their state before "
                 +"they were reverted. This leaves the undo machinery in a "
                 +"somewhat inconsistent state; you'll probably want "
                 +"to save everything now and start over ...",
-                "Reverting undone",
-                JOptionPane.WARNING_MESSAGE);
+                undoMap.size());
         return null;
       }
     });

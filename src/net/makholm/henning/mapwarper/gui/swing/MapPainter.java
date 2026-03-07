@@ -470,7 +470,7 @@ class MapPainter {
       if( worker != null ) {
         var toDispose = worker;
         worker = null;
-        owner.logic.window.miscAsyncWork.execute(toDispose::dispose);
+        owner.window.miscAsyncWork.execute(toDispose::dispose);
       }
     }
 

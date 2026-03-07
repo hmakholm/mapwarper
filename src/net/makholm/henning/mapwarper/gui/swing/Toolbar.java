@@ -30,13 +30,13 @@ import net.makholm.henning.mapwarper.util.XmlConfig;
 @SuppressWarnings("serial")
 class Toolbar extends Box {
 
-  private final GuiMain window;
+  private final MainFrame window;
   private final Map<String, MyButton> buttonsByName = new LinkedHashMap<>();
 
   static final int BARHEIGHT = 40;
   static final int MARGIN = 4;
 
-  Toolbar(GuiMain window) {
+  Toolbar(MainFrame window) {
     super(BoxLayout.X_AXIS);
     this.window = window;
     setPreferredSize(new Dimension(200, BARHEIGHT));
@@ -102,7 +102,7 @@ class Toolbar extends Box {
   }
 
   private static abstract class MyButton extends JComponent {
-    final GuiMain window;
+    final MainFrame window;
     final Command command;
     MyButton(Toolbar toolbar, Command command, Dimension dim) {
       this.window = toolbar.window;

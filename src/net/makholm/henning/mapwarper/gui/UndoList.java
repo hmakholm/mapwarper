@@ -2,11 +2,9 @@ package net.makholm.henning.mapwarper.gui;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Locale;
 
 import javax.swing.Action;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import net.makholm.henning.mapwarper.gui.files.VectFile;
@@ -120,14 +118,12 @@ public class UndoList {
       }
       FileContent after = after();
       while( !vf.changeContentNoUndo(after, before) ) {
-        String msg = String.format(Locale.ROOT,
+        var result = mapView.window.showYesCancelBox("Inconsistency warning",
             "Cannot undo/redo '%s' cleanly because %s seems to have changed "
                 + "without leaving an undo record. "
                 + "Restore the saved content anyway?",
                 undoDesc, vf);
-        int result = JOptionPane.showConfirmDialog(mapView.window, msg,
-            "Inconsistency warning", JOptionPane.OK_CANCEL_OPTION);
-        if( result != JOptionPane.OK_OPTION )
+        if( !result )
           return null;
         after = vf.content();
       }

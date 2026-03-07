@@ -14,6 +14,7 @@ import java.util.function.Function;
 import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.georaster.CoordsParser;
 import net.makholm.henning.mapwarper.georaster.WebMercator;
+import net.makholm.henning.mapwarper.gui.swing.GuiCommand;
 import net.makholm.henning.mapwarper.tiles.TileContext;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 import net.makholm.henning.mapwarper.util.BadError;
@@ -112,9 +113,9 @@ public class Mapwarper {
     return false;
   }
 
-  static abstract class Command {
+  public static abstract class Command {
     protected final Mapwarper common;
-    Command(Mapwarper common) {
+    protected Command(Mapwarper common) {
       this.common = common;
     }
 
