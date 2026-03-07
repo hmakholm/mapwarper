@@ -277,7 +277,7 @@ public final class MapView {
   }
 
   void lensChanged() {
-    window.tilesetPane.repaint();
+    window.updateTilesetPane();
   }
 
   int naturalLensZoom() {
@@ -346,8 +346,8 @@ public final class MapView {
   public void setInitialPosition() {
     VectFile active = files.activeFile();
     if( active.path == null ) {
-      window.commands.openTool.invokeInitially(copenhagen());
-      currentTool = window.commands.openTool;
+      window.commands().openTool.invokeInitially(copenhagen());
+      currentTool = window.commands().openTool;
       return;
     }
     XyTree<ChainRef<TrackNode>> nodes = active.allShownNodes();
@@ -495,14 +495,14 @@ public final class MapView {
     if( mainTiles == mapTiles && !warpTilesByDefault() )
       setMainTiles(tiles);
     mapTiles = tiles;
-    window.tilesetPane.repaint();
+    window.updateTilesetPane();
   }
 
   void setwarpCommand(Tileset tiles) {
     if( mainTiles == warpTiles && warpTilesByDefault() )
       setMainTiles(tiles);
     warpTiles = tiles;
-    window.tilesetPane.repaint();
+    window.updateTilesetPane();
   }
 
   public void orthoCommand(Tileset targetTiles, boolean downloading) {
@@ -627,7 +627,7 @@ public final class MapView {
   void lensCommand(Tileset targetTiles) {
     cancelLens();
     lensTiles = targetTiles;
-    window.commands.lens.invoke();
+    window.commands().lens.invoke();
   }
 
   private Runnable cancelLastGetTile = () -> {};

@@ -306,7 +306,7 @@ public class FilePane {
         showtracks.clear();
         if( !mapView.projection.base().isOrtho() )
           mapView.orthoCommand(null, true);
-        mapView.selectTool(window.commands.move);
+        mapView.selectTool(window.commands().move);
       }
     };
   }

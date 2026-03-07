@@ -36,13 +36,13 @@ import net.makholm.henning.mapwarper.util.XyTree;
 @SuppressWarnings("serial")
 public class GuiMain extends JFrame {
 
-  public final FilePane filePane;
-  public final TilesetPane tilesetPane;
-  public final MapView mainLogic;
-  public final Commands commands;
-  public final JComponent topLevelComponent;
+  final FilePane filePane;
+  final TilesetPane tilesetPane;
+  final MapView mainLogic;
+  final Commands commands;
+  final JComponent topLevelComponent;
 
-  public final WindowTitle windowTitle;
+  final WindowTitle windowTitle;
 
   private final JSplitPane leftSplitter;
   private final JSplitPane rightSplitter;
@@ -59,11 +59,15 @@ public class GuiMain extends JFrame {
   Optional<BufferedImage> lensIcon =
       SwingUtils.loadBundledImage(true, "icons/lens.png");
 
+  public Commands commands() {
+    return commands;
+  }
+
   /**
    * Used for short administrative actions that must be decoupled from the
    * calling context for reasons of deadlock avoidance.
    */
-  public final Executor miscAsyncWork =
+  final Executor miscAsyncWork =
       BackgroundThread.executor("MiscAsyncWork");
 
   public static void main(TileContext tiles, List<String> args) {
@@ -262,6 +266,10 @@ public class GuiMain extends JFrame {
   public void repaintToolbar(Command command) {
     if( currentToolbar != null )
       currentToolbar.perhapsRepaint(command);
+  }
+
+  public void updateTilesetPane() {
+    tilesetPane.repaint();
   }
 
   public void quitCommand() {
