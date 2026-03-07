@@ -119,7 +119,7 @@ class Toolbar extends Box {
           if( e.getButton() == 1 ) {
             command.invoke();
             perhapsRepaint();
-            window.mainLogic.swing.refreshScene();
+            window.mainLogic.hairy.refreshScene();
           }
         }
       });

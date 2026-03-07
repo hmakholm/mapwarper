@@ -102,9 +102,9 @@ public class OpenTool extends TrackHidingTool {
       subscribedYet = true;
       owner.files.focusDirClicked.subscribe(() -> {
         if( mapView().currentTool == OpenTool.this ) {
-          mapView().swing.invalidateToolResponse();
+          mapView().hairy.invalidateToolResponse();
           makeVisible(null);
-          mapView().swing.refreshScene();
+          mapView().hairy.refreshScene();
         }
       });
     }

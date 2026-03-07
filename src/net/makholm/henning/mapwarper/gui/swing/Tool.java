@@ -117,7 +117,7 @@ public abstract class Tool extends Command implements MouseAction {
   }
 
   public void whenSelected() {
-    mapView().swing.tempTool.disable();
+    mapView().hairy.tempTool.disable();
   }
 
   public void whenDeselected() {
@@ -130,11 +130,11 @@ public abstract class Tool extends Command implements MouseAction {
     invoke();
     if( prev != this && key != KeyEvent.CHAR_UNDEFINED &&
         mapView().currentTool == this )
-      mapView().swing.tempTool = new TempToolReleaser(this, key, prev);
+      mapView().hairy.tempTool = new TempToolReleaser(this, key, prev);
   }
 
   protected final boolean isTempTool() {
-    return mapView().swing.tempTool.waitingFor(this);
+    return mapView().hairy.tempTool.waitingFor(this);
   }
 
   protected ToolResponse simpleKeyAction(Point pos, int modifiers) {
@@ -205,7 +205,7 @@ public abstract class Tool extends Command implements MouseAction {
     return quickCommands.computeIfAbsent(modifier, m0 ->
     new Command(owner, quickCodename, niceName) {
       private ToolResponse tr() {
-        return owner.swing.quickToolResponse(Tool.this,
+        return owner.hairy.quickToolResponse(Tool.this,
             modifier | QUICK_COM_MASK);
       }
       @Override

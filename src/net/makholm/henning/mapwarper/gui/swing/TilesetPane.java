@@ -81,7 +81,7 @@ public class TilesetPane extends Box {
               // fall through to showing the popup menu
             } else {
               window.mainLogic.defaultTilesetClickAction(tiles);
-              window.mainLogic.swing.refreshScene();
+              window.mainLogic.hairy.refreshScene();
               break;
             }
           case 3:
@@ -92,7 +92,7 @@ public class TilesetPane extends Box {
             popup.addSeparator();
             window.commands.defineTilesetMenu(tiles, popup);
             popup.show(OneTileset.this, e.getX(), e.getY());
-            window.mainLogic.swing.refreshScene();
+            window.mainLogic.hairy.refreshScene();
             break;
           }
         }

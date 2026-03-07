@@ -34,7 +34,7 @@ public class Teleporter {
 
     // Make sure the cached mouse position, visible area, and so forth
     // gets updated immediately.
-    mapView.swing.refreshScene();
+    mapView.hairy.refreshScene();
   }
 
   public Teleporter(MapView owner) {

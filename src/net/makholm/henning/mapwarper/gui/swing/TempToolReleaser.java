@@ -94,7 +94,7 @@ final class TempToolReleaser {
     System.err.println("[resume "+switchTo.codename+"]");
     waitingFor = NEVER;
     switchTo.mapView().selectTool(switchTo);
-    switchTo.mapView().swing.refreshScene();
+    switchTo.mapView().hairy.refreshScene();
   }
 
 }

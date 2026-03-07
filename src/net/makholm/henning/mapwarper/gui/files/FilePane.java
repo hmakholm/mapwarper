@@ -39,6 +39,7 @@ import net.makholm.henning.mapwarper.util.PokeReceiver;
 public class FilePane {
 
   public final GuiMain window;
+  public final SwingFilePane hairy;
   public final MapView mapView;
   public final FSCache cache;
 
@@ -55,7 +56,7 @@ public class FilePane {
     this.window = map.window;
     this.mapView = map;
     this.cache = cache;
-    this.swing = new SwingFilePane(this);
+    this.hairy = new SwingFilePane(this);
 
     Path arg = Path.of(filearg == null ? "." : filearg);
     arg = arg.toAbsolutePath().normalize();
@@ -195,7 +196,7 @@ public class FilePane {
         openFile(entry);
         pokeWhat = null;
       }
-      mapView.swing.refreshScene();
+      mapView.hairy.refreshScene();
       break;
     default:
       throw BadError.of("This is not an entry kind: %s", entry.kind);
@@ -208,7 +209,7 @@ public class FilePane {
   public void moveSelection(int delta) {
     int i = MathUtil.clamp(0, selectionIndex+delta, entryList.length-1);
     selectionPath = entryList[i].path;
-    mapView.swing.invalidateToolResponse();
+    mapView.hairy.invalidateToolResponse();
     updateView();
   }
 
@@ -586,8 +587,6 @@ public class FilePane {
 
   // -------------------------------------------------------------------------
 
-  public final SwingFilePane swing;
-
   public Entry[] entryList;
 
   private Path selectionPath;
@@ -668,7 +667,7 @@ public class FilePane {
       neededSubscriptions.clear();
       neededSubscriptions.add(cache.modifiedFilesPokes);
     }
-    swing.refreshScene(entryList);
+    hairy.refreshScene(entryList);
   }
 
   private List<CachedDirectory> createTrunk() {

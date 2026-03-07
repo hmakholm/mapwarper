@@ -58,7 +58,7 @@ public abstract class Command {
   }
 
   protected void invokeByKey(char key) {
-    mapView().swing.tempTool.disable();
+    mapView().hairy.tempTool.disable();
     invoke();
   }
 
@@ -76,7 +76,7 @@ public abstract class Command {
         }
         if( niceName.equals(swingstring) ) {
           // This happens when the invocation comes via a menu
-          owner.swing.whenInvokingCommand(true);
+          owner.hairy.whenInvokingCommand(true);
           debugTraceInvoke();
           invoke();
         } else if( (e.getModifiers() & ActionEvent.ALT_MASK) != 0 &&
@@ -84,14 +84,14 @@ public abstract class Command {
             (keybinding.getModifiers() & InputEvent.ALT_DOWN_MASK) == 0 ) {
           System.err.println("[ignoing spurious "+codename+"] <"+keybinding+">");
           return;
-        } else if( owner.swing.possiblyRepeatingKey.equals(swingstring) &&
+        } else if( owner.hairy.possiblyRepeatingKey.equals(swingstring) &&
             !codename.endsWith("...")) {
           // ignore auto-repeating keys where we haven't seen a key
           // release event first
           return;
         } else {
-          owner.swing.possiblyRepeatingKey = swingstring;
-          owner.swing.whenInvokingCommand(false);
+          owner.hairy.possiblyRepeatingKey = swingstring;
+          owner.hairy.whenInvokingCommand(false);
           debugTraceInvoke();
           if( swingstring != null && swingstring.length() == 1 ) {
             invokeByKey(swingstring.charAt(0));
@@ -99,7 +99,7 @@ public abstract class Command {
             invoke();
           }
         }
-        owner.swing.refreshScene();
+        owner.hairy.refreshScene();
       }
     };
   }

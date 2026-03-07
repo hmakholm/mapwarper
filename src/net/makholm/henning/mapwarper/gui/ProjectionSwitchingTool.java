@@ -23,7 +23,7 @@ public abstract class ProjectionSwitchingTool extends Tool {
   @Override
   public ToolResponse mouseResponse(Point pos, int modifiers) {
     if( shiftHeld(modifiers) ) {
-      return why -> owner.swing.commitToTempProjection();
+      return why -> owner.hairy.commitToTempProjection();
     } else {
       return clickResponse(pos, modifiers);
     }

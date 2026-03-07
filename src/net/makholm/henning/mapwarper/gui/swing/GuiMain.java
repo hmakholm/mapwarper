@@ -102,10 +102,10 @@ public class GuiMain extends JFrame {
     windowTitle = new WindowTitle(this, mainLogic);
 
     topSplitter = new Box(BoxLayout.Y_AXIS);
-    topSplitter.add(mainLogic.swing.scrollPane);
+    topSplitter.add(mainLogic.hairy.scrollPane);
 
     leftSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-        true, filePane.swing, topSplitter);
+        true, filePane.hairy, topSplitter);
     leftSplitter.setBorder(null);
     leftSplitter.setResizeWeight(0);
     if( XyTree.isEmpty(filePane.activeFile().content().nodeTree.get()) )
@@ -127,7 +127,7 @@ public class GuiMain extends JFrame {
     killInputMaps();
     commands.defineKeyBindings(this::defineKeyBinding);
 
-    mainLogic.swing.repaintFromScratch();
+    mainLogic.hairy.repaintFromScratch();
 
     addComponentListener(new ResizeListener());
 
@@ -193,7 +193,7 @@ public class GuiMain extends JFrame {
     int newPosition = (Integer)e.getNewValue();
     int delta = newPosition - oldPosition;
     mainLogic.positionX += delta;
-    mainLogic.swing.refreshScene();
+    mainLogic.hairy.refreshScene();
     repaintToolbar(commands.toggleFilePane);
   }
 
@@ -212,7 +212,7 @@ public class GuiMain extends JFrame {
   }
 
   public void setFilePaneVisible(boolean wantVisible) {
-    var savedMouse = mainLogic.swing.saveMousePosition();
+    var savedMouse = mainLogic.hairy.saveMousePosition();
     int curpos = leftSplitter.getDividerLocation();
     if( curpos > 10 ) {
       if( !wantVisible ) {
@@ -225,8 +225,8 @@ public class GuiMain extends JFrame {
         leftSplitter.setDividerLocation(pos);
       }
     }
-    mainLogic.swing.restoreMousePosition(savedMouse);
-    mainLogic.swing.invalidateToolResponse();
+    mainLogic.hairy.restoreMousePosition(savedMouse);
+    mainLogic.hairy.invalidateToolResponse();
   }
 
   public boolean tilesetPaneVisible() {
@@ -291,7 +291,7 @@ public class GuiMain extends JFrame {
     var cond = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
     leftSplitter.setInputMap(cond, null);
     rightSplitter.setInputMap(cond, null);
-    mainLogic.swing.scrollPane.setInputMap(cond, null);
+    mainLogic.hairy.scrollPane.setInputMap(cond, null);
     topLevelComponent.setInputMap(cond, new InputMap());
   }
 

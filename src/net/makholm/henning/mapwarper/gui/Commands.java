@@ -25,7 +25,7 @@ public class Commands {
 
   public final GuiMain window;
   public final MapView mapView;
-  public final SwingMapView swing;
+  public final SwingMapView hairy;
   public final FilePane files;
 
   public final Map<String, Command> commandRegistry = new LinkedHashMap<>();
@@ -33,7 +33,7 @@ public class Commands {
   public Commands(MapView main) {
     window = main.window;
     mapView = main;
-    swing = main.swing;
+    hairy = main.hairy;
     files = main.files;
 
     mapView.currentTool = move;
@@ -145,7 +145,7 @@ public class Commands {
       self -> self.mapView.singleTileDownloadCommand());
 
   private final Cmd repaint = simple("repaint", "Repaint from scratch",
-      self -> self.swing.repaintFromScratch());
+      self -> self.hairy.repaintFromScratch());
 
   private final Cmd refresh = simple("refresh", "Save and refresh warp",
       self -> self.mapView.refreshWarpCommand());

@@ -58,7 +58,7 @@ import net.makholm.henning.mapwarper.util.XyTree;
 public final class MapView {
 
   public final GuiMain window;
-  public final SwingMapView swing;
+  public final SwingMapView hairy;
   public final FilePane files;
   public final TileContext tiles;
 
@@ -124,10 +124,10 @@ public final class MapView {
     this.warpTiles = tiles.tilesets.get("google");
     if( warpTiles == null ) warpTiles = mainTiles;
 
-    this.swing = new SwingMapView(this);
+    this.hairy = new SwingMapView(this);
 
     this.refreshTrigger = new PokeReceiver("deferred refresh MapView",
-        swing::refreshScene);
+        hairy::refreshScene);
     this.contentChangeListener = new PokeReceiver("content change listener",
         refreshTrigger);
 
@@ -166,7 +166,7 @@ public final class MapView {
       if( toUse != null ) {
         System.err.println(mainTiles.name+" transfer function = "+toUse);
         mainTiles.transferFunction = options.get(toUse);
-        swing.invalidateMapRendering();
+        hairy.invalidateMapRendering();
       }
     };
   }
@@ -186,9 +186,9 @@ public final class MapView {
 
     Point newLocal = setProjection(newProj, mouseLocal);
 
-    swing.refreshScene();
+    hairy.refreshScene();
     mouseLocal = newLocal;
-    swing.mousePositionAdjusted();
+    hairy.mousePositionAdjusted();
   }
 
   public Point setProjection(Projection newProj, Point localFixpoint) {
@@ -263,7 +263,7 @@ public final class MapView {
 
   void cancelLens() {
     if( lensRect != null ) {
-      swing.repaintFor(lensRect);
+      hairy.repaintFor(lensRect);
       lensRect = null;
       lensChanged();
     }
@@ -443,7 +443,7 @@ public final class MapView {
   }
 
   void escapePressed() {
-    if( swing.cancelDrag() ) {
+    if( hairy.cancelDrag() ) {
       // That's all
     } else if( lensRect != null ) {
       cancelLens();

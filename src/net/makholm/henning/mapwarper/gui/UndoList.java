@@ -198,7 +198,7 @@ public class UndoList {
         result = new JMenuItem(verb+" "+fromStack.get(howmany-1).undoDesc());
         result.addActionListener(e -> {
           invoke();
-          owner.swing.refreshScene();
+          owner.hairy.refreshScene();
         });
       }
       if( getAction().getValue(Action.ACCELERATOR_KEY)

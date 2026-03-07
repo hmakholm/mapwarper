@@ -68,7 +68,7 @@ public class LensTool extends Tool {
         }
         mapView().lensZoom++;
         System.err.println("Lens zoom now "+mapView().lensZoom);
-        owner.swing.invalidateToolResponse();
+        owner.hairy.invalidateToolResponse();
       };
   }
 
@@ -80,7 +80,7 @@ public class LensTool extends Tool {
       return () -> {
         mapView().lensZoom--;
         System.err.println("zoom now "+mapView().lensZoom);
-        owner.swing.invalidateToolResponse();
+        owner.hairy.invalidateToolResponse();
       };
   }
 
