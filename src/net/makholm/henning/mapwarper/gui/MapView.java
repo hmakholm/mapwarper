@@ -19,6 +19,7 @@ import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.FilePane;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.hairy.GuiMain;
+import net.makholm.henning.mapwarper.gui.hairy.MapViewCompanion;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
@@ -29,7 +30,6 @@ import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
 import net.makholm.henning.mapwarper.gui.projection.TurnedProjection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection.CannotWarp;
-import net.makholm.henning.mapwarper.gui.swing.SwingMapView;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.tiles.NomapTiles;
@@ -58,7 +58,7 @@ import net.makholm.henning.mapwarper.util.XyTree;
 public final class MapView {
 
   public final GuiMain window;
-  public final SwingMapView hairy;
+  public final MapViewCompanion hairy;
   public final FilePane files;
   public final TileContext tiles;
 
@@ -124,7 +124,7 @@ public final class MapView {
     this.warpTiles = tiles.tilesets.get("google");
     if( warpTiles == null ) warpTiles = mainTiles;
 
-    this.hairy = new SwingMapView(this);
+    this.hairy = window.createCompanion(this);
 
     this.refreshTrigger = new PokeReceiver("deferred refresh MapView",
         hairy::refreshScene);
@@ -263,7 +263,7 @@ public final class MapView {
 
   void cancelLens() {
     if( lensRect != null ) {
-      hairy.repaintFor(lensRect);
+      hairy.cancelLens(lensRect);
       lensRect = null;
       lensChanged();
     }

@@ -5,8 +5,8 @@ import java.util.Map;
 
 import net.makholm.henning.mapwarper.gui.files.FilePane;
 import net.makholm.henning.mapwarper.gui.hairy.GuiMain;
+import net.makholm.henning.mapwarper.gui.hairy.MapViewCompanion;
 import net.makholm.henning.mapwarper.gui.swing.Command;
-import net.makholm.henning.mapwarper.gui.swing.SwingMapView;
 
 /**
  * This is a separate class just so its constructor gets to run before
@@ -17,7 +17,7 @@ public class CommandsBase {
 
   public final GuiMain window;
   public final MapView mapView;
-  public final SwingMapView hairy;
+  public final MapViewCompanion hairy;
   public final FilePane files;
 
   public final Map<String, Command> commandRegistry = new LinkedHashMap<>();

@@ -26,6 +26,8 @@ import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.MouseAction;
 import net.makholm.henning.mapwarper.gui.MouseAction.ToolResponse;
 import net.makholm.henning.mapwarper.gui.Teleporter;
+import net.makholm.henning.mapwarper.gui.hairy.MapViewCompanion;
+import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
 import net.makholm.henning.mapwarper.track.VisibleTrackData;
 
@@ -38,13 +40,13 @@ import net.makholm.henning.mapwarper.track.VisibleTrackData;
  * There's a 1:1 correspondence between this and {@link MapView}.
  */
 @SuppressWarnings("serial")
-public class SwingMapView extends JComponent
-implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
+class SwingMapView extends JComponent implements MapViewCompanion,
+MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
-  public final MapView logic;
-  public final MainFrame window;
-  public final JScrollPane scrollPane;
-  public final JViewport viewport;
+  final MapView logic;
+  final MainFrame window;
+  final JScrollPane scrollPane;
+  final JViewport viewport;
 
   Rectangle viewportRect;
   long positionOffsetX, positionOffsetY;
@@ -69,8 +71,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
   private boolean everPaintedYet;
 
-  public SwingMapView(MapView logic) {
-    this.window = (MainFrame)logic.window;
+  SwingMapView(MainFrame window, MapView logic) {
+    this.window = window;
     this.logic = logic;
     Dimension wantedSize = new Dimension(1<<20, 1<<20);
     setMinimumSize(wantedSize);
@@ -131,6 +133,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
    * -- except that we react to projection and position changes immediately
    * by reconfiguring the JScrollPane.
    */
+  @Override
   public void refreshScene() {
     if( !everPaintedYet ) return;
     readViewportRect();
@@ -151,6 +154,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     logic.files.perhapsDeferredShutdown();
   }
 
+  @Override
   public void invalidateToolResponse() {
     toolResponseTool = null;
   }
@@ -253,7 +257,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     popupMousePosition = null;
   }
 
-  public void refreshMapAndLensLayers() {
+  void refreshMapAndLensLayers() {
     if( currentMapPainter == null ||
         currentMapPainter.perhapsChangeSpec(logic.dynamicMapLayerSpec) )
       repaint();
@@ -272,10 +276,15 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     }
   }
 
-  public void repaintFor(VectorOverlay vo) {
+  void repaintFor(VectorOverlay vo) {
     Rectangle clip = clipbox(vo, viewportRect);
     if( clip != null )
       repaint(clip);
+  }
+
+  @Override
+  public void cancelLens(BoxOverlay lensRect) {
+    repaintFor(lensRect);
   }
 
   private void supersedeMapPainter() {
@@ -310,6 +319,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     }
   }
 
+  @Override
   public void repaintFromScratch() {
     logic.mainTiles.context.ramCache.clear();
     readViewportRect();
@@ -330,6 +340,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   private MouseAction ongoingToolDrag;
   private java.awt.Point ongoingMapDrag;
 
+  @Override
   public boolean cancelDrag() {
     if( ongoingMapDrag != null ||
         ongoingToolDrag != null ||
@@ -356,6 +367,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
    */
   private Point popupMousePosition = null;
 
+  @Override
   public void mousePositionAdjusted() {
     var newPosition = logic.mouseLocal.minus(offsetAsVector());
     windowMousePosition = newPosition;
@@ -589,6 +601,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     // nothing
   }
 
+  @Override
   public void commitToTempProjection() {
     resetProjectionAtShiftUp = null;
   }
@@ -599,6 +612,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   //     P A I N T I N G
   // ------------------------------------------------------------------
 
+  @Override
   public void invalidateMapRendering() {
     currentMapPainter.invalidateEverything();
     repaint();

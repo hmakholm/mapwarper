@@ -3,9 +3,12 @@ package net.makholm.henning.mapwarper.gui.hairy;
 import java.nio.file.Path;
 
 import net.makholm.henning.mapwarper.gui.Commands;
+import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.swing.Command;
 
 public interface GuiMain {
+
+  public MapViewCompanion createCompanion(MapView logic);
 
   public Commands commands();
 

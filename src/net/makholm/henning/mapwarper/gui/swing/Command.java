@@ -20,6 +20,8 @@ import net.makholm.henning.mapwarper.util.BadError;
 
 public abstract class Command {
 
+  final SwingMapView swing;
+
   public final Commands owner;
   public final MapView mapView;
   public final String codename;
@@ -31,6 +33,7 @@ public abstract class Command {
   public Command(Commands owner, String codename, String niceName) {
     this.owner = owner;
     this.mapView = owner.mapView;
+    this.swing = (SwingMapView)mapView.hairy;
     this.codename = codename;
     this.niceName = niceName != null ? niceName : "("+codename+")";
 
@@ -60,7 +63,7 @@ public abstract class Command {
   }
 
   protected void invokeByKey(char key) {
-    mapView().hairy.tempTool.disable();
+    swing.tempTool.disable();
     invoke();
   }
 
@@ -79,7 +82,7 @@ public abstract class Command {
         }
         if( niceName.equals(swingstring) ) {
           // This happens when the invocation comes via a menu
-          owner.hairy.whenInvokingCommand(true);
+          swing.whenInvokingCommand(true);
           debugTraceInvoke();
           invoke();
         } else if( (e.getModifiers() & ActionEvent.ALT_MASK) != 0 &&
@@ -87,14 +90,14 @@ public abstract class Command {
             (keybinding.getModifiers() & InputEvent.ALT_DOWN_MASK) == 0 ) {
           System.err.println("[ignoing spurious "+codename+"] <"+keybinding+">");
           return;
-        } else if( owner.hairy.possiblyRepeatingKey.equals(swingstring) &&
+        } else if( swing.possiblyRepeatingKey.equals(swingstring) &&
             !codename.endsWith("...")) {
           // ignore auto-repeating keys where we haven't seen a key
           // release event first
           return;
         } else {
-          owner.hairy.possiblyRepeatingKey = swingstring;
-          owner.hairy.whenInvokingCommand(false);
+          swing.possiblyRepeatingKey = swingstring;
+          swing.whenInvokingCommand(false);
           debugTraceInvoke();
           if( swingstring != null && swingstring.length() == 1 ) {
             invokeByKey(swingstring.charAt(0));
@@ -102,7 +105,7 @@ public abstract class Command {
             invoke();
           }
         }
-        owner.hairy.refreshScene();
+        swing.refreshScene();
       }
     };
   }

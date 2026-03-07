@@ -31,6 +31,7 @@ import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.FilePane;
 import net.makholm.henning.mapwarper.gui.hairy.GuiMain;
+import net.makholm.henning.mapwarper.gui.hairy.MapViewCompanion;
 import net.makholm.henning.mapwarper.tiles.TileContext;
 import net.makholm.henning.mapwarper.util.BackgroundThread;
 import net.makholm.henning.mapwarper.util.BadError;
@@ -43,6 +44,7 @@ class MainFrame extends JFrame implements GuiMain {
   final FilePane filePane;
   final TilesetPane tilesetPane;
   final MapView mainLogic;
+  final SwingMapView swingMapView;
   final Commands commands;
   final JComponent topLevelComponent;
 
@@ -62,6 +64,11 @@ class MainFrame extends JFrame implements GuiMain {
       SwingUtils.loadBundledImage(true, "icons/warp.png");
   Optional<BufferedImage> lensIcon =
       SwingUtils.loadBundledImage(true, "icons/lens.png");
+
+  @Override
+  public MapViewCompanion createCompanion(MapView logic) {
+    return new SwingMapView(this, logic);
+  }
 
   @Override
   public Commands commands() {
@@ -157,6 +164,7 @@ class MainFrame extends JFrame implements GuiMain {
 
     FSCache fileCache = new FSCache();
     mainLogic = new MapView(this, fileCache, filearg, tiles);
+    swingMapView = (SwingMapView)mainLogic.hairy;
     filePane = mainLogic.files;
 
     tilesetPane = new TilesetPane(this, tiles);
@@ -164,7 +172,7 @@ class MainFrame extends JFrame implements GuiMain {
     windowTitle = new WindowTitle(this, mainLogic);
 
     topSplitter = new Box(BoxLayout.Y_AXIS);
-    topSplitter.add(mainLogic.hairy.scrollPane);
+    topSplitter.add(swingMapView.scrollPane);
 
     leftSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
         true, filePane.hairy, topSplitter);
@@ -189,7 +197,7 @@ class MainFrame extends JFrame implements GuiMain {
     killInputMaps();
     commands.defineKeyBindings(this::defineKeyBinding);
 
-    mainLogic.hairy.repaintFromScratch();
+    swingMapView.repaintFromScratch();
 
     addComponentListener(new ResizeListener());
 
@@ -255,7 +263,7 @@ class MainFrame extends JFrame implements GuiMain {
     int newPosition = (Integer)e.getNewValue();
     int delta = newPosition - oldPosition;
     mainLogic.positionX += delta;
-    mainLogic.hairy.refreshScene();
+    swingMapView.refreshScene();
     repaintToolbar(commands.toggleFilePane);
   }
 
@@ -276,7 +284,7 @@ class MainFrame extends JFrame implements GuiMain {
 
   @Override
   public void setFilePaneVisible(boolean wantVisible) {
-    var savedMouse = mainLogic.hairy.saveMousePosition();
+    var savedMouse = swingMapView.saveMousePosition();
     int curpos = leftSplitter.getDividerLocation();
     if( curpos > 10 ) {
       if( !wantVisible ) {
@@ -289,8 +297,8 @@ class MainFrame extends JFrame implements GuiMain {
         leftSplitter.setDividerLocation(pos);
       }
     }
-    mainLogic.hairy.restoreMousePosition(savedMouse);
-    mainLogic.hairy.invalidateToolResponse();
+    swingMapView.restoreMousePosition(savedMouse);
+    swingMapView.invalidateToolResponse();
   }
 
   @Override
@@ -366,7 +374,7 @@ class MainFrame extends JFrame implements GuiMain {
     var cond = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
     leftSplitter.setInputMap(cond, null);
     rightSplitter.setInputMap(cond, null);
-    mainLogic.hairy.scrollPane.setInputMap(cond, null);
+    swingMapView.scrollPane.setInputMap(cond, null);
     topLevelComponent.setInputMap(cond, new InputMap());
   }
 
