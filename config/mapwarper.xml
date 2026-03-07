@@ -228,8 +228,26 @@
 <keybind name="&lt;" value="squeeze"/>
 <keybind name="&gt;" value="stretch"/>
 <keybind name="." value="move"/>
+<keybind name="?" value="toggleToolbar"/>
 <keybind name="Space" value="refresh"/>
 
 <!-- Arrow keys are hardcoded: they depend on whether the file pane is shown. -->
+
+<toolbar>
+  ---
+  hamburger
+  ...
+  filepick
+  move
+  explore
+  ---
+  warp
+  ortho
+  ---
+  zoomOut
+  zoomIn
+  rotate
+  ...
+</toolbar>
 
 </config>

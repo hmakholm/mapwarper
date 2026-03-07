@@ -17,6 +17,7 @@ import net.makholm.henning.mapwarper.gui.swing.SwingMapView;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.ToggleCommand;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
+import net.makholm.henning.mapwarper.tiles.NomapTiles;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 import net.makholm.henning.mapwarper.track.SegKind;
 
@@ -155,7 +156,7 @@ public class Commands {
   private final Cmd newChain = simple("newchain", "New track/bound chain",
       self -> self.mapView.setEditingChain(null));
 
-  private Command toggleFilePane = new ToggleCommand(this,
+  public final Command toggleFilePane = new ToggleCommand(this,
       "toggleFilePane", "Show file pane") {
     @Override public boolean getCurrentState() {
       return window.filePaneVisible();
@@ -165,13 +166,26 @@ public class Commands {
     }
   };
 
-  private Command toggleTilesetPane = new ToggleCommand(this,
+  public final Command toggleTilesetPane = new ToggleCommand(this,
       "toggleTilePane", "Show tile provider pane") {
     @Override public boolean getCurrentState() {
       return window.tilesetPaneVisible();
     }
     @Override public void setNewState(boolean b) {
       window.setTilesetPaneVisible(b);
+    }
+  };
+
+  private Command toggleToolbar = new ToggleCommand(this,
+      "toggleToolbar", "Show toolbar") {
+    @Override public boolean getCurrentState() {
+      return window.toolbarVisible();
+    }
+    @Override public void setNewState(boolean b) {
+      window.setToolbarVisible(b);
+    }
+    @Override public boolean dismissPopupMenuImmediately() {
+      return true;
     }
   };
 
@@ -365,6 +379,7 @@ public class Commands {
     var view = menu.addSubmenu("View");
     view.add(toggleFilePane);
     view.add(toggleTilesetPane);
+    view.add(toggleToolbar);
     view.addSeparator();
     var zoom = view;//.addSubmenu("Zoom / Projection");
     zoom.add(ortho);
@@ -440,6 +455,10 @@ public class Commands {
 
   public void defineTilesetMenu(Tileset tiles, IMenu menu) {
     tilesetCommands(tiles.name).defineMenu(menu);
+    if( tiles instanceof NomapTiles ) {
+      menu.addSeparator();
+      menu.add(toggleToolbar);
+    }
   }
 
   // -------------------------------------------------------------------------

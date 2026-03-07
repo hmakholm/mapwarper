@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -19,20 +20,25 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.MouseInputAdapter;
 
 import net.makholm.henning.mapwarper.gui.LensTool;
+import net.makholm.henning.mapwarper.tiles.NomapTiles;
 import net.makholm.henning.mapwarper.tiles.TileContext;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 
 @SuppressWarnings("serial")
-public class TilesetPane extends JPanel {
+public class TilesetPane extends Box {
 
+  private final GuiMain window;
   private final Map<String, JComponent> componentMap = new LinkedHashMap<>();
 
   TilesetPane(GuiMain window, TileContext context) {
-    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    super(BoxLayout.Y_AXIS);
+    this.window = window;
     setMinimumSize(new Dimension(0,0));
 
     for( Tileset tiles : context.tilesets.values() )
       componentMap.put(tiles.name, new OneTileset(window, tiles, this));
+
+    add(createGlue());
   }
 
   private static class OneTileset extends JPanel {
@@ -41,6 +47,7 @@ public class TilesetPane extends JPanel {
     OneTileset(GuiMain window, Tileset tiles, TilesetPane parent) {
       this.tiles = tiles;
       this.window = window;
+      setAlignmentX(RIGHT_ALIGNMENT);
       setBorder(new EmptyBorder(5,5,5,0));
 
       Font font = SwingUtils.getANiceDefaultFont();
@@ -70,9 +77,13 @@ public class TilesetPane extends JPanel {
           window.anyUserInputYet = true;
           switch(e.getButton()) {
           case 1:
-            window.mainLogic.defaultTilesetClickAction(tiles);
-            window.mainLogic.swing.refreshScene();
-            break;
+            if( window.toolbarVisible() || tiles instanceof NomapTiles ) {
+              // fall through to showing the popup menu
+            } else {
+              window.mainLogic.defaultTilesetClickAction(tiles);
+              window.mainLogic.swing.refreshScene();
+              break;
+            }
           case 3:
             PopupMenu popup = new PopupMenu();
             JLabel heading = new JLabel(tiles.desc, JLabel.CENTER);

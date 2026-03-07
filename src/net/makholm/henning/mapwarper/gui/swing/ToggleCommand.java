@@ -23,6 +23,11 @@ public abstract class ToggleCommand extends Command {
   void debugTraceInvoke() {}
 
   @Override
+  public Boolean getMenuSelected() {
+    return getCurrentState();
+  }
+
+  @Override
   public final void invoke() {
     boolean newState = !getCurrentState();
     System.err.println("["+codename+"="+newState+"]");

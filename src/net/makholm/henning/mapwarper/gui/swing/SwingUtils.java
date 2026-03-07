@@ -40,10 +40,12 @@ public class SwingUtils {
     return new Font("Roboto Italic", Font.PLAIN, 15);
   }
 
-  public static Optional<BufferedImage> loadBundledImage(String name) {
+  public static Optional<BufferedImage> loadBundledImage(boolean complain,
+      String name) {
     try( var imgStream = Commands.class.getResourceAsStream(name) ) {
       if( imgStream == null ) {
-        System.err.println("Cannot read "+name+" -- not found?");
+        if( complain )
+          System.err.println("Cannot read "+name+" -- not found?");
         return Optional.empty();
       }
       return Optional.of(ImageIO.read(imgStream));

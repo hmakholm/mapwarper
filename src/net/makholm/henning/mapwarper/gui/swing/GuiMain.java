@@ -13,11 +13,12 @@ import java.util.Optional;
 import java.util.concurrent.Executor;
 
 import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
@@ -36,7 +37,7 @@ import net.makholm.henning.mapwarper.util.XyTree;
 public class GuiMain extends JFrame {
 
   public final FilePane filePane;
-  public final JPanel tilesetPane;
+  public final TilesetPane tilesetPane;
   public final MapView mainLogic;
   public final Commands commands;
   public final JComponent topLevelComponent;
@@ -45,12 +46,18 @@ public class GuiMain extends JFrame {
 
   private final JSplitPane leftSplitter;
   private final JSplitPane rightSplitter;
+  private final Box topSplitter;
 
   boolean anyUserInputYet;
 
-  Optional<BufferedImage> mapIcon = SwingUtils.loadBundledImage("mapIcon.png");
-  Optional<BufferedImage> warpIcon = SwingUtils.loadBundledImage("mainIcon.png");
-  Optional<BufferedImage> lensIcon = SwingUtils.loadBundledImage("lensIcon.png");
+  private Toolbar currentToolbar;
+
+  Optional<BufferedImage> mapIcon =
+      SwingUtils.loadBundledImage(true, "icons/ortho.png");
+  Optional<BufferedImage> warpIcon =
+      SwingUtils.loadBundledImage(true, "icons/warp.png");
+  Optional<BufferedImage> lensIcon =
+      SwingUtils.loadBundledImage(true, "icons/lens.png");
 
   /**
    * Used for short administrative actions that must be decoupled from the
@@ -94,8 +101,11 @@ public class GuiMain extends JFrame {
 
     windowTitle = new WindowTitle(this, mainLogic);
 
+    topSplitter = new Box(BoxLayout.Y_AXIS);
+    topSplitter.add(mainLogic.swing.scrollPane);
+
     leftSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-        true, filePane.swing, mainLogic.swing.scrollPane);
+        true, filePane.swing, topSplitter);
     leftSplitter.setBorder(null);
     leftSplitter.setResizeWeight(0);
     if( XyTree.isEmpty(filePane.activeFile().content().nodeTree.get()) )
@@ -107,6 +117,8 @@ public class GuiMain extends JFrame {
         true, leftSplitter, tilesetPane);
     rightSplitter.setBorder(null);
     rightSplitter.setResizeWeight(1);
+    rightSplitter.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY,
+        this::rightDividerMoved);
 
     topLevelComponent = rightSplitter;
     add(topLevelComponent);
@@ -182,6 +194,11 @@ public class GuiMain extends JFrame {
     int delta = newPosition - oldPosition;
     mainLogic.positionX += delta;
     mainLogic.swing.refreshScene();
+    repaintToolbar(commands.toggleFilePane);
+  }
+
+  private void rightDividerMoved(PropertyChangeEvent e) {
+    repaintToolbar(commands.toggleTilesetPane);
   }
 
   private void setMainIcon() {
@@ -224,6 +241,27 @@ public class GuiMain extends JFrame {
           tilesetPane.getPreferredSize().width - 10);
     else
       rightSplitter.setDividerLocation(1.0);
+  }
+
+  public boolean toolbarVisible() {
+    return currentToolbar != null;
+  }
+
+  public void setToolbarVisible(boolean wantVisible) {
+    if( !wantVisible && currentToolbar != null ) {
+      topSplitter.remove(currentToolbar);
+      currentToolbar = null;
+      topSplitter.revalidate();
+    } else if( wantVisible && currentToolbar == null ) {
+      currentToolbar = new Toolbar(this);
+      topSplitter.add(currentToolbar, 0);
+      topSplitter.revalidate();
+    }
+  }
+
+  public void repaintToolbar(Command command) {
+    if( currentToolbar != null )
+      currentToolbar.perhapsRepaint(command);
   }
 
   public void quitCommand() {

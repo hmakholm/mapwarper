@@ -134,6 +134,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     readViewportRect();
 
     logic.window.windowTitle.refresh();
+    logic.window.repaintToolbar(null);
 
     var newTrackData = logic.collectVisibleTrackData();
     if( !newTrackData.equals(baseTrackData) ) {

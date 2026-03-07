@@ -46,7 +46,7 @@ public class SwingFilePane extends JComponent {
     setFont(font);
     addMouseListener(mouseListener);
 
-    eyeIcon = SwingUtils.loadBundledImage("eyeIcon.png")
+    eyeIcon = SwingUtils.loadBundledImage(true, "eyeIcon.png")
         .orElseGet(() -> {
           var img = new BufferedImage(BufferedImage.TYPE_INT_RGB, 3, 2);
           var g = img.createGraphics();

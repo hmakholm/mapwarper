@@ -109,7 +109,7 @@ public abstract class Tool extends Command implements MouseAction {
   }
 
   private static Cursor loadCursorInternal(String name) {
-    BufferedImage img = SwingUtils.loadBundledImage(name).orElse(null);
+    BufferedImage img = SwingUtils.loadBundledImage(true, name).orElse(null);
     if( img == null ) return Cursor.getDefaultCursor();
     return Toolkit.getDefaultToolkit().createCustomCursor(img,
         new java.awt.Point(img.getWidth()/2, img.getHeight()/2),

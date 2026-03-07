@@ -21,6 +21,8 @@ public abstract class TrackHidingTool extends Tool {
     } else if( !(previousTool instanceof TrackHidingTool) &&
         switchToPreviousTool() ) {
       // Good
+    } else if( owner.window.toolbarVisible() ) {
+      mapView().selectTool(owner.move);
     } else if( editingChain() != null ) {
       if( editingChain().isTrack() )
         mapView().selectTool(owner.trackTool);
