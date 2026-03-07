@@ -1,0 +1,72 @@
+Some initial exploratory notes about JavaFX
+===========================================
+
+The main challenge with JavaFX is how to handle map rendering, because
+almost all the tutorials I can find assume that the application is
+graphical-in-name-only with just styledtext boxes and perhaps some
+static images or (also static) geometric shapes.
+
+Serge Rosmorduc has done some work on how to render an infinite
+component with JavaFX.
+
+   https://comp.qenherkhopeshef.org/blog/javafx-large-components
+
+The map layer can be rendered to javafx.scene.image.WritableImage and
+then put into an ImageView in the JavaFX scene tree, with the inventory
+managed by something like the approach above.
+
+javafx.scene.layout.Pane can be used for absolute position of child
+nodes within the map view.
+
+The basic support for working with individual pixels is documented by
+Oracle in 'the ImageOps API':
+
+   https://docs.oracle.com/javafx/2/image_ops/jfxpub-image_ops.pdf
+   https://docs.oracle.com/javase/8/javafx/graphics-tutorial/image_ops.htm
+
+However, a better way to do cross-thread rendering may be to create
+the WritableImage with a javafx.scene.image.PixelBuffer, which is
+documented as
+
+> When the Buffer is updated using the PixelBuffer.updateBuffer
+> method, all WritableImages that were created using this PixelBuffer
+> are redrawn.
+
+The updateBuffer method takes a callback that returns a dirty region.
+and must be called in the UI thread, but given Java's memory model
+it's hard to see how it could do actual damage to pre-modify the
+underlying buffer in a diffent thread, and then call updateBuffer with
+a do-nothing callback.
+
+ -- Looking at gh/openjdk/jfx sources, it looks like the automatic
+    redrawing is mediated by a hidden "property" of the image, defined
+    at Image.platformImagePropertyImpl().
+
+Possibly use the "animation timer" approach of
+
+   https://stackoverflow.com/questions/26082732/what-approach-should-i-use-for-javafx-canvas-multithreading
+
+to coordinate how often the update callback is called -- but I don't
+think that ought to be necessary.
+
+----
+
+Despite the name, javafx.scene.canvas.Canvas is _not_ for the pixel
+data, but should be a good model for the vector layers and vector
+overlays. Perhaps create one for each chain and stack them in a
+javafx.scene.layout.StackPane.
+
+All the coordinates are doubles, so in principle we could do
+everything in raw local coordinates. On the other hand, that may make
+things blink more than they ought to when we change projection and map
+tiles take some time to load? Might be better to keep an offset
+mehchanism like the one we use for Swing. Canvases for the vector
+layer need to be remade when the offset changes, but that is _less_
+work than a Swing painting operation should be okay.
+
+---
+
+From JavaFX 9.0 the Window class has renderScaleXProperty() and
+renderScaleYProperty(), which might be used to make the the map
+rendering bitmap have device pixel scale (especially with a view to
+looking nice in non-integer render scales).
