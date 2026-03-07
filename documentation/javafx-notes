@@ -56,13 +56,19 @@ data, but should be a good model for the vector layers and vector
 overlays. Perhaps create one for each chain and stack them in a
 javafx.scene.layout.StackPane.
 
-All the coordinates are doubles, so in principle we could do
-everything in raw local coordinates. On the other hand, that may make
-things blink more than they ought to when we change projection and map
-tiles take some time to load? Might be better to keep an offset
-mehchanism like the one we use for Swing. Canvases for the vector
-layer need to be remade when the offset changes, but that is _less_
-work than a Swing painting operation should be okay.
+Based on the JavaFX sources, it doesn't appear that a Canvas has any
+functionality to filter drawing primitives to a clipping box when the
+system decides whether it needs to be re-rendered. So the Canvas should
+probably be created with a minimal bounding box and then positioned by
+its context in the stage graph -- that is, with an intermediate Pane
+between it and the StackPane.
+
+Coordinate computations always work on doubles, so in principle we
+could do most of the positioning within the MapView in raw local
+coordinates. On the other hand, that may make things blink more than
+they ought to when we change projection and map tiles take some time
+to load? Might be better to keep an offset mehchanism like the one we
+use for Swing.
 
 ---
 
