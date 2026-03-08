@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 
 import net.makholm.henning.mapwarper.gui.files.FilePane;
 import net.makholm.henning.mapwarper.gui.files.OpenTool;
+import net.makholm.henning.mapwarper.gui.hairy.IMenu;
 import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.gui.swing.Command;

@@ -1,4 +1,4 @@
-package net.makholm.henning.mapwarper.gui;
+package net.makholm.henning.mapwarper.gui.hairy;
 
 import net.makholm.henning.mapwarper.gui.swing.Command;
 

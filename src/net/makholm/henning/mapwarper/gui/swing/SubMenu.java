@@ -2,7 +2,7 @@ package net.makholm.henning.mapwarper.gui.swing;
 
 import javax.swing.JMenu;
 
-import net.makholm.henning.mapwarper.gui.IMenu;
+import net.makholm.henning.mapwarper.gui.hairy.IMenu;
 
 @SuppressWarnings("serial")
 class SubMenu extends JMenu implements IMenu {
