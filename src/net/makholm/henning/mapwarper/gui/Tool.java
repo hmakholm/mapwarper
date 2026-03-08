@@ -1,6 +1,5 @@
 package net.makholm.henning.mapwarper.gui;
 
-import java.awt.event.InputEvent;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
@@ -64,32 +63,28 @@ public abstract class Tool extends Command implements MouseAction {
     return NO_RESPONSE;
   }
 
-  public static boolean mouseHeld(int flags) {
-    return (flags & InputEvent.BUTTON1_DOWN_MASK) != 0;
+  protected final boolean mouseHeld(int modifiers) {
+    return hairy.mouseHeld(modifiers);
   }
 
-  public static boolean shiftHeld(int flags) {
-    return (flags & InputEvent.SHIFT_DOWN_MASK) != 0;
+  protected final boolean shiftHeld(int modifiers) {
+    return hairy.shiftHeld(modifiers);
   }
 
-  public static boolean ctrlHeld(int flags) {
-    return (flags & InputEvent.CTRL_DOWN_MASK) != 0;
+  protected final boolean ctrlHeld(int modifiers) {
+    return hairy.ctrlHeld(modifiers);
   }
 
-  public static boolean altHeld(int flags) {
-    return (flags & InputEvent.ALT_DOWN_MASK) != 0;
+  protected final boolean altHeld(int modifiers) {
+    return hairy.altHeld(modifiers);
   }
 
-  public static boolean altHeld(int mod1, int mod2) {
-    return altHeld(mod1 | mod2);
+  protected final boolean altHeld(int mod1, int mod2) {
+    return hairy.altHeld(mod1 | mod2);
   }
 
-  public static boolean isQuickCommand(int flags) {
-    return (flags & QUICK_COM_MASK) != 0;
-  }
-
-  public static int setQuickBit(int flags) {
-    return flags | QUICK_COM_MASK;
+  protected final boolean isQuickCommand(int modifiers) {
+    return hairy.isQuickBitSet(modifiers);
   }
 
   public static final MouseAction DRAG_THE_MAP = (p,m) -> why -> {
@@ -152,7 +147,8 @@ public abstract class Tool extends Command implements MouseAction {
       mapView.selectTool(prev);
       return true;
     } else {
-      var a = simpleKeyAction(mouseLocalAtKeypress, setQuickBit(modifiers));
+      modifiers = hairy.setQuickBit(modifiers);
+      var a = simpleKeyAction(mouseLocalAtKeypress, modifiers);
       if( a == null || a == NO_RESPONSE ) {
         return false;
       } else {
@@ -205,8 +201,6 @@ public abstract class Tool extends Command implements MouseAction {
 
   // -------------------------------------------------------------------------
 
-  private static final int QUICK_COM_MASK = 1 << 31;
-
   private final Map<Integer, Command> quickCommands = new LinkedHashMap<>();
 
   private Command makeQuickCommand(int modifier,
@@ -214,7 +208,7 @@ public abstract class Tool extends Command implements MouseAction {
     return quickCommands.computeIfAbsent(modifier, m0 ->
     new Command(owner, quickCodename, niceName) {
       private ToolResponse tr() {
-        return mouseResponse(mapView.mouseLocal, setQuickBit(modifier));
+        return mouseResponse(mapView.mouseLocal, hairy.setQuickBit(modifier));
       }
       @Override
       public Boolean getMenuSelected() {
@@ -238,7 +232,7 @@ public abstract class Tool extends Command implements MouseAction {
 
   protected final Command altQuickCommand(String codename, String niceName,
       BooleanSupplier menuCheckmark) {
-    return makeQuickCommand(InputEvent.ALT_DOWN_MASK, codename, niceName,
+    return makeQuickCommand(hairy.setAltBit(0), codename, niceName,
         menuCheckmark);
   }
 

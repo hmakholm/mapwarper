@@ -8,6 +8,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
@@ -85,6 +86,11 @@ class SwingFilePane extends JComponent implements FilePaneCompanion {
       }
     }
   };
+
+  @Override
+  public boolean altHeld(int modifiers) {
+    return (modifiers & InputEvent.ALT_DOWN_MASK) != 0;
+  }
 
   @Override
   public void refreshScene(FilePane.Entry[] newView) {

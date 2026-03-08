@@ -11,4 +11,6 @@ public interface FilePaneCompanion {
 
   public void refreshScene(FilePane.Entry[] newView);
 
+  public boolean altHeld(int modifiers);
+
 }

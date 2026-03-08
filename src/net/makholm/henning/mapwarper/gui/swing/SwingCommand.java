@@ -32,7 +32,47 @@ class SwingCommand implements CommandCompanion {
     this.swing = window.swingMapView;
   }
 
-  void invokeByKey(char key) {
+
+  @Override
+  public boolean mouseHeld(int flags) {
+    return (flags & InputEvent.BUTTON1_DOWN_MASK) != 0;
+  }
+
+  @Override
+  public boolean shiftHeld(int flags) {
+    return (flags & InputEvent.SHIFT_DOWN_MASK) != 0;
+  }
+
+  @Override
+  public boolean ctrlHeld(int flags) {
+    return (flags & InputEvent.CTRL_DOWN_MASK) != 0;
+  }
+
+  @Override
+  public boolean altHeld(int flags) {
+    return (flags & InputEvent.ALT_DOWN_MASK) != 0;
+  }
+
+  @Override
+  public boolean isQuickBitSet(int flags) {
+    return (flags & QUICK_COM_MASK) != 0;
+  }
+
+  @Override
+  public int setQuickBit(int flags) {
+    return flags | QUICK_COM_MASK;
+  }
+
+  @Override
+  public int setAltBit(int flags) {
+    return flags | InputEvent.ALT_DOWN_MASK;
+  }
+
+  private static final int QUICK_COM_MASK = 1<<31;
+
+  // -------------------------------------------------------------------------
+
+  private void invokeByKey(char key) {
     window.swingMapView.tempTool.disable();
     logic.invokeByKey();
     if( key != KeyEvent.CHAR_UNDEFINED )

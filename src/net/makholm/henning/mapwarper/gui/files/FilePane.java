@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import net.makholm.henning.mapwarper.gui.MapView;
-import net.makholm.henning.mapwarper.gui.Tool;
 import net.makholm.henning.mapwarper.gui.UndoList;
 import net.makholm.henning.mapwarper.gui.UndoList.UndoItem;
 import net.makholm.henning.mapwarper.gui.hairy.FilePaneCompanion;
@@ -181,7 +180,7 @@ public class FilePane {
       pokeWhat = focusDirClicked;
       break;
     case FILE:
-      if( Tool.altHeld(modifiers) &&
+      if( hairy.altHeld(modifiers) &&
           setAsOnlyShownFile(cache.getFile(entry.path)) ) {
         mapView.perhapsRewarpTo(cache.getFile(entry.path));
         return;
