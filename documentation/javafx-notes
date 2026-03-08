@@ -1,3 +1,12 @@
+UPDATE: Various mumblings on the web indicate that even though JavaFX
+defines _events_ for multitouch gestures (such as pinch zoom), it can
+never _generate_ those events when running under Linux. So that will
+not be the answer.
+
+Said mumblings include an unclosed bug report:
+   https://bugs.java.com/bugdatabase/JDK-8321291
+   https://bugs.java.com/bugdatabase/JDK-8090954
+
 Some initial exploratory notes about JavaFX
 ===========================================
 
