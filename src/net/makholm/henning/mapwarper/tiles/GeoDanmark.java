@@ -155,7 +155,7 @@ public class GeoDanmark extends Tileset {
     var url = urlForMaxitile(tile);
     var uri = URI.create(url);
     var request = HttpRequest.newBuilder(uri);
-    request.header("User-Agent", "Mapwarper/3.1");
+    request.header("User-Agent", "Mapwarper/3.2");
     request.GET();
 
     HttpResponse.BodyHandler<Path> handler = rspInfo -> {

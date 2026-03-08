@@ -17,7 +17,7 @@ public class WindowTitle {
     this.logic = logic;
   }
 
-  public static final String DEFAULT_TITLE = "Mapwarper v3";
+  public static final String DEFAULT_TITLE = "Mapwarper v3.2";
 
   private static final int RELEVANT_FLAGS =
       Toggles.DOWNLOAD.bit() |

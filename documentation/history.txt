@@ -200,3 +200,19 @@ Mapwarper v3.1, January 2026
    useful than I had hoped -- usually inserting a piece of "strong"
    track works better -- but there are special cases where it comes in
    handy.
+
+Mapwarper v3.2, March 2026
+
+   In February I implemented support for the free GeoDanmark
+   orthophoto collection, which (starting later this year) will begin
+   delivering data only as large multi-resolution GeoTIFF files. For
+   parsing this efficiently, I memory-mapped the large files, but
+   getting them to _unmap_ required use of sun.misc.unsafe.
+
+   After I upgraded to Java 25 locally, the JVM started getting
+   increasingly shouty at runtime about this baing a Bad Thing.  I
+   found out there's a new "better" way of doing mmaps starting from
+   Java 22, and switched to that.
+
+   Since the program now requires Java 22 to compile, I think that
+   warrants a version bump -- so done.

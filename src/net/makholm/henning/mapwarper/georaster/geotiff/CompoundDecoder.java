@@ -12,11 +12,11 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 import java.io.IOException;
+import java.lang.foreign.Arena;
 import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.NoSuchFileException;
@@ -36,7 +36,6 @@ import net.makholm.henning.mapwarper.georaster.CompoundShortcode;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 import net.makholm.henning.mapwarper.tiles.Tileset.DownloadCallback;
-import net.makholm.henning.mapwarper.util.MemoryMapped;
 import net.makholm.henning.mapwarper.util.NiceError;
 
 /**
@@ -58,19 +57,15 @@ public class CompoundDecoder {
 
   public TileBitmap decode(Path path, long tilespec)
       throws IOException {
-    MappedByteBuffer buffer = null;
-    try {
-      try( FileChannel fc = FileChannel.open(path) ) {
-        long length = fc.size();
-        buffer = fc.map(MapMode.READ_ONLY, 0,
-            Math.min(length, Integer.MAX_VALUE));
-      } catch( NoSuchFileException e ) {
-        return TileBitmap.blank(NO_SUCH_FILE);
-      }
+    try( Arena a = Arena.ofConfined();
+        FileChannel fc = FileChannel.open(path) ) {
+      long length = Math.min(fc.size(), Integer.MAX_VALUE);
+      if( length < 10 ) return TileBitmap.blank(TRUNCATED);
+      var segment = fc.map(MapMode.READ_ONLY, 0, Math.min(length, Integer.MAX_VALUE), a);
+      var buffer = segment.asByteBuffer();
       return unzipAndDecode(buffer, tilespec);
-    } finally {
-      if( buffer != null )
-        MemoryMapped.close(buffer);
+    } catch( NoSuchFileException e ) {
+      return TileBitmap.blank(NO_SUCH_FILE);
     }
   }
 
