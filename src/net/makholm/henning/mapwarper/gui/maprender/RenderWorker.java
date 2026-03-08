@@ -1,7 +1,5 @@
 package net.makholm.henning.mapwarper.gui.maprender;
 
-import java.awt.image.renderable.RenderContext;
-
 import net.makholm.henning.mapwarper.util.AbortRendering;
 
 /**
@@ -22,7 +20,7 @@ public interface RenderWorker {
    * rendering at the same time will be from the same projection.
    *
    * Return 0 if rendering is waiting for external data and
-   * {@link RenderContext#pokeSchedulerAsync()} will be called eventually.
+   * {@link RenderTarget#pokeSchedulerAsync()} will be called eventually.
    *
    * Return -1 when rendering is so complete that it won't get any
    * <em>more</em> complete.
