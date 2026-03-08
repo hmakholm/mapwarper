@@ -1,7 +1,5 @@
 package net.makholm.henning.mapwarper.gui;
 
-import java.awt.Cursor;
-
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.files.TrackHidingTool;
 import net.makholm.henning.mapwarper.track.VisibleTrackData;
@@ -10,7 +8,7 @@ final class ExploreTool extends TrackHidingTool {
 
   protected ExploreTool(Commands owner) {
     super(owner, "explore", "Explore");
-    toolCursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+    toolCursor = "CLOSED_HAND";
   }
 
   @Override

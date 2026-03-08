@@ -1,7 +1,5 @@
 package net.makholm.henning.mapwarper.gui;
 
-import java.awt.Cursor;
-
 import net.makholm.henning.mapwarper.gui.MouseAction.ExecuteWhy;
 import net.makholm.henning.mapwarper.gui.MouseAction.ToolResponse;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
@@ -25,7 +23,7 @@ abstract class WrappedToolResponse implements ToolResponse {
   }
 
   @Override
-  public Cursor cursor() {
+  public String cursor() {
     return me.cursor();
   }
 

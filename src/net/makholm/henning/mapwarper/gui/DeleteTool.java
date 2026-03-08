@@ -13,7 +13,7 @@ implements DragSubchainSelector.Callback {
 
   DeleteTool(Commands owner) {
     super(owner, "delete", "Cut segment(s)");
-    toolCursor = loadCursor("crosshairCursor.png");
+    toolCursor = "CROSSHAIR";
   }
 
   @Override

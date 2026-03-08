@@ -1,6 +1,5 @@
 package net.makholm.henning.mapwarper.gui;
 
-import java.awt.Cursor;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -104,8 +103,8 @@ class StandardAction implements ProposedAction {
             return tracks;
           }
           @Override
-          public Cursor cursor() {
-            return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+          public String cursor() {
+            return "HAND";
           }
           @Override
           public void execute(ExecuteWhy why) {
@@ -150,7 +149,7 @@ class StandardAction implements ProposedAction {
     return this;
   }
 
-  public StandardAction with(Cursor c) {
+  public StandardAction withCursor(String c) {
     cursor = c;
     return this;
   }
@@ -166,7 +165,7 @@ class StandardAction implements ProposedAction {
   TrackHighlight highlight;
   VectorOverlay overlay;
   TrackNode newNode;
-  Cursor cursor;
+  String cursor;
   boolean snapped;
   boolean preview;
   Runnable extraAction = () -> {};
@@ -183,7 +182,7 @@ class StandardAction implements ProposedAction {
   @Override
   public ToolResponse freeze() {
     if( cursor == null && snapped )
-      cursor = Tool.loadCursor("snapCrosshairs.png");
+      cursor = "snapCrosshairs";
     if( overlay == null && (highlight == null || newNode != null) )
       overlay = makeCircleCursor();
 
@@ -211,7 +210,7 @@ class StandardAction implements ProposedAction {
         return tracks;
       }
       @Override
-      public Cursor cursor() {
+      public String cursor() {
         return cursor;
       }
       @Override

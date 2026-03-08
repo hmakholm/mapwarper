@@ -1,15 +1,11 @@
 package net.makholm.henning.mapwarper.gui;
 
-import java.awt.Cursor;
-import java.awt.Toolkit;
 import java.awt.event.InputEvent;
-import java.awt.image.BufferedImage;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
 import net.makholm.henning.mapwarper.geometry.Point;
-import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.track.VisibleTrackData;
 import net.makholm.henning.mapwarper.util.BadError;
 
@@ -20,8 +16,12 @@ public abstract class Tool extends Command implements MouseAction {
    * cursors, but that shouldn't change routinely. For temporary
    * changes, a cursor can instead be returned from
    * {@link ToolResponse#cursor()}.
+   *
+   * The value should either be the forename (without extension)
+   * of a PNG file in the ...mapwarper.gui package source directory,
+   * or a name recognized by the {@link SwingCursor} class.
    */
-  public Cursor toolCursor;
+  public String toolCursor;
 
   public void escapeAction() {
     switchToPreviousTool();
@@ -33,7 +33,7 @@ public abstract class Tool extends Command implements MouseAction {
 
   protected Tool(Commands owner, String codename, String niceName) {
     super(owner, codename, niceName);
-    toolCursor = Cursor.getDefaultCursor();
+    toolCursor = "DEFAULT";
   }
 
   public int retouchDisplayFlags(int orig) {
@@ -99,22 +99,6 @@ public abstract class Tool extends Command implements MouseAction {
   public static final ToolResponse NO_RESPONSE = why -> {};
 
   // -------------------------------------------------------------------------
-
-  private static final Map<String, Cursor> cursors = new LinkedHashMap<>();
-
-  public static Cursor loadCursor(String name) {
-    synchronized( cursors ) {
-      return cursors.computeIfAbsent(name, Tool::loadCursorInternal);
-    }
-  }
-
-  private static Cursor loadCursorInternal(String name) {
-    BufferedImage img = SwingUtils.loadBundledImage(true, name).orElse(null);
-    if( img == null ) return Cursor.getDefaultCursor();
-    return Toolkit.getDefaultToolkit().createCustomCursor(img,
-        new java.awt.Point(img.getWidth()/2, img.getHeight()/2),
-        name);
-  }
 
   public void whenSelected() {
     // Nothing by default

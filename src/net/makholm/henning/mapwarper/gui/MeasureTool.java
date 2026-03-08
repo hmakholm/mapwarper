@@ -1,6 +1,5 @@
 package net.makholm.henning.mapwarper.gui;
 
-import java.awt.Cursor;
 import java.awt.geom.NoninvertibleTransformException;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +38,7 @@ public final class MeasureTool extends Tool {
 
   protected MeasureTool(Commands owner) {
     super(owner, "measure", "Measure distance");
-    toolCursor = loadCursor("crosshairCursor.png");
+    toolCursor = "CROSSHAIR";
   }
 
   private SegmentChain measuringChain;
@@ -253,8 +252,7 @@ public final class MeasureTool extends Tool {
     vdt.setFlag(Toggles.MAIN_TRACK);
     vdt.freeze();
 
-    Cursor cursor = dragging || pickUpMeasuringChain(mouse) < 0
-        ? null : Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+    String cursor = dragging || pickUpMeasuringChain(mouse)<0 ? null : "MOVE";
 
     var label = mouseResponseLabel(measuringChain, 0, mouse);
     return new ToolResponse() {
@@ -267,7 +265,7 @@ public final class MeasureTool extends Tool {
         return label;
       }
       @Override
-      public Cursor cursor() {
+      public String cursor() {
         return cursor;
       }
       @Override

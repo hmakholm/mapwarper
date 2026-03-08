@@ -1,6 +1,5 @@
 package net.makholm.henning.mapwarper.gui;
 
-import java.awt.Cursor;
 import java.util.function.Function;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
@@ -31,7 +30,7 @@ public class LensTool extends Tool {
     if( dragAction != null ) {
       return new ToolResponse() {
         @Override
-        public Cursor cursor() {
+        public String cursor() {
           return dragAction.cursor();
         }
         @Override
@@ -97,7 +96,7 @@ public class LensTool extends Tool {
           return overlay;
         }
         @Override
-        public Cursor cursor() {
+        public String cursor() {
           return dragAction.cursor();
         }
         @Override
@@ -120,7 +119,7 @@ public class LensTool extends Tool {
     return chosen;
   }
 
-  private record DragAction(Cursor cursor, Function<Point, AxisRect> makeRect) {}
+  private record DragAction(String cursor, Function<Point, AxisRect> makeRect) {}
 
   private DragAction startDrag(Point p1) {
     if( mapView().lensRect != null ) {
@@ -129,28 +128,28 @@ public class LensTool extends Tool {
           placecode(p1.y, box.ymin(), box.ymax());
       switch( code ) {
       case 11:
-        return new DragAction(Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR),
+        return new DragAction("NW_RESIZE",
             p2 -> new AxisRect(p2, Point.at(box.xmax(), box.ymax())));
       case 31:
-        return new DragAction(Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR),
+        return new DragAction("NE_RESIZE",
             p2 -> new AxisRect(p2, Point.at(box.xmin(), box.ymax())));
       case 13:
-        return new DragAction(Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR),
+        return new DragAction("SW_RESIZE",
             p2 -> new AxisRect(p2, Point.at(box.xmax(), box.ymin())));
       case 33:
-        return new DragAction(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR),
+        return new DragAction("SE_RESIZE",
             p2 -> new AxisRect(p2, Point.at(box.xmin(), box.ymin())));
       case 21:
-        return new DragAction(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR),
+        return new DragAction("N_RESIZE",
             p2 -> new AxisRect(Point.at(box.xmin(), p2.y), Point.at(box.xmax(), box.ymax())));
       case 23:
-        return new DragAction(Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR),
+        return new DragAction("S_RESIZE",
             p2 -> new AxisRect(Point.at(box.xmin(), box.ymin()), Point.at(box.xmax(), p2.y)));
       case 12:
-        return new DragAction(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR),
+        return new DragAction("W_RESIZE",
             p2 -> new AxisRect(Point.at(p2.x, box.ymin()), Point.at(box.xmax(), box.ymax())));
       case 32:
-        return new DragAction(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR),
+        return new DragAction("E_RESIZE",
             p2 -> new AxisRect(Point.at(box.xmin(), box.ymin()), Point.at(p2.x, box.ymax())));
       case 22:
         return null;

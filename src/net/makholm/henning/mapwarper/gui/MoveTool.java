@@ -1,14 +1,12 @@
 package net.makholm.henning.mapwarper.gui;
 
-import java.awt.Cursor;
-
 import net.makholm.henning.mapwarper.geometry.Point;
 
 final class MoveTool extends Tool {
 
   protected MoveTool(Commands logic) {
     super(logic, "move", "Move the map");
-    toolCursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+    toolCursor = "CLOSED_HAND";
   }
 
   @Override

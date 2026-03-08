@@ -49,6 +49,7 @@ MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   final MainFrame window;
   final JScrollPane scrollPane;
   final JViewport viewport;
+  final SwingCursor cursor;
 
   Rectangle viewportRect;
   long positionOffsetX, positionOffsetY;
@@ -76,6 +77,7 @@ MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   SwingMapView(MainFrame window, MapView logic) {
     this.window = window;
     this.logic = logic;
+    this.cursor = new SwingCursor(this);
     Dimension wantedSize = new Dimension(1<<20, 1<<20);
     setMinimumSize(wantedSize);
     setMaximumSize(wantedSize);
@@ -186,8 +188,7 @@ MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
       var cursor = toolResponse.cursor();
       if( cursor == null ) cursor = logic.currentTool.toolCursor;
-      if( cursor != getCursor() )
-        setCursor(cursor);
+      this.cursor.set(cursor);
 
       if( !callerWillRefreshSceneLater )
         refreshVectorLayer();

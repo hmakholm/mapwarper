@@ -1,7 +1,5 @@
 package net.makholm.henning.mapwarper.gui;
 
-import java.awt.Cursor;
-
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
 import net.makholm.henning.mapwarper.track.VisibleTrackData;
@@ -32,7 +30,7 @@ public interface MouseAction {
 
     default public VectorOverlay previewOverlay() { return null; }
 
-    default public Cursor cursor() { return null; }
+    default public String cursor() { return null; }
 
     public void execute(ExecuteWhy why);
 

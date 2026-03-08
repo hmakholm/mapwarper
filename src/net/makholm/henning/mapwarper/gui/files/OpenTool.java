@@ -1,6 +1,5 @@
 package net.makholm.henning.mapwarper.gui.files;
 
-import java.awt.Cursor;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -252,8 +251,8 @@ public class OpenTool extends TrackHidingTool {
           return label;
         }
         @Override
-        public Cursor cursor() {
-          return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+        public String cursor() {
+          return "HAND";
         }
         @Override
         public void execute(ExecuteWhy why) {
