@@ -7,6 +7,7 @@ import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
@@ -133,14 +134,38 @@ public abstract class Command {
     return null;
   }
 
-  public JMenuItem makeMenuItem() {
+  public String overrideMenuItemText() {
+    // Returning null means to use the standard nicename.
+    return null;
+  }
+
+  public final JMenuItem makeMenuItem() {
+    var action = getAction();
+    String overrideText = overrideMenuItemText();
+    if( overrideText != null ) {
+      var original = action;
+      action = new AbstractAction(overrideText) {
+        @Override
+        public void actionPerformed(ActionEvent arg0) {
+          original.actionPerformed(arg0);
+        }
+      };
+      if( original.getValue(Action.ACCELERATOR_KEY) instanceof KeyStroke ks )
+        action.putValue(Action.ACCELERATOR_KEY, ks);
+    }
     JMenuItem result;
-    Boolean selectedState = getMenuSelected();
-    if( selectedState != null ) {
-      result = new JRadioButtonMenuItem(getAction());
+    Boolean selectedState;
+    if( this instanceof ToggleCommand toggle ) {
+      result = new JCheckBoxMenuItem(action);
+      result.setSelected(toggle.getCurrentState());
+      if( !toggle.dismissPopupMenuImmediately() )
+        result.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick",
+            Boolean.TRUE);
+    } else if( (selectedState = getMenuSelected()) != null ) {
+      result = new JRadioButtonMenuItem(action);
       result.setSelected(selectedState);
     } else {
-      result = new JMenuItem(getAction());
+      result = new JMenuItem(action);
     }
     if( !makesSenseNow() )
       result.setEnabled(false);

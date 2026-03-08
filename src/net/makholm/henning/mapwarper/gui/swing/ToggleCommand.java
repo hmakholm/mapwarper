@@ -1,8 +1,5 @@
 package net.makholm.henning.mapwarper.gui.swing;
 
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JMenuItem;
-
 import net.makholm.henning.mapwarper.gui.Commands;
 
 public abstract class ToggleCommand extends Command {
@@ -15,7 +12,7 @@ public abstract class ToggleCommand extends Command {
 
   public abstract void setNewState(boolean b);
 
-  protected boolean dismissPopupMenuImmediately() {
+  public boolean dismissPopupMenuImmediately() {
     return false;
   }
 
@@ -32,17 +29,6 @@ public abstract class ToggleCommand extends Command {
     boolean newState = !getCurrentState();
     System.err.println("["+codename+"="+newState+"]");
     setNewState(newState);
-  }
-
-  @Override
-  public JMenuItem makeMenuItem() {
-    var item = new JCheckBoxMenuItem(getAction());
-    if( !dismissPopupMenuImmediately() )
-      item.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick",
-          Boolean.TRUE);
-    item.setSelected(getCurrentState());
-    item.setEnabled(makesSenseNow());
-    return item;
   }
 
 }

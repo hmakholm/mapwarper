@@ -3,10 +3,6 @@ package net.makholm.henning.mapwarper.gui;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 
-import javax.swing.Action;
-import javax.swing.JMenuItem;
-import javax.swing.KeyStroke;
-
 import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.hairy.IMenu;
 import net.makholm.henning.mapwarper.gui.swing.Command;
@@ -154,14 +150,16 @@ public class UndoList {
 
   private class UndoCommand extends Command {
     final boolean isUndo;
+    final Stack stack;
     final int howmany;
     final String verb;
 
     UndoCommand(Commands owner, int howmany, boolean isUndo) {
       super(owner,
           (isUndo ? "undo." : "redo.") + howmany,
-          "(Dynamically named undo)");
+          (isUndo ? "Undo" : "Redo") + (howmany != 1 ? " "+howmany : ""));
       this.verb = isUndo ? "Undo" : "Redo";
+      this.stack = isUndo ? undo : redo;
       this.howmany = howmany;
       this.isUndo = isUndo;
     }
@@ -184,23 +182,17 @@ public class UndoList {
     }
 
     @Override
-    public JMenuItem makeMenuItem() {
-      var fromStack = isUndo ? undo : redo;
-      JMenuItem result;
-      if( fromStack.size() < howmany ) {
-        result = new JMenuItem(verb);
-        result.setEnabled(false);
-      } else {
-        result = new JMenuItem(verb+" "+fromStack.get(howmany-1).undoDesc());
-        result.addActionListener(e -> {
-          invoke();
-          owner.hairy.refreshScene();
-        });
-      }
-      if( getAction().getValue(Action.ACCELERATOR_KEY)
-          instanceof KeyStroke ks )
-        result.setAccelerator(ks);
-      return result;
+    public boolean makesSenseNow() {
+      return stack.size() >= howmany;
     }
+
+    @Override
+    public String overrideMenuItemText() {
+      if( stack.size() < howmany )
+        return null;
+      else
+        return verb+" "+stack.get(howmany-1).undoDesc();
+    }
+
   }
 }
