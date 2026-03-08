@@ -30,6 +30,7 @@ import net.makholm.henning.mapwarper.gui.Commands;
 import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.FilePane;
+import net.makholm.henning.mapwarper.gui.hairy.FilePaneCompanion;
 import net.makholm.henning.mapwarper.gui.hairy.GuiMain;
 import net.makholm.henning.mapwarper.gui.hairy.MapViewCompanion;
 import net.makholm.henning.mapwarper.tiles.TileContext;
@@ -44,6 +45,7 @@ class MainFrame extends JFrame implements GuiMain {
   final FilePane filePane;
   final TilesetPane tilesetPane;
   final MapView mainLogic;
+  final SwingFilePane swingFilePane;
   final SwingMapView swingMapView;
   final Commands commands;
   final JComponent topLevelComponent;
@@ -68,6 +70,11 @@ class MainFrame extends JFrame implements GuiMain {
   @Override
   public MapViewCompanion createCompanion(MapView logic) {
     return new SwingMapView(this, logic);
+  }
+
+  @Override
+  public FilePaneCompanion createCompanion(FilePane logic) {
+    return new SwingFilePane(this, logic);
   }
 
   @Override
@@ -166,6 +173,7 @@ class MainFrame extends JFrame implements GuiMain {
     mainLogic = new MapView(this, fileCache, filearg, tiles);
     swingMapView = (SwingMapView)mainLogic.hairy;
     filePane = mainLogic.files;
+    swingFilePane = (SwingFilePane)filePane.hairy;
 
     tilesetPane = new TilesetPane(this, tiles);
 
@@ -175,7 +183,7 @@ class MainFrame extends JFrame implements GuiMain {
     topSplitter.add(swingMapView.scrollPane);
 
     leftSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-        true, filePane.hairy, topSplitter);
+        true, swingFilePane, topSplitter);
     leftSplitter.setBorder(null);
     leftSplitter.setResizeWeight(0);
     if( XyTree.isEmpty(filePane.activeFile().content().nodeTree.get()) )

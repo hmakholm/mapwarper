@@ -13,9 +13,9 @@ import java.util.TreeMap;
 import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.UndoList;
 import net.makholm.henning.mapwarper.gui.UndoList.UndoItem;
+import net.makholm.henning.mapwarper.gui.hairy.FilePaneCompanion;
 import net.makholm.henning.mapwarper.gui.hairy.GuiMain;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
-import net.makholm.henning.mapwarper.gui.swing.SwingFilePane;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.util.BackgroundThread;
@@ -35,7 +35,7 @@ import net.makholm.henning.mapwarper.util.PokeReceiver;
 public class FilePane {
 
   public final GuiMain window;
-  public final SwingFilePane hairy;
+  public final FilePaneCompanion hairy;
   public final MapView mapView;
   public final FSCache cache;
 
@@ -52,7 +52,7 @@ public class FilePane {
     this.window = map.window;
     this.mapView = map;
     this.cache = cache;
-    this.hairy = new SwingFilePane(this);
+    this.hairy = window.createCompanion(this);
 
     Path arg = Path.of(filearg == null ? "." : filearg);
     arg = arg.toAbsolutePath().normalize();

@@ -4,11 +4,13 @@ import java.nio.file.Path;
 
 import net.makholm.henning.mapwarper.gui.Commands;
 import net.makholm.henning.mapwarper.gui.MapView;
+import net.makholm.henning.mapwarper.gui.files.FilePane;
 import net.makholm.henning.mapwarper.gui.swing.Command;
 
 public interface GuiMain {
 
   public MapViewCompanion createCompanion(MapView logic);
+  public FilePaneCompanion createCompanion(FilePane logic);
 
   public Commands commands();
 

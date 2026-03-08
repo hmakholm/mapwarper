@@ -18,16 +18,17 @@ import java.util.Collections;
 import javax.swing.JComponent;
 
 import net.makholm.henning.mapwarper.gui.files.FilePane;
+import net.makholm.henning.mapwarper.gui.hairy.FilePaneCompanion;
 import net.makholm.henning.mapwarper.rgb.RGB;
 
 @SuppressWarnings("serial")
-public class SwingFilePane extends JComponent {
+class SwingFilePane extends JComponent implements FilePaneCompanion {
 
   final MainFrame window;
-  public final FilePane logic;
+  final FilePane logic;
 
-  public static final int OVERLAP = 3;
-  public static final int PREFERRED_WIDTH = 200;
+  static final int OVERLAP = 3;
+  static final int PREFERRED_WIDTH = 200;
 
   private final Font italicFont;
 
@@ -40,8 +41,8 @@ public class SwingFilePane extends JComponent {
 
   private final BufferedImage eyeIcon;
 
-  public SwingFilePane(FilePane logic) {
-    this.window = (MainFrame)logic.window;
+  SwingFilePane(MainFrame window, FilePane logic) {
+    this.window = window;
     this.logic = logic;
     italicFont = SwingUtils.getANiceItalicFont();
     Font font = SwingUtils.getANiceDefaultFont();
@@ -85,6 +86,7 @@ public class SwingFilePane extends JComponent {
     }
   };
 
+  @Override
   public void refreshScene(FilePane.Entry[] newView) {
     var oldView = currentView;
     currentView = newView;
@@ -110,7 +112,7 @@ public class SwingFilePane extends JComponent {
       computePreferredSize();
   }
 
-  public void computePreferredSize() {
+  private void computePreferredSize() {
     setPreferredSize(new Dimension(PREFERRED_WIDTH,
         currentView.length*entryHeight));
     invalidate();
