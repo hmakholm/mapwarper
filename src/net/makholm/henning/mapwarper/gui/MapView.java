@@ -62,6 +62,8 @@ public final class MapView {
   public final FilePane files;
   public final TileContext tiles;
 
+  public final WindowTitle windowTitle;
+
   public final Squeezing squeeze;
 
   public final UndoList undoList = new UndoList(this);
@@ -125,6 +127,7 @@ public final class MapView {
     if( warpTiles == null ) warpTiles = mainTiles;
 
     this.hairy = window.createCompanion(this);
+    this.windowTitle = new WindowTitle(this);
 
     this.refreshTrigger = new PokeReceiver("deferred refresh MapView",
         hairy::refreshScene);

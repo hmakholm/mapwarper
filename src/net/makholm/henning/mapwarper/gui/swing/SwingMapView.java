@@ -138,7 +138,9 @@ MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     if( !everPaintedYet ) return;
     readViewportRect();
 
-    window.windowTitle.refresh();
+    String newTitle = logic.windowTitle.refresh();
+    if( newTitle != null )
+      window.setTitle(newTitle);
     window.repaintToolbar(null);
 
     var newTrackData = logic.collectVisibleTrackData();

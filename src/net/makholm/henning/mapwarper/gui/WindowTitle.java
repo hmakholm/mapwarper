@@ -1,29 +1,24 @@
-package net.makholm.henning.mapwarper.gui.swing;
+package net.makholm.henning.mapwarper.gui;
 
 import java.util.Locale;
 
-import javax.swing.JFrame;
-
 import net.makholm.henning.mapwarper.georaster.Coords;
-import net.makholm.henning.mapwarper.gui.MapView;
-import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.projection.BaseProjection;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
+import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 
 public class WindowTitle {
 
-  private final JFrame frame;
   private final MapView logic;
 
-  WindowTitle(JFrame frame, MapView logic) {
-    this.frame = frame;
+  WindowTitle(MapView logic) {
     this.logic = logic;
-
-    frame.setTitle("Mapwarper v3");
   }
+
+  public static final String DEFAULT_TITLE = "Mapwarper v3";
 
   private static final int RELEVANT_FLAGS =
       Toggles.DOWNLOAD.bit() |
@@ -37,7 +32,7 @@ public class WindowTitle {
   private Tileset lensTiles;
   private int lensZoom;
 
-  void refresh() {
+  public String refresh() {
     int flags0 = logic.toggleState & RELEVANT_FLAGS;
     Tileset lensTiles0 = null;
     int lensZoom0 = 0;
@@ -63,7 +58,7 @@ public class WindowTitle {
 
       StringBuffer sb = new StringBuffer();
       if( "move".equals(tool.codename) )
-        sb.append("Mapwarper v3");
+        sb.append(DEFAULT_TITLE);
       else
         sb.append(tool.codename);
       sb.append(" \u2013 ");
@@ -109,12 +104,14 @@ public class WindowTitle {
         sb.append("]");
       }
 
-      frame.setTitle(sb.toString());
+      return sb.toString();
+    } else {
+      return null;
     }
 
   }
 
-  public void appendNumber(StringBuffer sb, String pre, double v, String post) {
+  private void appendNumber(StringBuffer sb, String pre, double v, String post) {
     sb.append(pre);
     if( v == (int)v )
       sb.append((int)v);

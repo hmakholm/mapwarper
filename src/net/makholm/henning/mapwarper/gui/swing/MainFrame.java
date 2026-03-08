@@ -28,6 +28,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.makholm.henning.mapwarper.gui.Commands;
 import net.makholm.henning.mapwarper.gui.MapView;
+import net.makholm.henning.mapwarper.gui.WindowTitle;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.FilePane;
 import net.makholm.henning.mapwarper.gui.hairy.FilePaneCompanion;
@@ -49,8 +50,6 @@ class MainFrame extends JFrame implements GuiMain {
   final SwingMapView swingMapView;
   final Commands commands;
   final JComponent topLevelComponent;
-
-  final WindowTitle windowTitle;
 
   private final JSplitPane leftSplitter;
   private final JSplitPane rightSplitter;
@@ -177,7 +176,7 @@ class MainFrame extends JFrame implements GuiMain {
 
     tilesetPane = new TilesetPane(this, tiles);
 
-    windowTitle = new WindowTitle(this, mainLogic);
+    setTitle(WindowTitle.DEFAULT_TITLE);
 
     topSplitter = new Box(BoxLayout.Y_AXIS);
     topSplitter.add(swingMapView.scrollPane);
