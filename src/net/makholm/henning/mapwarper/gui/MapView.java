@@ -30,7 +30,6 @@ import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
 import net.makholm.henning.mapwarper.gui.projection.TurnedProjection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection.CannotWarp;
-import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.tiles.NomapTiles;
 import net.makholm.henning.mapwarper.tiles.TileContext;
@@ -429,7 +428,7 @@ public final class MapView {
       } catch( CannotWarp e ) {
         // Hmm, showing a box in this case might be too invasive.
         // Let's just beep.
-        SwingUtils.beep();
+        window.beep();
         System.err.println("Cannot refresh warp: "+e);
       }
     }
@@ -484,7 +483,7 @@ public final class MapView {
       setLens(targetTiles);
       lensZoom = targetTiles.guiTargetZoom;
     } else if( targetTiles.isOverlayMap ) {
-      SwingUtils.beep();
+      window.beep();
     } else if( targetTiles.allowOrtho &&
         targetTiles.desc.indexOf("photo") < 0 ) {
       orthoCommand(targetTiles, true);
@@ -659,13 +658,13 @@ public final class MapView {
     cancelLens();
     var zoom = new FallbackChain(dynamicMapLayerSpec).principalZoom;
     if( zoom == 0 ) {
-      SwingUtils.beep();
+      window.beep();
       return;
     }
     var addresser = mainTiles.makeAddresser(zoom, mouseGlobal);
     long shortcode = addresser.locate(mouseGlobal);
     if( shortcode == 0 ) {
-      SwingUtils.beep();
+      window.beep();
       return;
     }
     cancelLastGetTile.run();

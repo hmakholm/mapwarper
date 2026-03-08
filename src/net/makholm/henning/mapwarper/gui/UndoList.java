@@ -10,7 +10,6 @@ import javax.swing.KeyStroke;
 import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.hairy.IMenu;
 import net.makholm.henning.mapwarper.gui.swing.Command;
-import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.track.FileContent;
 
 public class UndoList {
@@ -172,7 +171,7 @@ public class UndoList {
       for(int i=0; i<howmany; i++ ) {
         UndoItem toUndo = (isUndo ? undo : redo).pop();
         if( toUndo == null ) {
-          SwingUtils.beep();
+          beep();
           return;
         }
         System.err.printf("[%s %d/%d: %s]\n",

@@ -18,7 +18,6 @@ import net.makholm.henning.mapwarper.gui.overlays.TextOverlay;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
 import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
-import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.track.ChainClass;
 import net.makholm.henning.mapwarper.track.LengthEstimator;
 import net.makholm.henning.mapwarper.track.SegmentChain;
@@ -230,7 +229,7 @@ public class OpenTool extends TrackHidingTool {
       }
       @Override
       public void execute(ExecuteWhy why) {
-        SwingUtils.beep();
+        beep();
       }
     };
 
@@ -284,7 +283,7 @@ public class OpenTool extends TrackHidingTool {
             }
             @Override
             public void execute(ExecuteWhy why) {
-              SwingUtils.beep();
+              beep();
             }
           };
         }

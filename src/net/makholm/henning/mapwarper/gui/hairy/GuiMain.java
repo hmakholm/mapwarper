@@ -25,6 +25,7 @@ public interface GuiMain {
   public void setToolbarVisible(boolean state);
   public void repaintToolbar(Command cmd);
 
+  public void beep();
   public void showWarningBox(String title, String fmt, Object... args);
   public void showErrorBox(String fmt, Object... args);
   public boolean showYesCancelBox(String title, String fmt, Object... args);

@@ -7,7 +7,6 @@ import java.util.List;
 
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
-import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.track.ChainClass;
 import net.makholm.henning.mapwarper.track.ChainRef;
 import net.makholm.henning.mapwarper.track.SegKind;
@@ -74,7 +73,7 @@ class EditTool extends GenericEditTool {
       var response = action.withPreview().freeze();
       if( !new AxisRect(mapView().visibleArea).contains(p2) ) {
         return new WrappedToolResponse(response) {
-          @Override public void execute(ExecuteWhy why) { SwingUtils.beep(); }
+          @Override public void execute(ExecuteWhy why) { beep(); }
         };
       } else
         return response;

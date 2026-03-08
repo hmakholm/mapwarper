@@ -5,7 +5,6 @@ import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
-import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.util.MathUtil;
 
 public class ZoomTool extends ProjectionSwitchingTool {
@@ -35,7 +34,7 @@ public class ZoomTool extends ProjectionSwitchingTool {
       public void execute(ExecuteWhy why) {
         var visible = new AxisRect(mapView().visibleArea);
         if( !visible.contains(pos1) ) {
-          SwingUtils.beep();
+          beep();
           return;
         }
 

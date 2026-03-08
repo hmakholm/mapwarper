@@ -98,6 +98,11 @@ class MainFrame extends JFrame implements GuiMain {
   }
 
   @Override
+  public void beep() {
+    getToolkit().beep();
+  }
+
+  @Override
   public void showWarningBox(String title, String fmt, Object... params) {
     String msg = String.format(Locale.ROOT, fmt, params);
     JOptionPane.showMessageDialog(this, msg,

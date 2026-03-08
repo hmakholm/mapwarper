@@ -4,7 +4,6 @@ import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
-import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 
@@ -58,7 +57,7 @@ class DragSubchainSelector implements MouseAction {
       @Override
       public void execute(ExecuteWhy why) {
         if( !new AxisRect(mapView.visibleArea).contains(p2) )
-          SwingUtils.beep();
+          mapView.window.beep();
         else
           super.execute(why);
       }

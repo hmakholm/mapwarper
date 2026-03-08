@@ -7,7 +7,6 @@ import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
-import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
 
 public class LensTool extends Tool {
@@ -53,7 +52,7 @@ public class LensTool extends Tool {
         mapView().lensZoom >= mapView().naturalLensZoom()) )
       return null;
     else if( mapView().lensZoom >= mapView().lensTiles.finestZoom )
-      return SwingUtils::beep;
+      return this::beep;
     else
       return () -> {
         var lensRect = mapView().lensRect;

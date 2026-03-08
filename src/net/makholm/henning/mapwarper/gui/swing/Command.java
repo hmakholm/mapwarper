@@ -42,8 +42,12 @@ public abstract class Command {
     owner.commandRegistry.put(codename, this);
   }
 
+  protected final void beep() {
+    owner.window.beep();
+  }
+
   public final MapView mapView() {
-    return mapView;
+    return owner.mapView;
   }
 
   protected final ProjectionWorker translator() {

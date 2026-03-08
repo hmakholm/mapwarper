@@ -13,7 +13,6 @@ import net.makholm.henning.mapwarper.gui.hairy.IMenu;
 import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.gui.swing.Command;
-import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.ToggleCommand;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.tiles.NomapTiles;
@@ -479,7 +478,7 @@ public class Commands extends CommandsBase {
     public void invoke() {
       var toRun = action.apply(owner);
       if( toRun == null )
-        SwingUtils.beep();
+        window.beep();
       else
         toRun.run();
     }
