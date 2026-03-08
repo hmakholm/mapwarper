@@ -617,6 +617,8 @@ MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
   @Override
   public void invalidateMapRendering() {
+    if( currentLensPainter != null )
+      currentLensPainter.invalidateEverything();
     currentMapPainter.invalidateEverything();
     repaint();
   }
