@@ -1,4 +1,4 @@
-package net.makholm.henning.mapwarper.gui.swing;
+package net.makholm.henning.mapwarper.gui;
 
 import java.awt.Cursor;
 import java.awt.Toolkit;
@@ -11,8 +11,8 @@ import java.util.function.BooleanSupplier;
 import javax.swing.Action;
 
 import net.makholm.henning.mapwarper.geometry.Point;
-import net.makholm.henning.mapwarper.gui.Commands;
-import net.makholm.henning.mapwarper.gui.MouseAction;
+import net.makholm.henning.mapwarper.gui.swing.Command;
+import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.track.VisibleTrackData;
 import net.makholm.henning.mapwarper.util.BadError;
 

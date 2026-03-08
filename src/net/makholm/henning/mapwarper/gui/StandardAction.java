@@ -10,7 +10,6 @@ import net.makholm.henning.mapwarper.gui.MouseAction.ExecuteWhy;
 import net.makholm.henning.mapwarper.gui.MouseAction.ToolResponse;
 import net.makholm.henning.mapwarper.gui.overlays.CircleOverlay;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
-import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.track.SegmentChain;
 import net.makholm.henning.mapwarper.track.TrackHighlight;
 import net.makholm.henning.mapwarper.track.TrackNode;

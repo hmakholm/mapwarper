@@ -3,7 +3,6 @@ package net.makholm.henning.mapwarper.gui;
 import java.awt.Cursor;
 
 import net.makholm.henning.mapwarper.geometry.Point;
-import net.makholm.henning.mapwarper.gui.swing.Tool;
 
 final class MoveTool extends Tool {
 

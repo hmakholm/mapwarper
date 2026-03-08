@@ -30,7 +30,6 @@ import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
 import net.makholm.henning.mapwarper.gui.projection.TurnedProjection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection.CannotWarp;
-import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.tiles.NomapTiles;
 import net.makholm.henning.mapwarper.tiles.TileContext;
 import net.makholm.henning.mapwarper.tiles.TileSpec;

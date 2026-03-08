@@ -11,12 +11,12 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import net.makholm.henning.mapwarper.gui.MapView;
+import net.makholm.henning.mapwarper.gui.Tool;
 import net.makholm.henning.mapwarper.gui.UndoList;
 import net.makholm.henning.mapwarper.gui.UndoList.UndoItem;
 import net.makholm.henning.mapwarper.gui.hairy.FilePaneCompanion;
 import net.makholm.henning.mapwarper.gui.hairy.GuiMain;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
-import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.track.FileContent;
 import net.makholm.henning.mapwarper.util.BackgroundThread;
 import net.makholm.henning.mapwarper.util.BadError;

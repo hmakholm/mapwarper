@@ -1,7 +1,7 @@
 package net.makholm.henning.mapwarper.gui.files;
 
 import net.makholm.henning.mapwarper.gui.Commands;
-import net.makholm.henning.mapwarper.gui.swing.Tool;
+import net.makholm.henning.mapwarper.gui.Tool;
 
 /**
  * This is for tools that tend to make the current file content invisible;

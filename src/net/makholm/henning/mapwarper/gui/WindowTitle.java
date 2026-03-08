@@ -7,7 +7,6 @@ import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.maprender.FallbackChain;
 import net.makholm.henning.mapwarper.gui.projection.BaseProjection;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
-import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 
 public class WindowTitle {

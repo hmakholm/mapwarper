@@ -17,7 +17,6 @@ import net.makholm.henning.mapwarper.georaster.Coords;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;
 import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
-import net.makholm.henning.mapwarper.gui.swing.Tool;
 import net.makholm.henning.mapwarper.util.AbortRendering;
 import net.makholm.henning.mapwarper.util.ListMapper;
 import net.makholm.henning.mapwarper.util.SingleMemo;

@@ -7,7 +7,6 @@ import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
-import net.makholm.henning.mapwarper.gui.swing.Tool;
 
 public class LensTool extends Tool {
   protected LensTool(Commands owner) {

@@ -1,7 +1,6 @@
 package net.makholm.henning.mapwarper.gui;
 
 import net.makholm.henning.mapwarper.geometry.Point;
-import net.makholm.henning.mapwarper.gui.swing.Tool;
 
 public abstract class ProjectionSwitchingTool extends Tool {
 

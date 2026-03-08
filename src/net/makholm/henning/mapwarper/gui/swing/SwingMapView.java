@@ -26,6 +26,7 @@ import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.MouseAction;
 import net.makholm.henning.mapwarper.gui.MouseAction.ToolResponse;
 import net.makholm.henning.mapwarper.gui.Teleporter;
+import net.makholm.henning.mapwarper.gui.Tool;
 import net.makholm.henning.mapwarper.gui.hairy.MapViewCompanion;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
 import net.makholm.henning.mapwarper.gui.overlays.VectorOverlay;

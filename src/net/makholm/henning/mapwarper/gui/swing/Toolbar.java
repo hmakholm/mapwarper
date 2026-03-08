@@ -25,6 +25,7 @@ import javax.swing.JComponent;
 import org.w3c.dom.Element;
 
 import net.makholm.henning.mapwarper.gui.Commands;
+import net.makholm.henning.mapwarper.gui.Tool;
 import net.makholm.henning.mapwarper.util.XmlConfig;
 
 @SuppressWarnings("serial")
