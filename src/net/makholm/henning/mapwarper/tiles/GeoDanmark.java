@@ -144,7 +144,7 @@ public class GeoDanmark extends Tileset {
     var dest = fileForMaxitile(tile);
     // Take the lock so we won't make the file disappear under the feet
     // of any threads that might be trying to load minitiles from it.
-    try( var locked = truncateLock.takeWriter(dest) ) {
+    try( var _ = truncateLock.takeWriter(dest) ) {
       DiskCachedTileset.tryDeleteFile(dest);
       Files.createDirectories(dest.getParent());
     }

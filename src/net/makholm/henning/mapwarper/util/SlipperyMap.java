@@ -22,7 +22,7 @@ public final class SlipperyMap<K, V> {
     while(true) {
       Entry e;
       synchronized(map) {
-        e = map.computeIfAbsent(key, k->new Entry(key, fresh.apply(key)));
+        e = map.computeIfAbsent(key, _->new Entry(key, fresh.apply(key)));
       }
       synchronized(e) {
         if( !e.retired ) {

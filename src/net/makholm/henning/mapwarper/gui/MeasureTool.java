@@ -214,7 +214,7 @@ public final class MeasureTool extends Tool {
   @Override
   public MouseAction drag(Point m1, int mod1) {
     int dragWhich = createOrReuseMeasuringChain(m1);
-    return (m2, mod2) -> {
+    return (m2, _) -> {
       var newNodes = new ArrayList<>(measuringChain.nodes);
       newNodes.set(dragWhich, local2node(m2));
       measuringChain = new SegmentChain(newNodes, SHOWKIND);

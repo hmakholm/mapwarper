@@ -96,7 +96,7 @@ public abstract class DiskCachedTileset extends Tileset {
   public void downloadTile(long tile, DownloadCallback callback)
       throws IOException, TryDownloadLater {
     Path file = fileForTile(tile);
-    try( var locked = downloadLock.takeWriter(file) ) {
+    try( var _ = downloadLock.takeWriter(file) ) {
       file.getParent().toFile().mkdirs();
       produceTileInFile(tile, file);
     } catch( IOException | TryDownloadLater e ) {

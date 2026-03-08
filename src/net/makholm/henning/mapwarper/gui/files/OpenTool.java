@@ -191,7 +191,7 @@ public class OpenTool extends TrackHidingTool {
       if( level > 5 ) return; // guard against symlink loops etc
       var dir = cache.getDirectory(p);
       if( level > 0 )
-        dir.vectFiles.forEach((k,pp) -> addPossibility(cache.getFile(pp)));
+        dir.vectFiles.forEach((_,pp) -> addPossibility(cache.getFile(pp)));
       for( var pp : dir.subdirs.values() )
         recursivelyScanSubdirs(cache, level+1, pp);
     }

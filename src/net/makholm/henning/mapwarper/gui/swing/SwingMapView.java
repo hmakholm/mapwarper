@@ -67,7 +67,7 @@ MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   private Point toolResponsePoint = Point.ORIGIN;
   private int toolResponseModifiers;
   private MouseAction toolResponseTool = null;
-  private ToolResponse toolResponse = why -> {};
+  private ToolResponse toolResponse = _ -> {};
   private VectorOverlay previousOverlay;
 
   TempToolReleaser tempTool = new TempToolReleaser();
@@ -91,7 +91,7 @@ MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
     viewport = scrollPane.getViewport();
     viewportRect = viewport.getViewRect();
-    viewport.addChangeListener(e -> viewportChanged());
+    viewport.addChangeListener(_ -> viewportChanged());
 
     setFocusable(true);
     setFocusTraversalKeysEnabled(false);

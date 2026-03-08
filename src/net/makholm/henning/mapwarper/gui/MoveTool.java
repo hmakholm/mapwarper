@@ -11,7 +11,7 @@ final class MoveTool extends Tool {
 
   @Override
   public ToolResponse mouseResponse(Point pos, int modifiers) {
-    return why -> {};
+    return _ -> {};
   }
 
   @Override

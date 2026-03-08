@@ -15,7 +15,7 @@ public class ZoomTool extends ProjectionSwitchingTool {
 
   @Override
   protected ToolResponse clickResponse(Point pos, int modifiers) {
-    return qhy -> {
+    return _ -> {
       Runnable got = prepareZoom(ctrlHeld(modifiers) ? 4 : 0.25);
       if( got != null ) {
         got.run();

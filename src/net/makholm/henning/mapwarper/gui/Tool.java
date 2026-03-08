@@ -87,11 +87,11 @@ public abstract class Tool extends Command implements MouseAction {
     return hairy.isQuickBitSet(modifiers);
   }
 
-  public static final MouseAction DRAG_THE_MAP = (p,m) -> why -> {
+  public static final MouseAction DRAG_THE_MAP = (_,_) -> _ -> {
     throw BadError.of("DRAG_THE_MAP is recognized by ==; this is never called.");
   };
 
-  public static final ToolResponse NO_RESPONSE = why -> {};
+  public static final ToolResponse NO_RESPONSE = _ -> {};
 
   // -------------------------------------------------------------------------
 
@@ -205,7 +205,7 @@ public abstract class Tool extends Command implements MouseAction {
 
   private Command makeQuickCommand(int modifier,
       String quickCodename, String niceName, BooleanSupplier menuCheckmark) {
-    return quickCommands.computeIfAbsent(modifier, m0 ->
+    return quickCommands.computeIfAbsent(modifier, _ ->
     new Command(owner, quickCodename, niceName) {
       private ToolResponse tr() {
         return mouseResponse(mapView.mouseLocal, hairy.setQuickBit(modifier));

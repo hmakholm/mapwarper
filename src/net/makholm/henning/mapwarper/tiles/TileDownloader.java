@@ -39,7 +39,7 @@ implements Tileset.DownloadCallback {
     var map = eager ? queue : watchers;
     synchronized( this ) {
       Set<Consumer<TileBitmap>> subscribers =
-          map.computeIfAbsent(spec, spec0 -> new LinkedHashSet<>());
+          map.computeIfAbsent(spec, _ -> new LinkedHashSet<>());
       subscribers.add(whenDone);
       if( eager ) {
         if( startedYet ) {

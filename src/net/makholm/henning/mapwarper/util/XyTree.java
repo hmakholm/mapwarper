@@ -275,6 +275,6 @@ public class XyTree<T> extends AxisRect {
     }
   }
 
-  private static final Consumer<Object> NOOP_DATA_RESOLVER = blah -> {};
+  private static final Consumer<Object> NOOP_DATA_RESOLVER = _ -> {};
 
 }

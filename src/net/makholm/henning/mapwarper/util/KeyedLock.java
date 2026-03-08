@@ -7,7 +7,7 @@ public final class KeyedLock<K> {
   }
 
   private final SlipperyMap<K, Sublock> slipmap =
-      new SlipperyMap<>(k -> new Sublock());
+      new SlipperyMap<>(_ -> new Sublock());
 
   /**
    * If a <em>reader</em> cannot immediately acquire the lock, it will

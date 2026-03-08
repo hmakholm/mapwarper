@@ -35,7 +35,7 @@ public interface MouseAction {
     public void execute(ExecuteWhy why);
 
     default MouseAction constantDrag() {
-      return (p,m) -> this;
+      return (_,_) -> this;
     }
   }
 

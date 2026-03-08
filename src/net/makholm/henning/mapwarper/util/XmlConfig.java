@@ -163,7 +163,7 @@ public class XmlConfig {
   }
 
   private Map<String, Element> makeTagmap(String tag) {
-    return elements.computeIfAbsent(tag, t -> new LinkedHashMap<>());
+    return elements.computeIfAbsent(tag, _ -> new LinkedHashMap<>());
   }
 
 }

@@ -41,7 +41,7 @@ public class LensTool extends Tool {
       };
     } else {
       var r = ctrlHeld(modifiers) ? lensMinusCommand() : lensPlusCommand();
-      return r == null ? NO_RESPONSE : why -> r.run();
+      return r == null ? NO_RESPONSE : _ -> r.run();
     }
   }
 
@@ -86,7 +86,7 @@ public class LensTool extends Tool {
     var dragAction0 = startDrag(pos0);
     mapView().cancelLens();
     var dragAction = dragAction0 != null ? dragAction0 : startDrag(pos0);
-    return (pos1, modifiers1) -> {
+    return (pos1, _) -> {
       AxisRect chosen = dragAction.makeRect.apply(pos1);
       chosen = shrinkForExport(chosen);
       var overlay = createBox(chosen);

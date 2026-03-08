@@ -124,8 +124,8 @@ class WarpMargins {
         }
       }
     }
-    XyTree.resolveDeep(leftTree, source -> {});
-    XyTree.resolveDeep(rightTree, source -> {});
+    XyTree.resolveDeep(leftTree, _ -> {});
+    XyTree.resolveDeep(rightTree, _ -> {});
     leftBoundaryTree = leftTree;
     rightBoundaryTree = rightTree;
   }

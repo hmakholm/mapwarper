@@ -76,7 +76,7 @@ final class LockingTool extends GenericEditTool {
       return NO_RESPONSE.constantDrag();
     }
     var th = new TransformHelper();
-    return (p2, mod2) -> {
+    return (p2, _) -> {
       var dragged = p0.to(p2);
       if( dragged.length() < 10 )
         return clickResponse;

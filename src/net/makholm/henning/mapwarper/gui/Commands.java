@@ -210,32 +210,32 @@ public class Commands extends CommandsBase {
           if( tiles != mapView.fallbackTiles )
             weakOrtho = new TilesetCommand("weakOrtho",
                 "Already downloaded tiles in standard projection",
-                mv -> true, (mv,t) -> mv.orthoCommand(t, false), tiles);
+                _ -> true, (mv,t) -> mv.orthoCommand(t, false), tiles);
           else
             weakOrtho = null;
           if( !tiles.allowOrtho ) {
             setmap = setmapm = null;
           } else {
             setmap = new TilesetCommand("setmap", "Set as map tiles",
-                mv->true, MapView::setmapCommand, tiles);
+                _->true, MapView::setmapCommand, tiles);
             setmapm = new TilesetCommand("setmapm", tiles.desc,
-                mv->true, MapView::setwarpCommand, tiles) {
+                _->true, MapView::setwarpCommand, tiles) {
               @Override public Boolean getMenuSelected() {
                 return mapView.mapTiles == tiles;
               }
             };
           }
           setwarp = new TilesetCommand("setwarp", "Set as warping tiles",
-              mv->true, MapView::setwarpCommand, tiles);
+              _->true, MapView::setwarpCommand, tiles);
           setwarpm = new TilesetCommand("setwarpm", tiles.desc,
-              mv->true, MapView::setwarpCommand, tiles) {
+              _->true, MapView::setwarpCommand, tiles) {
             @Override public Boolean getMenuSelected() {
               return mapView.warpTiles == tiles;
             }
           };
         }
         lens = new TilesetCommand("lens", "Use with lens tool",
-            mv -> true, MapView::lensCommand, tiles);
+            _->true, MapView::lensCommand, tiles);
       } else {
         just = weakOrtho = lens =
             simple("nosuchtiles."+name, "NOSUCHTILES",

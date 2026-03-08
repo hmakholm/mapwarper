@@ -55,7 +55,7 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
 
     if( proj.equals(orig) )
       return NO_RESPONSE;
-    return why -> mapView().setProjection(proj);
+    return _ -> mapView().setProjection(proj);
   }
 
   @Override

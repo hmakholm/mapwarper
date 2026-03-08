@@ -52,7 +52,7 @@ public interface ProjectionWorker {
     return DISCARD_NONE;
   }
 
-  public static final IntPredicate DISCARD_NONE = i -> false;
+  public static final IntPredicate DISCARD_NONE = _ -> false;
 
   public default void dumpSearchStats() { }
 
