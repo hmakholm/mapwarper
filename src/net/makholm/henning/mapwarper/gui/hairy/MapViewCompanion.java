@@ -2,6 +2,7 @@ package net.makholm.henning.mapwarper.gui.hairy;
 
 import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
+import net.makholm.henning.mapwarper.gui.swing.Command;
 
 /**
  * This object is the framework-specific part of {@link MapView}.
@@ -15,6 +16,8 @@ public interface MapViewCompanion {
   public void invalidateMapRendering();
   public void invalidateToolResponse();
   public void repaintFromScratch();
+
+  public boolean isCommandKeyDown(Command which);
 
   public void commitToTempProjection();
 

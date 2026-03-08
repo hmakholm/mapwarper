@@ -2,6 +2,7 @@ package net.makholm.henning.mapwarper.gui.swing;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -20,7 +21,7 @@ import net.makholm.henning.mapwarper.util.BadError;
 
 public abstract class Command {
 
-  final SwingMapView swing;
+  private final SwingMapView swing;
 
   public final Commands owner;
   public final MapView mapView;
@@ -69,9 +70,18 @@ public abstract class Command {
   protected void invokeByKey(char key) {
     swing.tempTool.disable();
     invoke();
+    if( key != KeyEvent.CHAR_UNDEFINED )
+      swing.tempTool = new TempToolReleaser(key, this);
   }
 
   public abstract void invoke();
+
+  /**
+   * @return true if we need to refresh the displayed situation
+   */
+  public boolean invocationKeyReleased(boolean anythingDone, int modifiers) {
+    return false;
+  }
 
   final Action makeAction() {
     return new AbstractAction(niceName) {

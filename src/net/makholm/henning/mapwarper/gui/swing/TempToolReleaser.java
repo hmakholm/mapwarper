@@ -4,14 +4,9 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
-import net.makholm.henning.mapwarper.geometry.Point;
-import net.makholm.henning.mapwarper.gui.MouseAction.ExecuteWhy;
-
 final class TempToolReleaser {
   final char key;
-  final Tool switchFrom;
-  final Tool switchTo;
-  final Point initMouseLocal;
+  final Command target;
 
   /**
    * After this amount of time the tool selection is assumed to be meant
@@ -26,22 +21,18 @@ final class TempToolReleaser {
 
   TempToolReleaser() {
     this.key = 0;
-    this.switchFrom = null;
-    this.switchTo = null;
-    this.initMouseLocal = Point.ORIGIN;
+    this.target = null;
     this.waitingFor = NEVER;
   }
 
-  TempToolReleaser(Tool switchFrom, char key, Tool switchTo) {
-    this.switchFrom = switchFrom;
+  TempToolReleaser(char key, Command target) {
     this.key = key;
-    this.switchTo = switchTo;
-    this.initMouseLocal = switchFrom.mapView().mouseLocal;
+    this.target = target;
     this.waitingFor = System.nanoTime() + WAIT_MILLIS * 1_000_000L;
   }
 
-  boolean waitingFor(Tool tool) {
-    return tool == switchFrom && waitingFor < NEVER;
+  boolean waitingFor(Command cmd) {
+    return target == cmd && waitingFor < NEVER;
   }
 
   private boolean waitingForKeyRelease() {
@@ -69,14 +60,9 @@ final class TempToolReleaser {
         else
           switchBack();
       } else {
-        var a = switchFrom.simpleKeyAction(initMouseLocal,
-            e.getModifiersEx() | Tool.QUICK_COM_MASK);
-        if( a != null && a != Tool.NO_RESPONSE ) {
-          a.execute(ExecuteWhy.QUICKTOOL);
-          switchBack();
-        } else {
-          disable();
-        }
+        disable();
+        if( target.invocationKeyReleased(false, e.getModifiersEx()) )
+          target.mapView.hairy.refreshScene();
       }
     }
   }
@@ -91,10 +77,9 @@ final class TempToolReleaser {
   }
 
   private void switchBack() {
-    System.err.println("[resume "+switchTo.codename+"]");
     waitingFor = NEVER;
-    switchTo.mapView().selectTool(switchTo);
-    switchTo.mapView().hairy.refreshScene();
+    if( target.invocationKeyReleased(true, 0) )
+      target.mapView.hairy.refreshScene();
   }
 
 }

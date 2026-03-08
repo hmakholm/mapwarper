@@ -3,7 +3,6 @@ package net.makholm.henning.mapwarper.gui.swing;
 import java.awt.Cursor;
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -92,6 +91,10 @@ public abstract class Tool extends Command implements MouseAction {
     return (flags & QUICK_COM_MASK) != 0;
   }
 
+  public static int setQuickBit(int flags) {
+    return flags | QUICK_COM_MASK;
+  }
+
   public static final MouseAction DRAG_THE_MAP = (p,m) -> why -> {
     throw BadError.of("DRAG_THE_MAP is recognized by ==; this is never called.");
   };
@@ -117,30 +120,34 @@ public abstract class Tool extends Command implements MouseAction {
   }
 
   public void whenSelected() {
-    swing.tempTool.disable();
+    // Nothing by default
   }
 
   public void whenDeselected() {
     // Nothing by default
   }
 
+  private Point mouseLocalAtKeypress;
+  private Tool toolAtKeypress;
+
   @Override
   protected final void invokeByKey(char key) {
+    mouseLocalAtKeypress = mapView.mouseLocal;
     var prev = mapView().currentTool;
-    invoke();
-    if( prev != this && key != KeyEvent.CHAR_UNDEFINED &&
-        mapView().currentTool == this )
-      swing.tempTool = new TempToolReleaser(this, key, prev);
+    super.invokeByKey(key);
+    if( prev != this && mapView().currentTool == this )
+      toolAtKeypress = prev;
+    else
+      toolAtKeypress = null;
   }
 
   protected final boolean isTempTool() {
-    return swing.tempTool.waitingFor(this);
+    return mapView.hairy.isCommandKeyDown(this);
   }
 
   protected ToolResponse simpleKeyAction(Point pos, int modifiers) {
     return null;
   }
-
   protected Tool previousTool;
 
   @Override
@@ -150,6 +157,29 @@ public abstract class Tool extends Command implements MouseAction {
       mapView().selectTool(this);
     } else {
       whenSelected();
+    }
+  }
+
+  @Override
+  public boolean invocationKeyReleased(boolean anythingDone, int modifiers) {
+    Tool prev = toolAtKeypress;
+    toolAtKeypress = null;
+    if( mapView.currentTool != this || prev == null ) {
+      return false;
+    } else if( anythingDone ) {
+      System.err.println("[resume "+prev.codename+"]");
+      mapView.selectTool(prev);
+      return true;
+    } else {
+      var a = simpleKeyAction(mouseLocalAtKeypress, setQuickBit(modifiers));
+      if( a == null || a == NO_RESPONSE ) {
+        return false;
+      } else {
+        System.err.println("[quickcmd "+codename+"; resuming "+prev.codename+"]");
+        a.execute(ExecuteWhy.QUICKTOOL);
+        mapView.selectTool(prev);
+        return true;
+      }
     }
   }
 
@@ -166,6 +196,8 @@ public abstract class Tool extends Command implements MouseAction {
   protected boolean canEscapeBackTo(Tool other) {
     return true;
   }
+
+  // -------------------------------------------------------------------------
 
   public void activeFileChanged() { }
 
@@ -196,7 +228,7 @@ public abstract class Tool extends Command implements MouseAction {
 
   // -------------------------------------------------------------------------
 
-  static final int QUICK_COM_MASK = 1 << 31;
+  private static final int QUICK_COM_MASK = 1 << 31;
 
   private final Map<Integer, Command> quickCommands = new LinkedHashMap<>();
 
@@ -205,8 +237,7 @@ public abstract class Tool extends Command implements MouseAction {
     return quickCommands.computeIfAbsent(modifier, m0 ->
     new Command(owner, quickCodename, niceName) {
       private ToolResponse tr() {
-        return swing.quickToolResponse(Tool.this,
-            modifier | QUICK_COM_MASK);
+        return mouseResponse(mapView.mouseLocal, setQuickBit(modifier));
       }
       @Override
       protected Boolean getMenuSelected() {

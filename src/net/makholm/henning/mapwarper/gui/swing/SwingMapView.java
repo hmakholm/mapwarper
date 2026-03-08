@@ -192,13 +192,6 @@ MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     }
   }
 
-  ToolResponse quickToolResponse(Tool tool, int modifiers) {
-    if( mousePosForTool == OUTSIDE_WINDOW )
-      return Tool.NO_RESPONSE;
-    else
-      return tool.mouseResponse(mousePosForTool, modifiers);
-  }
-
   private void refreshPositionAndProjection() {
     boolean shouldRepaintAll = true;
     if( currentMapPainter != null &&
@@ -601,6 +594,11 @@ MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   @Override
   public void keyTyped(KeyEvent e) {
     // nothing
+  }
+
+  @Override
+  public boolean isCommandKeyDown(Command cmd) {
+    return tempTool.waitingFor(cmd);
   }
 
   @Override
