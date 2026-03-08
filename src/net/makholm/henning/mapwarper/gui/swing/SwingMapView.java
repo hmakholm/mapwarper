@@ -415,6 +415,10 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   @Override
   public void mouseEntered(MouseEvent e) {
     readMousePosition(e);
+    // When the mouse "enters" after a popup menu invocation we get spurious
+    // mouse button in the modifier state that won't have a corresponding
+    // mouse release event. Sigh.
+    modifierState = 0;
   }
 
   @Override
