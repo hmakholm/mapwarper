@@ -27,12 +27,10 @@ import net.makholm.henning.mapwarper.tiles.Tileset;
 @SuppressWarnings("serial")
 public class TilesetPane extends Box {
 
-  private final GuiMain window;
   private final Map<String, JComponent> componentMap = new LinkedHashMap<>();
 
   TilesetPane(GuiMain window, TileContext context) {
     super(BoxLayout.Y_AXIS);
-    this.window = window;
     setMinimumSize(new Dimension(0,0));
 
     for( Tileset tiles : context.tilesets.values() )

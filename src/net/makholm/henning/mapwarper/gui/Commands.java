@@ -12,8 +12,6 @@ import net.makholm.henning.mapwarper.gui.files.OpenTool;
 import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
 import net.makholm.henning.mapwarper.gui.swing.Command;
-import net.makholm.henning.mapwarper.gui.swing.GuiMain;
-import net.makholm.henning.mapwarper.gui.swing.SwingMapView;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.ToggleCommand;
 import net.makholm.henning.mapwarper.gui.swing.Tool;
@@ -21,20 +19,10 @@ import net.makholm.henning.mapwarper.tiles.NomapTiles;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 import net.makholm.henning.mapwarper.track.SegKind;
 
-public class Commands {
-
-  public final GuiMain window;
-  public final MapView mapView;
-  public final SwingMapView hairy;
-  public final FilePane files;
-
-  public final Map<String, Command> commandRegistry = new LinkedHashMap<>();
+public class Commands extends CommandsBase {
 
   public Commands(MapView main) {
-    window = main.window;
-    mapView = main;
-    hairy = main.hairy;
-    files = main.files;
+    super(main);
 
     mapView.currentTool = move;
     mapView.tiles.tilesets.keySet().forEach(this::tilesetCommands);

@@ -21,6 +21,7 @@ import net.makholm.henning.mapwarper.util.BadError;
 public abstract class Command {
 
   public final Commands owner;
+  public final MapView mapView;
   public final String codename;
   public final String niceName;
 
@@ -29,6 +30,7 @@ public abstract class Command {
 
   public Command(Commands owner, String codename, String niceName) {
     this.owner = owner;
+    this.mapView = owner.mapView;
     this.codename = codename;
     this.niceName = niceName != null ? niceName : "("+codename+")";
 
@@ -38,15 +40,15 @@ public abstract class Command {
   }
 
   public final MapView mapView() {
-    return owner.mapView;
+    return mapView;
   }
 
   protected final ProjectionWorker translator() {
-    return mapView().translator();
+    return mapView.translator();
   }
 
   protected final SegmentChain editingChain() {
-    return mapView().editingChain;
+    return mapView.editingChain;
   }
 
   protected final FileContent activeFileContent() {
