@@ -9,7 +9,6 @@ import net.makholm.henning.mapwarper.gui.projection.CircleWarp;
 import net.makholm.henning.mapwarper.gui.projection.Projection;
 import net.makholm.henning.mapwarper.gui.projection.QuickWarp;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection.CannotWarp;
-import net.makholm.henning.mapwarper.gui.swing.Command;
 
 public class QuickwarpTool extends ProjectionSwitchingTool {
 
@@ -22,7 +21,7 @@ public class QuickwarpTool extends ProjectionSwitchingTool {
   }
 
   @Override
-  protected Boolean getMenuSelected() {
+  public Boolean getMenuSelected() {
     return mapView().projection.base() instanceof QuickWarp;
   }
 

@@ -8,10 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
-import javax.swing.Action;
-
 import net.makholm.henning.mapwarper.geometry.Point;
-import net.makholm.henning.mapwarper.gui.swing.Command;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.track.VisibleTrackData;
 import net.makholm.henning.mapwarper.util.BadError;
@@ -131,10 +128,10 @@ public abstract class Tool extends Command implements MouseAction {
   private Tool toolAtKeypress;
 
   @Override
-  protected final void invokeByKey(char key) {
+  public final void invokeByKey() {
     mouseLocalAtKeypress = mapView.mouseLocal;
     var prev = mapView().currentTool;
-    super.invokeByKey(key);
+    super.invokeByKey();
     if( prev != this && mapView().currentTool == this )
       toolAtKeypress = prev;
     else
@@ -202,7 +199,7 @@ public abstract class Tool extends Command implements MouseAction {
   public void activeFileChanged() { }
 
   @Override
-  protected Boolean getMenuSelected() {
+  public Boolean getMenuSelected() {
     return this == mapView().currentTool;
   }
 
@@ -216,10 +213,6 @@ public abstract class Tool extends Command implements MouseAction {
         @Override
         public void invoke() {
           Tool.this.invoke();
-        }
-        @Override
-        public Action getAction() {
-          return Tool.this.getAction();
         }
       };
     }
@@ -240,7 +233,7 @@ public abstract class Tool extends Command implements MouseAction {
         return mouseResponse(mapView.mouseLocal, setQuickBit(modifier));
       }
       @Override
-      protected Boolean getMenuSelected() {
+      public Boolean getMenuSelected() {
         return menuCheckmark == null ? null : menuCheckmark.getAsBoolean();
       }
       @Override

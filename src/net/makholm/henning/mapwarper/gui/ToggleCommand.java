@@ -1,6 +1,4 @@
-package net.makholm.henning.mapwarper.gui.swing;
-
-import net.makholm.henning.mapwarper.gui.Commands;
+package net.makholm.henning.mapwarper.gui;
 
 public abstract class ToggleCommand extends Command {
 
@@ -17,7 +15,7 @@ public abstract class ToggleCommand extends Command {
   }
 
   @Override
-  void debugTraceInvoke() {}
+  public void debugTraceInvoke() {}
 
   @Override
   public Boolean getMenuSelected() {

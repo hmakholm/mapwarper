@@ -1,7 +1,5 @@
 package net.makholm.henning.mapwarper.gui;
 
-import net.makholm.henning.mapwarper.gui.swing.ToggleCommand;
-
 public enum Toggles {
 
   TILEGRID(true, false, "tilegrid", "Tile checkerboard pattern"),

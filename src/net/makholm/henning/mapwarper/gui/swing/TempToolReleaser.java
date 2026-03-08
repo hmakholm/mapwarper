@@ -4,6 +4,8 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
+import net.makholm.henning.mapwarper.gui.Command;
+
 final class TempToolReleaser {
   final char key;
   final Command target;

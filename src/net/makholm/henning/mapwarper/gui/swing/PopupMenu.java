@@ -2,6 +2,7 @@ package net.makholm.henning.mapwarper.gui.swing;
 
 import javax.swing.JPopupMenu;
 
+import net.makholm.henning.mapwarper.gui.Command;
 import net.makholm.henning.mapwarper.gui.hairy.IMenu;
 
 @SuppressWarnings("serial")
@@ -9,7 +10,7 @@ class PopupMenu extends JPopupMenu implements IMenu {
 
   @Override
   public void add(Command command) {
-    add(command.makeMenuItem());
+    add(((SwingCommand)command.hairy).makeMenuItem());
   }
 
   @Override

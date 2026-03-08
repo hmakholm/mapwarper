@@ -15,7 +15,6 @@ import net.makholm.henning.mapwarper.gui.maprender.FrozenLayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.LayerSpec;
 import net.makholm.henning.mapwarper.gui.maprender.RenderFactory;
 import net.makholm.henning.mapwarper.gui.maprender.RenderTarget;
-import net.makholm.henning.mapwarper.gui.swing.Command;
 import net.makholm.henning.mapwarper.gui.swing.SwingUtils;
 import net.makholm.henning.mapwarper.gui.swing.TrackPainter;
 import net.makholm.henning.mapwarper.util.AbortRendering;

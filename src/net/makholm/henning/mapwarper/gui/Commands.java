@@ -12,8 +12,6 @@ import net.makholm.henning.mapwarper.gui.files.OpenTool;
 import net.makholm.henning.mapwarper.gui.hairy.IMenu;
 import net.makholm.henning.mapwarper.gui.projection.OrthoProjection;
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
-import net.makholm.henning.mapwarper.gui.swing.Command;
-import net.makholm.henning.mapwarper.gui.swing.ToggleCommand;
 import net.makholm.henning.mapwarper.tiles.NomapTiles;
 import net.makholm.henning.mapwarper.tiles.Tileset;
 import net.makholm.henning.mapwarper.track.SegKind;
@@ -222,7 +220,7 @@ public class Commands extends CommandsBase {
                 mv->true, MapView::setmapCommand, tiles);
             setmapm = new TilesetCommand("setmapm", tiles.desc,
                 mv->true, MapView::setwarpCommand, tiles) {
-              @Override protected Boolean getMenuSelected() {
+              @Override public Boolean getMenuSelected() {
                 return mapView.mapTiles == tiles;
               }
             };
@@ -231,7 +229,7 @@ public class Commands extends CommandsBase {
               mv->true, MapView::setwarpCommand, tiles);
           setwarpm = new TilesetCommand("setwarpm", tiles.desc,
               mv->true, MapView::setwarpCommand, tiles) {
-            @Override protected Boolean getMenuSelected() {
+            @Override public Boolean getMenuSelected() {
               return mapView.warpTiles == tiles;
             }
           };

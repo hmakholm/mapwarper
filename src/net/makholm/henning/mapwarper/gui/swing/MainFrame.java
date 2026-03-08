@@ -26,11 +26,13 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import net.makholm.henning.mapwarper.gui.Command;
 import net.makholm.henning.mapwarper.gui.Commands;
 import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.WindowTitle;
 import net.makholm.henning.mapwarper.gui.files.FSCache;
 import net.makholm.henning.mapwarper.gui.files.FilePane;
+import net.makholm.henning.mapwarper.gui.hairy.CommandCompanion;
 import net.makholm.henning.mapwarper.gui.hairy.FilePaneCompanion;
 import net.makholm.henning.mapwarper.gui.hairy.GuiMain;
 import net.makholm.henning.mapwarper.gui.hairy.MapViewCompanion;
@@ -74,6 +76,11 @@ class MainFrame extends JFrame implements GuiMain {
   @Override
   public FilePaneCompanion createCompanion(FilePane logic) {
     return new SwingFilePane(this, logic);
+  }
+
+  @Override
+  public CommandCompanion createCompanion(Command logic) {
+    return new SwingCommand(this, logic);
   }
 
   @Override
@@ -390,7 +397,8 @@ class MainFrame extends JFrame implements GuiMain {
     topLevelComponent.setInputMap(cond, new InputMap());
   }
 
-  private void defineKeyBinding(String key, Command command) {
+  private void defineKeyBinding(String key, Command logic) {
+    var command = (SwingCommand)logic.hairy;
     command.defineInActionMap(topLevelComponent);
 
     final KeyStroke keystroke;
@@ -420,8 +428,7 @@ class MainFrame extends JFrame implements GuiMain {
 
     InputMap inputMap = topLevelComponent.getInputMap(
         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-    // System.err.println("Define "+command.codename+" for keystroke "+keystroke);
-    inputMap.put(keystroke, command.codename);
+    inputMap.put(keystroke, logic.codename);
   }
 
 }

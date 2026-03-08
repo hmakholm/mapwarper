@@ -1,7 +1,6 @@
 package net.makholm.henning.mapwarper.gui;
 
 import net.makholm.henning.mapwarper.gui.projection.WarpedProjection;
-import net.makholm.henning.mapwarper.gui.swing.ToggleCommand;
 import net.makholm.henning.mapwarper.track.SegKind;
 
 class SkipEditTool extends BoundEditTool {

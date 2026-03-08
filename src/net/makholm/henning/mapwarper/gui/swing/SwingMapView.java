@@ -22,6 +22,7 @@ import javax.swing.JViewport;
 import net.makholm.henning.mapwarper.geometry.AxisRect;
 import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.geometry.Vector;
+import net.makholm.henning.mapwarper.gui.Command;
 import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.MouseAction;
 import net.makholm.henning.mapwarper.gui.MouseAction.ToolResponse;

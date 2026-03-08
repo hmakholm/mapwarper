@@ -13,111 +13,68 @@ import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.KeyStroke;
 
-import net.makholm.henning.mapwarper.gui.Commands;
-import net.makholm.henning.mapwarper.gui.MapView;
-import net.makholm.henning.mapwarper.gui.projection.ProjectionWorker;
-import net.makholm.henning.mapwarper.track.FileContent;
-import net.makholm.henning.mapwarper.track.SegmentChain;
-import net.makholm.henning.mapwarper.util.BadError;
+import net.makholm.henning.mapwarper.gui.Command;
+import net.makholm.henning.mapwarper.gui.ToggleCommand;
+import net.makholm.henning.mapwarper.gui.hairy.CommandCompanion;
 
-public abstract class Command {
+class SwingCommand implements CommandCompanion {
 
-  private final SwingMapView swing;
-
-  public final Commands owner;
-  public final MapView mapView;
-  public final String codename;
-  public final String niceName;
+  final Command logic;
+  final MainFrame window;
+  final SwingMapView swing;
 
   KeyStroke keybinding;
   Action action;
 
-  public Command(Commands owner, String codename, String niceName) {
-    this.owner = owner;
-    this.mapView = owner.mapView;
-    this.swing = (SwingMapView)mapView.hairy;
-    this.codename = codename;
-    this.niceName = niceName != null ? niceName : "("+codename+")";
-
-    if( owner.commandRegistry.containsKey(codename) )
-      throw BadError.of("Command '%s' seems to be registered twice.", codename);
-    owner.commandRegistry.put(codename, this);
+  SwingCommand(MainFrame window, Command logic) {
+    this.window = window;
+    this.logic = logic;
+    this.swing = window.swingMapView;
   }
 
-  protected final void beep() {
-    owner.window.beep();
-  }
-
-  public final MapView mapView() {
-    return owner.mapView;
-  }
-
-  protected final ProjectionWorker translator() {
-    return mapView.translator();
-  }
-
-  protected final SegmentChain editingChain() {
-    return mapView.editingChain;
-  }
-
-  protected final FileContent activeFileContent() {
-    return owner.files.activeFile().content();
-  }
-
-  public boolean makesSenseNow() {
-    return true;
-  }
-
-  protected void invokeByKey(char key) {
-    swing.tempTool.disable();
-    invoke();
+  void invokeByKey(char key) {
+    window.swingMapView.tempTool.disable();
+    logic.invokeByKey();
     if( key != KeyEvent.CHAR_UNDEFINED )
-      swing.tempTool = new TempToolReleaser(key, this);
-  }
-
-  public abstract void invoke();
-
-  /**
-   * @return true if we need to refresh the displayed situation
-   */
-  public boolean invocationKeyReleased(boolean anythingDone, int modifiers) {
-    return false;
+      window.swingMapView.tempTool = new TempToolReleaser(key, logic);
   }
 
   final Action makeAction() {
-    return new AbstractAction(niceName) {
+    return new AbstractAction(logic.niceName) {
       @Override
       public void actionPerformed(ActionEvent e) {
-        var mainFrame = (MainFrame)owner.window;
+        var mainFrame = window;
         mainFrame.anyUserInputYet = true;
         String swingstring = e.getActionCommand();
         if( swingstring == null ) {
           // This seems to happen for non-character keys such as F-keys
           swingstring = "("+keybinding+")";
         }
-        if( niceName.equals(swingstring) ) {
+        if( swingstring.equals(logic.niceName) ||
+            swingstring.equals(logic.overrideMenuItemText()) ) {
           // This happens when the invocation comes via a menu
           swing.whenInvokingCommand(true);
-          debugTraceInvoke();
-          invoke();
+          logic.debugTraceInvoke();
+          logic.invoke();
         } else if( (e.getModifiers() & ActionEvent.ALT_MASK) != 0 &&
             keybinding != null &&
             (keybinding.getModifiers() & InputEvent.ALT_DOWN_MASK) == 0 ) {
-          System.err.println("[ignoing spurious "+codename+"] <"+keybinding+">");
+          System.err.println("[ignoing spurious "+logic.codename+"] <"+
+              keybinding+">");
           return;
         } else if( swing.possiblyRepeatingKey.equals(swingstring) &&
-            !codename.endsWith("...")) {
+            !logic.codename.endsWith("...")) {
           // ignore auto-repeating keys where we haven't seen a key
           // release event first
           return;
         } else {
           swing.possiblyRepeatingKey = swingstring;
           swing.whenInvokingCommand(false);
-          debugTraceInvoke();
+          logic.debugTraceInvoke();
           if( swingstring != null && swingstring.length() == 1 ) {
             invokeByKey(swingstring.charAt(0));
           } else {
-            invoke();
+            logic.invoke();
           }
         }
         swing.refreshScene();
@@ -125,23 +82,9 @@ public abstract class Command {
     };
   }
 
-  void debugTraceInvoke() {
-    System.err.println("["+codename+"]");
-  }
-
-  protected Boolean getMenuSelected() {
-    // Returning null means this never shows a checkmark
-    return null;
-  }
-
-  public String overrideMenuItemText() {
-    // Returning null means to use the standard nicename.
-    return null;
-  }
-
   public final JMenuItem makeMenuItem() {
     var action = getAction();
-    String overrideText = overrideMenuItemText();
+    String overrideText = logic.overrideMenuItemText();
     if( overrideText != null ) {
       var original = action;
       action = new AbstractAction(overrideText) {
@@ -155,20 +98,19 @@ public abstract class Command {
     }
     JMenuItem result;
     Boolean selectedState;
-    if( this instanceof ToggleCommand toggle ) {
+    if( logic instanceof ToggleCommand toggle ) {
       result = new JCheckBoxMenuItem(action);
       result.setSelected(toggle.getCurrentState());
       if( !toggle.dismissPopupMenuImmediately() )
         result.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick",
             Boolean.TRUE);
-    } else if( (selectedState = getMenuSelected()) != null ) {
+    } else if( (selectedState = logic.getMenuSelected()) != null ) {
       result = new JRadioButtonMenuItem(action);
       result.setSelected(selectedState);
     } else {
       result = new JMenuItem(action);
     }
-    if( !makesSenseNow() )
-      result.setEnabled(false);
+    result.setEnabled(logic.makesSenseNow());
     return result;
   }
 
@@ -180,8 +122,8 @@ public abstract class Command {
 
   final void defineInActionMap(JComponent c) {
     ActionMap actionMap = c.getActionMap();
-    if( actionMap.get(codename) == null )
-      actionMap.put(codename, getAction());
+    if( actionMap.get(logic.codename) == null )
+      actionMap.put(logic.codename, getAction());
   }
 
 }

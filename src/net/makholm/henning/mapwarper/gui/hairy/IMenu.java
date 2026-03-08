@@ -1,6 +1,6 @@
 package net.makholm.henning.mapwarper.gui.hairy;
 
-import net.makholm.henning.mapwarper.gui.swing.Command;
+import net.makholm.henning.mapwarper.gui.Command;
 
 public interface IMenu {
 

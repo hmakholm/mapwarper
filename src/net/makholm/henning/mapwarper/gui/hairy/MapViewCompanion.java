@@ -1,8 +1,8 @@
 package net.makholm.henning.mapwarper.gui.hairy;
 
+import net.makholm.henning.mapwarper.gui.Command;
 import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.overlays.BoxOverlay;
-import net.makholm.henning.mapwarper.gui.swing.Command;
 
 /**
  * This object is the framework-specific part of {@link MapView}.

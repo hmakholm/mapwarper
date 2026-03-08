@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import net.makholm.henning.mapwarper.gui.files.VectFile;
 import net.makholm.henning.mapwarper.gui.hairy.IMenu;
-import net.makholm.henning.mapwarper.gui.swing.Command;
 import net.makholm.henning.mapwarper.track.FileContent;
 
 public class UndoList {

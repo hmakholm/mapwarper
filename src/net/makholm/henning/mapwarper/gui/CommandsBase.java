@@ -6,7 +6,6 @@ import java.util.Map;
 import net.makholm.henning.mapwarper.gui.files.FilePane;
 import net.makholm.henning.mapwarper.gui.hairy.GuiMain;
 import net.makholm.henning.mapwarper.gui.hairy.MapViewCompanion;
-import net.makholm.henning.mapwarper.gui.swing.Command;
 
 /**
  * This is a separate class just so its constructor gets to run before
