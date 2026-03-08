@@ -53,6 +53,9 @@ public class FilePane {
     this.cache = cache;
     this.hairy = window.createCompanion(this);
 
+    updateViewTrigger = new PokeReceiver("updateFilePane",
+        this::updateView, window);
+
     Path arg = Path.of(filearg == null ? "." : filearg);
     arg = arg.toAbsolutePath().normalize();
     if( arg.getFileName().toString().endsWith(VectFile.EXTENSION) ) {
@@ -625,8 +628,7 @@ public class FilePane {
   private final Map<Path, Entry> allEntries = new LinkedHashMap<>();
   private final Map<Path, TreeMap<String, Entry>> branches = new LinkedHashMap<>();
 
-  private final PokeReceiver updateViewTrigger =
-      new PokeReceiver("updateFilePane", this::updateView);
+  private final PokeReceiver updateViewTrigger;
 
   public void updateViewEventually() {
     updateViewTrigger.poke();

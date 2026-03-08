@@ -5,13 +5,13 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.SwingUtilities;
+import net.makholm.henning.mapwarper.gui.hairy.UIExecutor;
 
 public class PokeReceiver {
 
   public final String name;
 
-  private final boolean runImmediately;
+  private final UIExecutor executor;
   private final Runnable action;
 
   private final Map<PokePublisher, Runnable> subscriptions =
@@ -22,16 +22,16 @@ public class PokeReceiver {
    * @param action can be null in a subclass that overrides {@link #run()}.
    */
   public PokeReceiver(String name,
-      Runnable action) {
+      Runnable action, UIExecutor executor) {
     this.name = name;
     this.action = action;
-    this.runImmediately = false;
+    this.executor = executor;
   }
 
   public PokeReceiver(String name, PokeReceiver justPokeThis) {
     this.name = name;
     this.action = justPokeThis::poke;
-    this.runImmediately = true;
+    this.executor = null;
   }
 
   protected void run() {
@@ -68,14 +68,14 @@ public class PokeReceiver {
   };
 
   public void poke() {
-    if( runImmediately ) {
+    if( executor == null ) {
       this.run();
     } else {
       synchronized(PokeReceiver.this) {
         if( pokePending ) return;
         pokePending = true;
       }
-      SwingUtilities.invokeLater(myDelivery);
+      executor.scheduleForUIThread(myDelivery);
     }
   }
 

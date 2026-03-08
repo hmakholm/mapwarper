@@ -7,7 +7,7 @@ import net.makholm.henning.mapwarper.gui.Commands;
 import net.makholm.henning.mapwarper.gui.MapView;
 import net.makholm.henning.mapwarper.gui.files.FilePane;
 
-public interface GuiMain {
+public interface GuiMain extends UIExecutor {
 
   public MapViewCompanion createCompanion(MapView logic);
   public FilePaneCompanion createCompanion(FilePane logic);

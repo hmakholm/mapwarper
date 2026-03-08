@@ -128,7 +128,7 @@ public final class MapView {
     this.windowTitle = new WindowTitle(this);
 
     this.refreshTrigger = new PokeReceiver("deferred refresh MapView",
-        hairy::refreshScene);
+        hairy::refreshScene, window);
     this.contentChangeListener = new PokeReceiver("content change listener",
         refreshTrigger);
 

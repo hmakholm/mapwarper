@@ -23,6 +23,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -107,6 +108,11 @@ class MainFrame extends JFrame implements GuiMain {
   @Override
   public void beep() {
     getToolkit().beep();
+  }
+
+  @Override
+  public void scheduleForUIThread(Runnable r) {
+    SwingUtilities.invokeLater(r);
   }
 
   @Override
