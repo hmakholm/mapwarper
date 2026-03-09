@@ -19,6 +19,14 @@
 
 <swing name="lookAndFeel" value="javax.swing.plaf.nimbus.NimbusLookAndFeel"/>
 
+<!--
+    If you have CPU cores to spare, you can get faster endering of map
+    warps by increasing this in a local configuration file.
+    (Note, this does not parallelize tile downloads, only processing of
+    tile pixels once downloaded).
+-->
+<mapRender numThreads="2"/>
+
 <!-- ============ T I L E S E T    D E F I N I T I O N S =================== -->
 
 <tileset name="osm"

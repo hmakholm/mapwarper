@@ -54,6 +54,7 @@ MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
   Rectangle viewportRect;
   long positionOffsetX, positionOffsetY;
 
+  final RenderQueue renderQueue;
   private MapPainter previousMapPainter;
   private MapPainter currentMapPainter;
   private MapPainter currentLensPainter;
@@ -100,6 +101,7 @@ MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     addMouseWheelListener(this);
     addKeyListener(this);
 
+    renderQueue = new RenderQueue(logic.tiles.config);
     renderQueue.startRenderThreads();
   }
 
@@ -714,7 +716,5 @@ MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
     else
       return null;
   }
-
-  final RenderQueue renderQueue = new RenderQueue();
 
 }

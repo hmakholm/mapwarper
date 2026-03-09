@@ -42,8 +42,33 @@ public class XmlConfig {
     return null;
   }
 
+  public Integer integer(String tag, String name, String attr) {
+    var str = string(tag, name, attr);
+    if( str == null ) return null;
+    try {
+      return Integer.parseInt(str);
+    } catch( NumberFormatException _ ) {
+      System.err.println("Config value "+nameValue(tag, name, attr)+
+          " '"+str+"' should be an integer; ignoring");
+      return null;
+    }
+  }
+
   public String string(String tag, String name) {
     return string(tag, name, "value");
+  }
+
+  public Integer integer(String tag, String name) {
+    return integer(tag,name,"value");
+  }
+
+  private final String nameValue(String tag, String name, String attr) {
+    var s = tag;
+    if( name != null )
+      s += "." + name;
+    if( !"value".equals(attr) )
+      s += "." + attr;
+    return s;
   }
 
   public XmlConfig(boolean verbose, Class<?> mainClass) {
