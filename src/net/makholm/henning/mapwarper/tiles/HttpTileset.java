@@ -1,6 +1,7 @@
 package net.makholm.henning.mapwarper.tiles;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -68,6 +69,9 @@ public abstract class HttpTileset extends DiskCachedTileset {
       }
     } catch( InterruptedException e ) {
       throw new RuntimeException("This shouldn't happen", e);
+    } catch( ConnectException e ) {
+      Files.deleteIfExists(dest);
+      throw new TryDownloadLater(e);
     } catch( IOException e ) {
       Files.deleteIfExists(dest);
       String msg = e.getMessage();
