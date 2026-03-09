@@ -20,7 +20,6 @@ import net.makholm.henning.mapwarper.geometry.Point;
 import net.makholm.henning.mapwarper.georaster.PixelAddresser;
 import net.makholm.henning.mapwarper.georaster.TileBitmap;
 import net.makholm.henning.mapwarper.gui.SupersampleDebugger;
-import net.makholm.henning.mapwarper.gui.Toggles;
 import net.makholm.henning.mapwarper.rgb.RGB;
 import net.makholm.henning.mapwarper.tiles.TileSpec;
 import net.makholm.henning.mapwarper.tiles.Tileset;
@@ -68,15 +67,11 @@ abstract class CommonRenderer implements RenderWorker {
             target.top()+target.rows()/2));
 
     this.loadTiles = true;
-    if( !Toggles.TILEGRID.setIn(spec.flags()) )
+    int tilegridZoom = spec.tilegridZoom();
+    if( tilegridZoom <= 0 )
       tilegrid = null;
-    else {
-      int zoom = mainTiles.guiTargetZoom;
-      if( !Toggles.DOWNLOAD.setIn(spec.flags()) &&
-          Toggles.hasDebugZoom(spec.flags()) )
-        zoom = Toggles.debugZoom(spec.flags());
-      tilegrid = mainTiles.makeAddresser(zoom, globalMidpoint);
-    }
+    else
+      tilegrid = mainTiles.makeAddresser(tilegridZoom, globalMidpoint);
 
     markAllForRendering();
   }

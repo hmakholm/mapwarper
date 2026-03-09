@@ -34,11 +34,14 @@ class BoundSnappingTool extends EditTool {
 
     TrackNode created = super.local2node(local);
 
-    if( Toggles.TILEGRID.setIn(mapView().toggleState) ) {
+    int tilegridZoom = mapView.dynamicMapLayerSpec.tilegridZoom();
+    if( tilegridZoom > 0 ) {
       // When editing with tiles shown, we probably want to align to the
       // tile corners, so snap to those!
-      int snapx = gridsnap(Coords.x(created.pos));
-      int snapy = gridsnap(Coords.y(created.pos));
+      int mask = -(Coords.EARTH_SIZE >> tilegridZoom);
+      int half = Coords.EARTH_SIZE >> (tilegridZoom+1);
+      int snapx = (Coords.x(created.pos) + half) & mask;
+      int snapy = (Coords.y(created.pos) + half) & mask;
       TrackNode corner = new TrackNode(snapx, snapy);
       Point localCorner = translator().global2localWithHint(corner, local);
       if( localCorner.dist(local) < SNAP_DISTANCE ) {
@@ -48,12 +51,6 @@ class BoundSnappingTool extends EditTool {
     }
 
     return created;
-  }
-
-  private static final int TILESIZE = (Coords.EARTH_SIZE >> 18);
-
-  private int gridsnap(int coord) {
-    return (coord + TILESIZE/2) & -TILESIZE;
   }
 
   private TrackNode lastSnapped;
