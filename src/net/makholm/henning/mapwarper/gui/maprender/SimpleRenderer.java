@@ -16,10 +16,6 @@ public abstract class SimpleRenderer extends CommonRenderer {
   protected SimpleRenderer(LayerSpec spec, double xpixsize, double ypixsize,
       RenderTarget target) {
     super(spec, xpixsize, ypixsize, target);
-    if( spec.mainTiles().context.ramCache.isEmpty() ) {
-      // Pretend we have already completed the from-RAM-only pass
-      renderPassesCompleted ++;
-    }
   }
 
   protected abstract PointWithNormal locateColumn(double x, double y);
@@ -27,6 +23,12 @@ public abstract class SimpleRenderer extends CommonRenderer {
   @Override
   public final void doSomeWork() throws AbortRendering {
     adjustForNonUrgency();
+    if( renderPassesCompleted == 0 &&
+        spec.mainTiles().context.ramCache.isEmpty() ) {
+      // No point in iterating through pixels without even loading anything
+      renderPassesCompleted++;
+      return;
+    }
     loadTiles = renderPassesCompleted > 0;
     oneRenderPass();
     renderPassesCompleted++;
