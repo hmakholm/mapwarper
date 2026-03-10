@@ -31,6 +31,10 @@ public class WindowTitle {
   private Tileset lensTiles;
   private int lensZoom;
 
+  public void invalidate() {
+    flagBits = -1;
+  }
+
   public String refresh() {
     int flags0 = logic.toggleState & RELEVANT_FLAGS;
     Tileset lensTiles0 = null;

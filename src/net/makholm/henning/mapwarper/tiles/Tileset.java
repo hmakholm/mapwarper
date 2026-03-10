@@ -37,11 +37,13 @@ public abstract class Tileset {
   public final String desc;
   public final List<String> blurb = new ArrayList<>();
 
-  public final int coarsestZoom, guiTargetZoom, finestZoom;
+  public final int coarsestZoom, configuredGuiZoom, finestZoom;
   public final boolean allowOrtho;
   public final boolean isOverlayMap;
   public final boolean darkenMap;
   public final AxisRect boundingBox;
+
+  public int guiTargetZoom;
 
   protected final Path cacheRoot;
   protected final String webUrlTemplate;
@@ -188,7 +190,8 @@ public abstract class Tileset {
     this.cacheRoot = ctx.caches.forTileset(this);
 
     this.coarsestZoom = intAttr("coarsestZoom", 1);
-    this.guiTargetZoom = intAttr("guiTargetZoom", 16);
+    this.configuredGuiZoom = intAttr("guiTargetZoom", 16);
+    this.guiTargetZoom = configuredGuiZoom;
     this.finestZoom = intAttr("finestZoom", 21);
     // TODO: complain if those zooms are outside the range representable by
     // FallbackChain structure can represent?

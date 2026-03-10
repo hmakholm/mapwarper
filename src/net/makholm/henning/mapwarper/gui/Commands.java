@@ -2,9 +2,11 @@ package net.makholm.henning.mapwarper.gui;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 
 import net.makholm.henning.mapwarper.gui.files.FilePane;
@@ -194,10 +196,44 @@ public class Commands extends CommandsBase {
     @Override public void invoke() { doIt.accept(mapView, tiles); }
   }
 
+  private class TilesetZoomCommand extends Command {
+    final Tileset tiles;
+    final IntUnaryOperator op;
+    TilesetZoomCommand(String codename, String verb,
+        IntUnaryOperator op, Tileset tiles) {
+      super(Commands.this, codename+"."+tiles.name,
+          verb+" target zoom");
+      this.tiles = tiles;
+      this.op = op;
+    }
+    int wantZoom() {
+      int want = op.applyAsInt(tiles.guiTargetZoom);
+      if( want > tiles.finestZoom || want < tiles.coarsestZoom || want < 10 )
+        return tiles.guiTargetZoom;
+      else
+        return want;
+    }
+    @Override
+    public boolean makesSenseNow() {
+      return wantZoom() != tiles.guiTargetZoom;
+    }
+    @Override
+    public String overrideMenuItemText() {
+      return makesSenseNow() ? niceName+" to "+wantZoom() : null;
+    }
+    @Override
+    public void invoke() {
+      tiles.guiTargetZoom = wantZoom();
+      mapView.hairy.invalidateMapRendering();
+      mapView.windowTitle.invalidate();
+    }
+  }
+
   private class TilesetCommands {
     final Tileset tiles;
     final Command just, weakOrtho, lens;
     final Command setmap, setmapm, setwarp, setwarpm;
+    final TilesetZoomCommand[] zoomChangeCommands;
     TilesetCommands(String name) {
       tiles = mapView.tiles.tilesets.get(name);
       if( tiles != null ) {
@@ -243,7 +279,12 @@ public class Commands extends CommandsBase {
                     "This key would use the unknown tileset '%s'.", name));
         setmap = setmapm = setwarp = setwarpm = null;
       }
+      zoomChangeCommands = new TilesetZoomCommand[] {
+          new TilesetZoomCommand("z+", "Increase", x -> x+1, tiles),
+          new TilesetZoomCommand("z-", "Decrease", x -> x-1, tiles),
+          new TilesetZoomCommand("z0", "Reset", _ -> tiles.configuredGuiZoom, tiles) };
     }
+
     final void defineMenu(IMenu menu) {
       if( setmap != null ) menu.add(setmap);
       if( setwarp != null ) menu.add(setwarp);
@@ -251,6 +292,16 @@ public class Commands extends CommandsBase {
       menu.addSeparator();
       if( just != null ) menu.add(just);
       if( weakOrtho != null ) menu.add(weakOrtho);
+      if( tiles == mapView.mainTiles ) {
+        var map = new TreeMap<Integer, Command>();
+        for( var c : zoomChangeCommands )
+          map.put(c.wantZoom(), c);
+        map.remove(tiles.guiTargetZoom);
+        if( !map.isEmpty() ) {
+          menu.addSeparator();
+          map.values().forEach(menu::add);
+        }
+      }
       if( !tiles.transferOptions.isEmpty() && tiles == mapView.mainTiles ) {
         menu.addSeparator();
         menu.add(cycleTransferFunction);
