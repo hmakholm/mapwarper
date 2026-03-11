@@ -56,6 +56,7 @@ public abstract class HttpTileset extends DiskCachedTileset {
       case 200:
         break;
       case 500:
+      case 503:
         throw new TryDownloadLater("Got HTTP response "+code);
       default:
         throw new IOException("Tile fetching failed for "+url);
