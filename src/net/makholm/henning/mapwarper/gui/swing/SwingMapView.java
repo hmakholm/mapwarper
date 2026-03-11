@@ -1,7 +1,6 @@
 package net.makholm.henning.mapwarper.gui.swing;
 
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -538,7 +537,7 @@ MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
           break;
         }
       case 2:
-        setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+        cursor.set("MOVE");
         ongoingMapDrag = dragStartingEvent.getLocationOnScreen();
         break;
       default:
