@@ -1,8 +1,10 @@
 package net.makholm.henning.mapwarper.util;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -130,7 +132,13 @@ public class XmlConfig {
 
     var source = mainClass.getProtectionDomain().getCodeSource().getLocation();
     if( source.getProtocol().equals("file") ) {
-      var spath = Path.of(source.getPath());
+      Path spath;
+      try {
+        spath = Paths.get(source.toURI());
+      } catch (URISyntaxException e) {
+        e.printStackTrace();
+        return;
+      }
       if( Files.isDirectory(spath) ) {
         if( spath.getFileName().toString().equals("src") ||
             spath.getFileName().toString().equals("bin") ) {

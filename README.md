@@ -84,16 +84,18 @@ code into a `mapwarper.jar` the first time it runs. If you pull new
 code changes from GitHub, delete the JAR file to provoke a
 recompilation.
 
-Or, if you're super ambitious, load the source tree into Eclipse or
-another IDE that will populate a `bin/` directory automatically. The
-`mapwarper` script will use that preferentially over a
-`mapwarper.jar`.
+On Windows I've had success with running the `mapwarper` script from
+Git Bash. Other bashes ought to work as well.
 
-On Windows you'll be more on your own with compiling the code. I don't
-have any opportunity to test a launcher script for Windows. If you
-know how to run a Java compiler at all, it should be straightforward
--- there are _no_ dependencies beyond what comes with Java out of the
-box!
+Or, if you're super ambitious, load the source tree into Eclipse,
+Visual Studio Code, or another IDE that will populate a `bin/`
+directory automatically. The `mapwarper` script will use that
+preferentially over a `mapwarper.jar`.
+
+On Windows without Unix emulation or an IDE, you'll be more on your
+own with compiling the code. If you know how to run a Java compiler
+at all, it should be straightforward -- there are _no_ dependencies
+beyond what comes with Java out of the box!
 
 From time to time (if people bug me for it) I might release a
 pre-built JAR for the benefit of people who only have a Java Runtime
@@ -101,10 +103,9 @@ Environment installed. You'll still want to check out the source tree
 from Git in order to get the XML config file that defines tileset
 sources, and my example warp definitions.
 
-Strictly speaking I don't _know_ the program will work on MacOS or
-Windows, but Swing claims to be cross-platform, so there's at least a
-fairly good chance that it should. If you try it, let me know how it
-goes!
+Strictly speaking I don't _know_ the program will work on MacOS, but
+Swing claims to be cross-platform, so there's at least a fairly good
+chance that it should. If you try it, let me know how it goes!
 
 ### Minor caveats
 
